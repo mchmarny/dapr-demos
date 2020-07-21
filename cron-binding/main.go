@@ -17,14 +17,14 @@ func main() {
 	}
 }
 
-func runHandler(c *gin.Context) {
-	// TODO: do something interesting here
-	log.Printf("invocation received: %v", time.Now())
-	c.JSON(http.StatusOK, nil)
-}
-
 func optionsHandler(c *gin.Context) {
 	c.Header("Allow", "POST")
 	c.Header("Content-Type", "application/json")
 	c.AbortWithStatus(http.StatusOK)
+}
+
+func runHandler(c *gin.Context) {
+	// TODO: do something interesting here
+	log.Printf("invocation received: %v", time.Now())
+	c.JSON(http.StatusOK, nil)
 }
