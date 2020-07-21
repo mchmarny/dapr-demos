@@ -24,7 +24,7 @@ func runHandler(c *gin.Context) {
 }
 
 func optionsHandler(c *gin.Context) {
-	c.Header("Allow", "POST,OPTIONS")
+	c.Header("Allow", "POST")
 	c.Header("Content-Type", "application/json")
 	c.AbortWithStatus(http.StatusOK)
 }
