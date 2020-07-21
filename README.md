@@ -1,2 +1,3 @@
 # dapr-demos
-Personal collection of Dapr demo
+
+Collection of personal Dapr demo
