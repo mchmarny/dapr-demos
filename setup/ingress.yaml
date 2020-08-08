@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-rules
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+    - hosts:
+      - '*.chmarny.dev'  
+      - chmarny.dev
+      secretName: tls-secret
+  rules:
+    - host: api.chmarny.dev
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: nginx-ingress-dapr
+              servicePort: 80
+      

@@ -6,12 +6,12 @@ tidy: ## Updates the go modules and vendors all dependencies
 
 run: ## Runs uncompiled code it in Dapr
 	dapr run \
-	     --app-id cron-demo \
-	     --protocol http \
-	     --app-port 8080 \
-	     --components-path ./config \
-	     --log-level debug \
-	     go run *.go
+	  --app-id cron-demo \
+	  --protocol http \
+	  --app-port 8080 \
+	  --components-path ./config \
+	  --log-level debug \
+	  go run *.go
 
 help: ## Display available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk \
