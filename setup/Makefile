@@ -38,17 +38,17 @@ dapr: ## Install Dapr into current kubeconfig selected context
 	helm install dapr dapr/dapr -n dapr-system --set global.logAsJson=true
 	# Installing Observabiliity...
 	kubectl create namespace dapr-monitoring
-	kubectl apply -f ./fluentd-config.yaml -f ./fluentd.yaml
-	kubectl apply -f ./zipkin-config.yaml -f ./zipkin.yaml
+	kubectl apply -f ./config/fluentd-config.yaml -f ./config/fluentd.yaml
+	kubectl apply -f ./config/zipkin-config.yaml -f ./config/zipkin.yaml
 	helm install elasticsearch elastic/elasticsearch -n dapr-monitoring
 	helm install dapr-prom stable/prometheus -n dapr-monitoring
 	helm install grafana stable/grafana -n dapr-monitoring
 	helm install kibana elastic/kibana -n dapr-monitoring
 	# Deploying ingress...
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
-	helm install nginx stable/nginx-ingress -f ./annotations.yaml
+	helm install nginx stable/nginx-ingress -f ./config/annotations.yaml
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
-	kubectl apply -f ./ingress.yaml
+	kubectl apply -f ./config/ingress.yaml
 	# Wating for monitoring to come up....
 	kubectl get pods -n dapr-monitoring -w
 	kubectl get service --selector=app=nginx-ingress,component=controller \
