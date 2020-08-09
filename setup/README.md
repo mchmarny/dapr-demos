@@ -1,6 +1,6 @@
-## WIP: Dapr Setup   
+## Dapr setup
 
-An opinionated Dapr deployment on Kubernetes clusters. I often use for the deployment of my demos. It includes:
+An opinionated Dapr deployment on Kubernetes clusters. I often use it for the deployment of my demos. It includes:
 
 * Latest version of Dapr
 * Metrics Monitoring
