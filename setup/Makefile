@@ -12,11 +12,11 @@ clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
 	$(info   az account set --subscription <id or name>)
 	$(info   az configure --defaults location=<preferred location> group=<preferred resource group>)
 	az aks create \
-      --name $(CLUSTER_NAME) \
-      --node-count $(NODE_COUNT) \
-      --node-vm-size $(NODE_TYPE) \
-      --enable-addons monitoring \
-      --generate-ssh-keys
+		--name $(CLUSTER_NAME) \
+		--node-count $(NODE_COUNT) \
+		--node-vm-size $(NODE_TYPE) \
+		--enable-addons monitoring \
+		--generate-ssh-keys
 	az aks get-credentials --name $(CLUSTER_NAME)
 	
 certs: ## Create wildcard certificates using letsencrypt
@@ -57,14 +57,14 @@ dapr: ## Install Dapr into current kubeconfig selected context
 
 test: ## Execute Dapr API health call
 	curl -v \
-      -H "Content-type: application/json" \
-      -H "dapr-api-token: $(API_TOKEN)" \
-      "https://api.$(DOMAIN)/v1.0/healthz"
+		 -H "Content-type: application/json" \
+		 -H "dapr-api-token: $(API_TOKEN)" \
+		 "https://api.$(DOMAIN)/v1.0/healthz"
 
 metricpass: ## Retrieve grafana admin password
 	$(info Grafana admin password:)
 	kubectl get secret -n dapr-monitoring grafana \
-		-o jsonpath="{.data.admin-password}" | base64 --decode
+	  -o jsonpath="{.data.admin-password}" | base64 --decode
 
 forwards: ## Forward observability ports
 	$(info Forwarding ports: kibana=5601, grafana=8080, zipkin=9411)
@@ -85,4 +85,4 @@ clusterdown: ## Delete previously created AKS cluster (make cleanup CLUSTER_NAME
 
 help: ## Display available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk \
-      'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+		'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
