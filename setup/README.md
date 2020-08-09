@@ -29,8 +29,8 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 
 To find out all the operations run `make` or `make help`. Remember to update or override the variables at the top of the makefile:
 
-* DOMAIN - The root of the domain for which you will be creating wildcard certificates
-* API_TOKEN - Dapr public API token 
+* `DOMAIN` - The root of the domain for which you will be creating wildcard certificates
+* `API_TOKEN` - Dapr public API token 
 
 ```shell
 clusterup                      Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
@@ -46,9 +46,9 @@ help                           Display available commands
 
 Additionally, when using the `clusterup` and `clusterdown` actions, you will have to define:
 
-* CLUSTER_NAME - Used in cluster creation only 
-* NODE_COUNT - NUmber of nodes in the cluster default pool
-* NODE_TYPE - VM type used for the nodes in default pool 
+* `CLUSTER_NAME` - Used in cluster creation only 
+* `NODE_COUNT` - NUmber of nodes in the cluster default pool
+* `NODE_TYPE` - VM type used for the nodes in default pool 
 
 
 ## Disclaimer
