@@ -8,9 +8,9 @@ NODE_TYPE    ?=Standard_D4_v2
 all: help
 
 clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
-	$(info Assumes your default az resource group and locaiton are defined)
-	$(info   az account set --subscription <id or name>)
-	$(info   az configure --defaults location=<preferred location> group=<preferred resource group>)
+	# Assumes your default az resource group and locaiton are defined
+	#   az account set --subscription <id or name>
+	#   az configure --defaults location=<preferred location> group=<preferred resource group>
 	az aks create \
 		--name $(CLUSTER_NAME) \
 		--node-count $(NODE_COUNT) \
@@ -20,7 +20,6 @@ clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
 	az aks get-credentials --name $(CLUSTER_NAME)
 	
 certs: ## Create wildcard certificates using letsencrypt
-	$(info Generating TLS sertificates...)
 	sudo certbot certonly --manual --preferred-challenges dns -d "*.$(DOMAIN)"
 	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" ./cert-ca.pem	
 	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" ./cert-pk.pem
@@ -62,12 +61,12 @@ test: ## Execute Dapr API health call
 		 "https://api.$(DOMAIN)/v1.0/healthz"
 
 metricpass: ## Retrieve grafana admin password
-	$(info Grafana admin password:)
+	# Grafana admin password:
 	kubectl get secret -n dapr-monitoring grafana \
 	  -o jsonpath="{.data.admin-password}" | base64 --decode
 
 forwards: ## Forward observability ports
-	$(info Forwarding ports: kibana=5601, grafana=8080, zipkin=9411)
+	# Forwarding ports: kibana=5601, grafana=8080, zipkin=9411
 	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
 	kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
 	kubectl port-forward svc/zipkin 9411:9411 &
