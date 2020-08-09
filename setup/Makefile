@@ -12,11 +12,11 @@ clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
 	$(info   az account set --subscription <id or name>)
 	$(info   az configure --defaults location=<preferred location> group=<preferred resource group>)
 	az aks create \
-		--name $(CLUSTER_NAME) \
-		--node-count $(NODE_COUNT) \
-		--node-vm-size $(NODE_TYPE) \
-		--enable-addons monitoring \
-		--generate-ssh-keys
+      --name $(CLUSTER_NAME) \
+      --node-count $(NODE_COUNT) \
+      --node-vm-size $(NODE_TYPE) \
+      --enable-addons monitoring \
+      --generate-ssh-keys
 	az aks get-credentials --name $(CLUSTER_NAME)
 	
 certs: ## Create wildcard certificates using letsencrypt
