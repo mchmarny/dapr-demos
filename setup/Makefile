@@ -57,9 +57,9 @@ dapr: ## Install Dapr into current kubeconfig selected context
 
 test: ## Execute Dapr API health call
 	curl -v \
-     -H "Content-type: application/json" \
-     -H "dapr-api-token: $(API_TOKEN)" \
-     "https://api.$(DOMAIN)/v1.0/healthz"
+      -H "Content-type: application/json" \
+      -H "dapr-api-token: $(API_TOKEN)" \
+      "https://api.$(DOMAIN)/v1.0/healthz"
 
 metricpass: ## Retrieve grafana admin password
 	$(info Grafana admin password:)
@@ -85,4 +85,4 @@ clusterdown: ## Delete previously created AKS cluster (make cleanup CLUSTER_NAME
 
 help: ## Display available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk \
-		'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+      'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
