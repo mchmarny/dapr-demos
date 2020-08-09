@@ -1,6 +1,4 @@
 controller:
-  defaultTLS.secret: default/tls-secret
-  wildcardTLS.secret: default/tls-secret
   podAnnotations:
     dapr.io/enabled: "true"
     dapr.io/id: "nginx-ingress"
