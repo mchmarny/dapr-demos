@@ -1,6 +1,6 @@
 CLUSTER_NAME ?=demo6
-DOMAIN		 ?=chmarny.dev
-API_TOKEN	 ?=not-a-real-secret
+DOMAIN       ?=chmarny.dev
+API_TOKEN    ?=not-a-real-secret
 NODE_COUNT   ?=3
 NODE_TYPE    ?=Standard_D4_v2
 
