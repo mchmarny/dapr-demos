@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-grpc-event-subscriber-template
+module github.com/mchmarny/dapr-demos/grpc-event-subscriber
 
 go 1.14
 

@@ -1,4 +1,4 @@
-module github.com/mchmarny/cron-example
+module github.com/mchmarny/dapr-demos/cron-binding
 
 go 1.14
 

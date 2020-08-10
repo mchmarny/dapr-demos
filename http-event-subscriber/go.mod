@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-http-event-subscriber-template
+module github.com/mchmarny/dapr-demos/http-event-subscriber
 
 go 1.14
 

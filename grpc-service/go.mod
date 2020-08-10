@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-grpc-service-template
+module github.com/mchmarny/dapr-demos/grpc-service
 
 go 1.14
 
