@@ -6,9 +6,9 @@ Dapr service handler demo in `go`. To use run it, first start the service
 
 ```shell
 dapr run --app-id my-service \
-		 --app-port 50001 \
-		 --protocol grpc \
-		 --port 3500 \
+	    --app-port 50001 \
+	    --protocol grpc \
+	    --port 3500 \
          go run main.go
 ```
 
@@ -26,4 +26,4 @@ This is my personal project and it does not represent my employer. I take no res
 
 ## License
 
-This software is released under the [MIT](./LICENSE)
+This software is released under the [MIT](../LICENSE)

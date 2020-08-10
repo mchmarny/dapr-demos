@@ -6,9 +6,9 @@ Dapr gRPC event subscriber services demo in `go`. To use run it, first start the
 
 ```shell
 dapr run --app-id event-subscriber \
-		 --app-port 50001 \
-		 --protocol grpc \
-		 --port 3500 \
+	    --app-port 50001 \
+	    --protocol grpc \
+	    --port 3500 \
          --components-path ./config \
          go run main.go
 ```
@@ -33,4 +33,4 @@ This is my personal project and it does not represent my employer. I take no res
 
 ## License
 
-This software is released under the [MIT](./LICENSE)
+This software is released under the [MIT](../LICENSE)
