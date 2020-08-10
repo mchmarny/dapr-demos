@@ -25,31 +25,68 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 
 ## How to use it
 
+This section assumes you already have a Kubernates cluster. If not, see the [Create Cluster](#create-cluster) section below
+
 > Note, Currently this only supports default namespace deployments
 
-To find out all the operations run `make` or `make help`. Remember to update or override the variables at the top of the makefile:
+Start by updating the variables at the top of the makefile:
 
 * `DOMAIN` - The root of the domain for which you will be creating wildcard certificates
 * `API_TOKEN` - Dapr public API token 
 
+
+To create a wildcard certificate using [Let's Encrypt](https://letsencrypt.org/) run
+
 ```shell
-clusterup                      Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
-certs                          Create wildcard certificates using letsencrypt
-dapr                           Install Dapr into current kubeconfig selected context
-test                           Execute Dapr API health call
-metricpass                     Retrieve grafana admin password
-forwards                       Forward observability ports
-unforward                      Stop previously forwarded ports
-clusterdown                    Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
-help                           Display available commands
+make certs
 ```
 
-Additionally, when using the `clusterup` and `clusterdown` actions, you will have to define:
+To install Dapr and all observability components as well as configure TLS run 
+
+```shell
+make dapr
+```
+
+To test your deployment and to validate the API Authentication run
+
+```shell
+make test
+```
+
+To get access to the observability dashboards run
+
+> Note, this action will open Kibana (port 5601), Grafana (port 8080), Zipkin (port 9411) dashboards in your default browser. If these ports are already being used you may have to edit the `forwards` action in `Makefile`
+
+```shell
+make forwards
+```
+
+To stop forwarding the above ports run `make unforward`
+
+Additionally, the Grafana dashboard will require password, you can get it using the `make metricpass` action
+
+## Create Cluster
+
+If you don't already have a cluster, you can create one on AKS. Start by updating these variables at the `Makefile`
 
 * `CLUSTER_NAME` - Used in cluster creation only 
 * `NODE_COUNT` - NUmber of nodes in the cluster default pool
 * `NODE_TYPE` - VM type used for the nodes in default pool 
 
+This action assumes your default Azure resource group and location are already defined. If not, run
+
+```shell
+az account set --subscription <id or name>
+az configure --defaults location=<preferred location> group=<preferred resource group>
+```
+
+To create a demo cluster on AKS run
+
+```shell
+make clusterup
+```
+
+To delete the cluster and all of its resources run `make clusterdown`
 
 ## Disclaimer
 
