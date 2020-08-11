@@ -1,0 +1,103 @@
+{
+    "favorited": false,
+    "contributors": null,
+    "truncated": false,
+    "text": "#CFP Workshop on Noisy User-generated Text at ACL - Beijing 31 July 2015. Papers due: 11 May 2015. http://t.co/rcygyEowqH   #NLProc #WNUT15",
+    "possibly_sensitive": false,
+    "in_reply_to_status_id": null,
+    "user": {
+        "follow_request_sent": null,
+        "profile_use_background_image": true,
+        "default_profile_image": false,
+        "id": 237918251,
+        "verified": false,
+        "profile_image_url_https": "https://pbs.twimg.com/profile_images/527088456967544832/DnclpoZO_normal.jpeg",
+        "profile_sidebar_fill_color": "DDEEF6",
+        "profile_text_color": "333333",
+        "followers_count": 226,
+        "profile_sidebar_border_color": "C0DEED",
+        "id_str": "237918251",
+        "profile_background_color": "C0DEED",
+        "listed_count": 13,
+        "profile_background_image_url_https": "https://abs.twimg.com/images/themes/theme1/bg.png",
+        "utc_offset": null,
+        "statuses_count": 120,
+        "description": "I am a postdoctoral researcher @PennCIS, studying Natural Language Processing and Social Media.",
+        "friends_count": 166,
+        "location": "Philadelphia PA",
+        "profile_link_color": "0084B4",
+        "profile_image_url": "http://pbs.twimg.com/profile_images/527088456967544832/DnclpoZO_normal.jpeg",
+        "following": null,
+        "geo_enabled": true,
+        "profile_background_image_url": "http://abs.twimg.com/images/themes/theme1/bg.png",
+        "name": "Wei Xu",
+        "lang": "en",
+        "profile_background_tile": false,
+        "favourites_count": 88,
+        "screen_name": "cocoweixu",
+        "notifications": null,
+        "url": "http://www.cis.upenn.edu/~xwe/",
+        "created_at": "Thu Jan 13 23:15:12 +0000 2011",
+        "contributors_enabled": false,
+        "time_zone": null,
+        "protected": false,
+        "default_profile": true,
+        "is_translator": false
+    },
+    "filter_level": "low",
+    "geo": null,
+    "id": 616333141884674048,
+    "favorite_count": 0,
+    "lang": "en",
+    "entities": {
+        "user_mentions": [],
+        "symbols": [],
+        "trends": [],
+        "hashtags": [
+            {
+                "indices": [
+                    0,
+                    4
+                ],
+                "text": "CFP"
+            },
+            {
+                "indices": [
+                    124,
+                    131
+                ],
+                "text": "NLProc"
+            },
+            {
+                "indices": [
+                    132,
+                    139
+                ],
+                "text": "WNUT15"
+            }
+        ],
+        "urls": [
+            {
+                "url": "http://t.co/rcygyEowqH",
+                "indices": [
+                    99,
+                    121
+                ],
+                "expanded_url": "http://noisy-text.github.io",
+                "display_url": "noisy-text.github.io"
+            }
+        ]
+    },
+    "in_reply_to_user_id_str": null,
+    "retweeted": false,
+    "coordinates": null,
+    "timestamp_ms": "1435780246598",
+    "source": "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web Client</a>",
+    "in_reply_to_status_id_str": null,
+    "in_reply_to_screen_name": null,
+    "id_str": "616333141884674048",
+    "place": null,
+    "retweet_count": 0,
+    "created_at": "Wed Jul 01 19:50:46 +0000 2015",
+    "in_reply_to_user_id": null
+}
