@@ -35,7 +35,7 @@
         {
           "$$hashKey": "object:487",
           "builtIn": 1,
-          "datasource": "${DS_DAPR}",
+          "datasource": "Dapr",
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
@@ -56,7 +56,7 @@
     "panels": [
       {
         "collapsed": true,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -70,7 +70,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows the turn-around latency when user app calls Dapr Actor API. For example, you can understand each statestore and service invocation performance.",
             "fill": 1,
             "fillGradient": 0,
@@ -176,7 +176,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows completed request rate (rps) when User app calls Dapr Actor APIs.",
             "fill": 1,
             "fillGradient": 0,
@@ -274,7 +274,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows the inbound request latency from Dapr to App. You can analyze App's API endpoint performance.",
             "fill": 1,
             "fillGradient": 0,
@@ -379,7 +379,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows request rate (rps) when Dapr runtime calls User app HTTP endpoints.",
             "fill": 1,
             "fillGradient": 0,
@@ -479,7 +479,7 @@
       },
       {
         "collapsed": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -496,7 +496,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "Timer trigger status",
         "fill": 1,
         "fillGradient": 0,
@@ -593,7 +593,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "Reminder trigger status",
         "fill": 1,
         "fillGradient": 0,
@@ -687,7 +687,7 @@
       },
       {
         "collapsed": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -704,7 +704,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "It contains the number of pending actor calls that are waiting to acquire the per-actor lock that enforces turn-based concurrency.",
         "fill": 1,
         "fillGradient": 0,
@@ -801,7 +801,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_DAPR}",
+          "datasource": "Dapr",
           "definition": "label_values(dapr_runtime_component_loaded,kubernetes_namespace)",
           "hide": 0,
           "includeAll": false,
@@ -824,7 +824,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_DAPR}",
+          "datasource": "Dapr",
           "definition": "label_values(dapr_runtime_actor_pending_actor_calls,actor_type)",
           "hide": 0,
           "includeAll": false,

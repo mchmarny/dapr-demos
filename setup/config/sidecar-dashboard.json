@@ -47,7 +47,7 @@
         {
           "$$hashKey": "object:356",
           "builtIn": 1,
-          "datasource": "${DS_DAPR}",
+          "datasource": "Dapr",
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
@@ -67,7 +67,7 @@
     "panels": [
       {
         "collapsed": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -81,7 +81,7 @@
       },
       {
         "cacheTimeout": null,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "This shows the uptime of dapr runtime sidecar. If the sidecar is running for less than 10 minutes, the color will turn into RED.",
         "gridPos": {
           "h": 4,
@@ -147,7 +147,7 @@
       },
       {
         "collapsed": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -164,7 +164,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "This shows total amount of Kernel and user CPU usage for Daprd.",
         "fill": 1,
         "fillGradient": 0,
@@ -252,7 +252,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "fill": 1,
         "fillGradient": 0,
         "gridPos": {
@@ -339,7 +339,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "The amount of memory that belongs specifically to that process in bytes. This excludes swapped out memory pages.",
         "fill": 1,
         "fillGradient": 0,
@@ -427,7 +427,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "description": "The amount of address space that a process is managing. This includes all types of memory, both in RAM and swapped out.",
         "fill": 1,
         "fillGradient": 0,
@@ -513,7 +513,7 @@
       },
       {
         "collapsed": true,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -527,7 +527,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows the turn-around latency when user app calls Dapr API. For example, you can understand each statestore and service invocation performance.",
             "fill": 1,
             "fillGradient": 0,
@@ -629,7 +629,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows completed request rate (rps) when User app calls Dapr.",
             "fill": 1,
             "fillGradient": 0,
@@ -724,7 +724,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows the inbound request latency from Dapr to App. You can analyze App's API endpoint performance.",
             "fill": 1,
             "fillGradient": 0,
@@ -825,7 +825,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows request rate (rps) when Dapr runtime calls User app HTTP endpoints.",
             "fill": 1,
             "fillGradient": 0,
@@ -921,7 +921,7 @@
       },
       {
         "collapsed": true,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -935,7 +935,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows the turn-around latency when user app calls Dapr API. For example, you can understand each statestore and service invocation performance.",
             "fill": 1,
             "fillGradient": 0,
@@ -1028,7 +1028,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows completed request rate (rps) when User app calls Dapr.",
             "fill": 1,
             "fillGradient": 0,
@@ -1116,7 +1116,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows the inbound request latency from Dapr to App. You can analyze App's API endpoint performance.",
             "fill": 1,
             "fillGradient": 0,
@@ -1209,7 +1209,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This charts shows request rate (rps) when Dapr runtime calls User app gRPC endpoints.",
             "fill": 1,
             "fillGradient": 0,
@@ -1298,7 +1298,7 @@
       },
       {
         "collapsed": true,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1308,7 +1308,7 @@
         "id": 52,
         "panels": [
           {
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This shows the number of configured components. For example, it will shows \"2\" if you configure redis statestore and redis pubsub components. ",
             "gridPos": {
               "h": 8,
@@ -1361,7 +1361,7 @@
           },
           {
             "cacheTimeout": null,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This shows the number of initialized components. This number must be the same as loaded components. Otherwise, Daprd fails to initialize some of components.",
             "gridPos": {
               "h": 8,
@@ -1428,7 +1428,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This chart shows the number component initialization failures with the reasons.",
             "fill": 1,
             "fillGradient": 0,
@@ -1518,7 +1518,7 @@
       },
       {
         "collapsed": true,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1532,7 +1532,7 @@
             "bars": false,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This shows when Daprd reports host status to placement service. Non-Actor service reports host status in the beginning. Actor service reports host status to placement periodically. If there is a failure, virtual actors will not be distributed properly.",
             "fill": 1,
             "fillGradient": 0,
@@ -1622,7 +1622,7 @@
           },
           {
             "cacheTimeout": null,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This shows the failures when Daprd reports host status to placement.",
             "gridPos": {
               "h": 7,
@@ -1678,7 +1678,7 @@
             "bars": true,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This shows the placement table update status based on the response from placement service. Daprd maintains the actor placement table in its memory. This table is periodically updated.",
             "fill": 1,
             "fillGradient": 0,
@@ -1768,7 +1768,7 @@
             "bars": true,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This chart shows how many actors are deactivated.",
             "fill": 1,
             "fillGradient": 0,
@@ -1861,7 +1861,7 @@
             "bars": true,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This shows when actor is rebalanced. This operation can make the activated actors deactivated and move actor to the other hosts.",
             "fill": 1,
             "fillGradient": 0,
@@ -1951,7 +1951,7 @@
       },
       {
         "collapsed": true,
-        "datasource": "${DS_DAPR}",
+        "datasource": "Dapr",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1965,7 +1965,7 @@
             "bars": true,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This chart  shows when mTLS is initialized, which means root cert is loaded and workload cert is issued from sentry, when runtime starts.",
             "fill": 1,
             "fillGradient": 0,
@@ -2057,7 +2057,7 @@
           },
           {
             "cacheTimeout": null,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "gridPos": {
               "h": 8,
               "w": 5,
@@ -2112,7 +2112,7 @@
             "bars": true,
             "dashLength": 10,
             "dashes": false,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "description": "This chart shows when workload certificate is rotated.",
             "fill": 1,
             "fillGradient": 0,
@@ -2207,7 +2207,7 @@
           },
           {
             "cacheTimeout": null,
-            "datasource": "${DS_DAPR}",
+            "datasource": "Dapr",
             "gridPos": {
               "h": 8,
               "w": 5,
@@ -2271,7 +2271,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_DAPR}",
+          "datasource": "Dapr",
           "definition": "label_values(dapr_runtime_component_loaded,kubernetes_namespace)",
           "hide": 0,
           "includeAll": false,
@@ -2294,7 +2294,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_DAPR}",
+          "datasource": "Dapr",
           "definition": "label_values(dapr_runtime_component_loaded,app_id)",
           "hide": 0,
           "includeAll": false,
