@@ -73,6 +73,16 @@ To stop forwarding the above ports run `make unforward`
 
 To login to the Grafana UI (http://localhost:8080) you will admin password, you can get it using the `make metricpass` action
 
+### Setup Log Indexes 
+
+To create Kibana index run 
+
+```shell
+make logindex
+```
+
+To login to Kibana UI (http://localhost:5601) forward the observability ports `make forwards`
+
 ## Create Cluster
 
 If you don't already have a cluster, you can create one on AKS. Start by updating these variables at the `Makefile`
