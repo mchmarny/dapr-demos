@@ -83,6 +83,17 @@ metricdash: ## Create Prometheus data source and import Dapr dashboards
 		 -d @config/actor-dashboard.json \
 	     http://localhost:8080/api/dashboards/db
 
+logindex: ## Create Elastic log index for Dapr 
+	curl -X POST -H "kbn-xsrf: true" \
+		 -H "Content-Type: application/json" \
+		 -d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
+		 "http://localhost:5601/api/saved_objects/index-pattern/dapr"
+	curl -X POST -H "kbn-xsrf: true" \
+		 -H "Content-Type: application/json" \
+		 -d '{"value":"dapr"}' \
+		 "http://localhost:5601/api/kibana/settings/defaultIndex"
+
+
 forwards: ## Forward observability ports
 	# Forwarding ports: kibana=5601, grafana=8080, zipkin=9411
 	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
