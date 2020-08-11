@@ -64,7 +64,7 @@ metricpass: ## Retrieve grafana admin password
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	@echo Grafana admin password is: $(GPASS)
 
-metricdash: ## Create Prometheus data source and import Dapr dashbaords
+metricdash: ## Create Prometheus data source and import Dapr dashboards
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
