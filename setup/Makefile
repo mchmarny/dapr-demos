@@ -61,9 +61,27 @@ test: ## Execute Dapr API health call
 		 "https://api.$(DOMAIN)/v1.0/healthz"
 
 metricpass: ## Retrieve grafana admin password
-	# Grafana admin password:
-	kubectl get secret -n dapr-monitoring grafana \
-	  -o jsonpath="{.data.admin-password}" | base64 --decode
+	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
+	@echo Grafana admin password is: $(GPASS)
+
+metricdash: ## Create Prometheus data source and import Dapr dashbaords
+	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
+	curl -X POST -s -k -u "admin:$(GPASS)" \
+		 -H "Content-Type: application/json" \
+		 -d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
+	     http://localhost:8080/api/datasources
+	curl -X POST -s -k -u "admin:$(GPASS)" \
+		 -H "Content-Type: application/json" \
+		 -d @config/system-services-dashboard.json \
+	     http://localhost:8080/api/dashboards/db
+	curl -X POST -s -k -u "admin:$(GPASS)" \
+		 -H "Content-Type: application/json" \
+		 -d @config/sidecar-dashboard.json \
+	     http://localhost:8080/api/dashboards/db
+	curl -X POST -s -k -u "admin:$(GPASS)" \
+		 -H "Content-Type: application/json" \
+		 -d @config/actor-dashboard.json \
+	     http://localhost:8080/api/dashboards/db
 
 forwards: ## Forward observability ports
 	# Forwarding ports: kibana=5601, grafana=8080, zipkin=9411

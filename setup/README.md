@@ -61,9 +61,17 @@ To get access to the observability dashboards run
 make forwards
 ```
 
+### Setup Metrics Dashboards
+
+To create Prometheus data source and import Dapr dashboards run 
+
+```shell
+make metricdash
+```
+
 To stop forwarding the above ports run `make unforward`
 
-Additionally, the Grafana dashboard will require password, you can get it using the `make metricpass` action
+To login to the Grafana UI (http://localhost:8080) you will admin password, you can get it using the `make metricpass` action
 
 ## Create Cluster
 
