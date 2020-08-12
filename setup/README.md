@@ -19,9 +19,9 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 ## Prerequisites
 
 * 1.15+ Kubernates cluster (if you don't have one, see `make cluster` option to set one up on AKS)
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-* [Helm 3](https://helm.sh/docs/intro/install/)
-* [certbot](https://certbot.eff.org/) to generate wildcard certificates 
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
+* [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
+* [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard certificates (`brew install certbot`)
 
 ## How to use it - TL;DR
 
