@@ -64,7 +64,16 @@ metricpass: ## Retrieve grafana admin password
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	@echo Grafana admin password is: $(GPASS)
 
-metricdash: ## Create Prometheus data source and import Dapr dashboards
+forwards: ## Forward observability ports
+	# Forwarding ports: kibana=5601, grafana=8080, zipkin=9411
+	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
+	kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
+	kubectl port-forward svc/zipkin 9411:9411 &
+	open http://localhost:5601
+	open http://localhost:8080
+	open http://localhost:9411
+
+observe: ## Create Prometheus data source, Elastic log index, import Dapr dashboards
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
@@ -82,8 +91,6 @@ metricdash: ## Create Prometheus data source and import Dapr dashboards
 		 -H "Content-Type: application/json" \
 		 -d @config/actor-dashboard.json \
 	     http://localhost:8080/api/dashboards/db
-
-logindex: ## Create Elastic log index for Dapr 
 	curl -X POST -H "kbn-xsrf: true" \
 		 -H "Content-Type: application/json" \
 		 -d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
@@ -93,15 +100,6 @@ logindex: ## Create Elastic log index for Dapr
 		 -d '{"value":"dapr"}' \
 		 "http://localhost:5601/api/kibana/settings/defaultIndex"
 
-
-forwards: ## Forward observability ports
-	# Forwarding ports: kibana=5601, grafana=8080, zipkin=9411
-	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
-	kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
-	kubectl port-forward svc/zipkin 9411:9411 &
-	open http://localhost:5601
-	open http://localhost:8080
-	open http://localhost:9411
 
 unforward: ## Stop previously forwarded ports 
 	pkill kubectl -9	

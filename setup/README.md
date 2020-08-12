@@ -23,7 +23,21 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 * [Helm 3](https://helm.sh/docs/intro/install/)
 * [certbot](https://certbot.eff.org/) to generate wildcard certificates 
 
-## How to use it
+## TL;DR
+
+* Deploy to existing k8s cluster 
+  * Update `DOMAIN`, `API_TOKEN` in [Makefile](./Makefile)
+  * Run:
+    * `make certs` to create TLS certs
+    * `make dapr` to install Dapr
+    * `make test` to test install 
+    * `make forwards` to forward observability ports 
+    * `make observe` to install observability components
+* Create NEW cluster on AKS
+  * Update `CLUSTER_NAME`, `NODE_COUNT`, `NODE_TYPE` in [Makefile](./Makefile)
+  * Run `make clusterup`
+
+## How to use it (Longer Version)
 
 This section assumes you already have a Kubernates cluster. If not, see the [Create Cluster](#create-cluster) section below
 
