@@ -23,7 +23,7 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 * [Helm 3](https://helm.sh/docs/intro/install/)
 * [certbot](https://certbot.eff.org/) to generate wildcard certificates 
 
-## TL;DR
+## How to use it - TL;DR
 
 ### Deploy to existing k8s cluster 
 
@@ -40,7 +40,7 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 * Update `CLUSTER_NAME`, `NODE_COUNT`, `NODE_TYPE` in [Makefile](./Makefile)
 * Run `make clusterup`
 
-## How to use it (Longer Version)
+## How to use it - Longer Version
 
 This section assumes you already have a Kubernates cluster. If not, see the [Create Cluster](#create-cluster) section below
 
