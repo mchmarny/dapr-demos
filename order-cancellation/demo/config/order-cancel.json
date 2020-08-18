@@ -1,0 +1,111 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "PublishCancellationsTopic": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "http://localhost:3500/v1.0/publish/cancellations",
+                    "body": {
+                        "id": "@triggerBody().id",
+                        "note": "@triggerBody().note",
+                        "submitted_on": "@triggerBody().submitted_on"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                },
+                "runAfter": {}
+            },
+            "SaveState": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "http://localhost:3500/v1.0/state/workflow-store",
+                    "body": [
+                        {
+                            "key": "@triggerBody().id",
+                            "value": "@triggerBody()"
+                        }
+                    ],
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                },
+                "runAfter": {
+                    "PublishCancellationsTopic": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "PublishProcessedTopic": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "http://localhost:3500/v1.0/publish/processed",
+                    "body": "@triggerBody()",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                },
+                "runAfter": {
+                    "SaveState": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "SendConfirmationEmail": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "http://localhost:3500/v1.0/bindings/email",
+                    "body": {
+                        "operation": "create",
+                        "metadata": {
+                            "emailTo": "mchmarny@microsoft.com",
+                            "subject": "Order cancellation confirmation"
+                          }, 
+                          "data": "<h1>Order cancellation confirmed</h1><p>Your order has been canceled.</p><p>Thank you and we hope you come back.</p>"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                },
+                "runAfter": {
+                    "PublishProcessedTopic": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Response": {
+                "inputs": {
+                    "body": {
+                        "id:": "@triggerBody().id",
+                        "submitted_on": "@triggerBody().submitted_on",
+                        "approved": true
+                    },
+                    "statusCode": 200
+                },
+                "runAfter": {
+                    "PublishProcessedTopic": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {},
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {}
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    }
+}

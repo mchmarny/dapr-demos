@@ -1,0 +1,7 @@
+# Build generated files in src
+/objd/**/*
+/obj/**/*
+/bin/**/*
+/gen/**/*
+/.vs/**/*
+/.vscode/**/*

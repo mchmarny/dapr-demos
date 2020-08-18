@@ -1,0 +1,8 @@
+{
+  "operation": "create",
+  "metadata": {
+    "emailTo": "mchmarny@microsoft.com",
+    "subject": "Order cancellation confirmation"
+  }, 
+  "data": "<h1>Order cancellation confirmed</h1><p>Your order from 2020-06-24T13:02:15Z has been canceled.</p><p>Thank you and we hope you come back.</p><p>Order: b76b547e-b64e-11ea-b3de-0242ac130004</p>"
+}

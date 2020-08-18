@@ -1,0 +1,9 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: queue
+spec:
+  type: pubsub.azure.servicebus
+  metadata:
+  - name: connectionString
+    value: Endpoint=sb://daprdemo.servicebus.windows.net/;SharedAccessKeyName=view;SharedAccessKey=RbTBiNnoj7wfxHqG8XeHWYn3sL4VFbdBpn0cTNi3Hyo=;EntityPath=processed

@@ -1,0 +1,32 @@
+{
+  "id": "f727735e-b64e-11ea-b3de-0242ac130004",
+  "note": "Customer made a mistake",
+  "submitted_on": "2020-06-24T13:02:15Z",
+  "refund": {
+    "shipping": {
+      "full_refund": true
+    },
+    "refund_line_items": [
+      {
+        "line_item_id": 466157049,
+        "quantity": 1,
+        "restock_type": "cancel",
+        "location_id": 48752903
+      }
+    ],
+    "transactions": [
+      {
+        "parent_id": 1072844675,
+        "amount": "10.00",
+        "kind": "refund",
+        "gateway": "bogus"
+      },
+      {
+        "parent_id": 1072844676,
+        "amount": "100.00",
+        "kind": "refund",
+        "gateway": "gift_card"
+      }
+    ]
+  }
+}

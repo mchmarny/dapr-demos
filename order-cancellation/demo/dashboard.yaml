@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: viewer
+  labels:
+    app: viewer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: viewer
+  template:
+    metadata:
+      labels:
+        app: viewer
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/id: "viewer"
+        dapr.io/port: "8080"
+        dapr.io/config: "tracing"
+        dapr.io/protocol: "http"
+        dapr.io/log-as-json: "true"
+    spec:
+      containers:
+      - name: viewer
+        image: mchmarny/orderviewer:v0.3.7
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+        env:
+        - name: VIEWER_SOURCE_TOPIC_NAME
+          value: processed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: viewer
+spec:
+  selector:
+    app: viewer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

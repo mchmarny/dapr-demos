@@ -1,0 +1,25 @@
+{{ define "index" }}
+
+{{ template "header" . }}
+
+<div id="middle-section">
+    <div id="items"></div>
+</div>
+
+<template>
+    <div class="item">
+        <div class="meta-item">
+            <b>Order ID:</b>
+            <a href="#noop"></a>
+        </div>
+        <div class="meta-item">
+            <b>Cancelled On:</b>
+            <a href="#noop"></a>
+        </div>
+        <div class="meta-item"></div>
+    </div>
+</template>
+
+{{ template "footer" . }}
+
+{{ end }}
