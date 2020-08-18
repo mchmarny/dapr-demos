@@ -16,4 +16,4 @@ Collection of personal Dapr demo
 * Integration 
   * [order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
-  
+  * [Dapr Pipeline](./dapr-pipeline) - 3 demos using Twitter binding to show incremental solution build
