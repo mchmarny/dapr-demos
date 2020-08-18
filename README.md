@@ -14,4 +14,5 @@ Collection of personal Dapr demo
   * [gRPC service](./grpc-service) - gRPC service example
 * Integration 
   * [order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
+  * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
   
