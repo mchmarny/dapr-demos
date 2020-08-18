@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: changes
+spec:
+  type: bindings.rethinkdb.statechange
+  metadata:
+  - name: address
+    value: "127.0.0.1:28015"
+  - name: database
+    value: "dapr"
+  - name: table
+    value: "daprstate"
+  - name: username
+    value: "admin"  # default
+  - name: password
+    value: "rethinkdb" # default
