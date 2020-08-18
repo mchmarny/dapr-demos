@@ -12,4 +12,6 @@ Collection of personal Dapr demo
   * [HTTP event subscriber](./http-event-subscriber)
 * Service 
   * [gRPC service](./grpc-service) - gRPC service example
-
+* Integration 
+  * [order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
+  
