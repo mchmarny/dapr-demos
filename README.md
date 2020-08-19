@@ -2,7 +2,7 @@
 
 Collection of personal Dapr demo
 
-* [setup](./setup) - Deploys and configures Dapr to Kubernates 
+* [setup](./setup) - Deploys and configures Dapr in Kubernates 
 * Bindings
   * [cron](./cron-binding) - Using scheduler to execute service 
   * [twitter](./twitter-binding) - Subscribing to a Twitter even stream
