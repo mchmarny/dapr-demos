@@ -1,31 +1,36 @@
-# http-event-subscriber
+# dapr-event-subscriber-template
 
-> To help you start with this demo as a template for your new project I created [dapr-http-event-subscriber-template](https://github.com/mchmarny/dapr-event-subscriber-template)
+## Components
 
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: events
+spec:
+  type: pubsub.redis
+  metadata:
+  - name: redisHost
+    value: localhost:6379
+  - name: redisPassword
+    value: ""
 
-Dapr HTTP event subscriber services demo in `go`. To use run it, first start the service
-
-```shell
-dapr run --app-id event-subscriber \
-         --app-port 8080 \
-         --protocol http \
-         --port 3500 \
-         --components-path ./config \
-         go run main.go
 ```
 
-Then send an event to that service 
+For more information about pub/sub see the [Dapr docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
+
+## Run 
+
+To run this demo in Dapr, run:
 
 ```shell
-curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
-     -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/publish/events"
-```
-
-You can use the provided `makefile` to help with executing these commands 
-
-```shell
-$ make help
+dapr run \
+    --app-id grpc-event-subscriber-demo \
+    --app-port 50001 \
+    --app-protocol http \
+    --dapr-http-port 3500 \
+    --components-path ./config \
+    go run main.go
 ```
 
 ## Disclaimer
@@ -34,4 +39,4 @@ This is my personal project and it does not represent my employer. I take no res
 
 ## License
 
-This software is released under the [MIT](../LICENSE)
+This software is released under the [MIT](./LICENSE)

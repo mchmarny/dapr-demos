@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-event-subscriber
+  labels:
+    app: http-event-subscriber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: http-event-subscriber
+  template:
+    metadata:
+      labels:
+        app: http-event-subscriber
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/id: "http-event-subscriber"
+        dapr.io/port: "8080"
+        dapr.io/log-as-json: "true"
+        dapr.io/config: "tracing"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/http-event-subscriber:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: DAPR_HTTP_PORT
+          value: "3500"
+        - name: PUBSUB_NAME
+          value: "events"
+        - name: TOPIC_NAME
+          value: "messages"
