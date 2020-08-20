@@ -1,5 +1,5 @@
 module github.com/mchmarny/dapr-demos/cron-binding
 
-go 1.14
+go 1.15
 
-require github.com/gin-gonic/gin v1.6.3
+require github.com/dapr/go-sdk v0.10.0

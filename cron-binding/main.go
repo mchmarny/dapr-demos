@@ -1,30 +1,48 @@
 package main
 
 import (
+	"context"
 	"log"
-	"net/http"
-	"time"
 
-	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
+	"strings"
+
+	"github.com/dapr/go-sdk/service/common"
+	daprd "github.com/dapr/go-sdk/service/http"
+)
+
+var (
+	logger  = log.New(os.Stdout, "", 0)
+	address = getEnvVar("ADDRESS", ":8080")
 )
 
 func main() {
-	r := gin.Default()
-	r.OPTIONS("/run", optionsHandler)
-	r.POST("/run", runHandler)
-	if err := r.Run(":8080"); err != nil {
-		panic(err)
+	// create a Dapr service
+	s := daprd.NewService(address)
+
+	// add some input binding handler
+	if err := s.AddBindingInvocationHandler("run", runHandler); err != nil {
+		logger.Fatalf("error adding binding handler: %v", err)
+	}
+
+	// start the service
+	if err := s.Start(); err != nil && err != http.ErrServerClosed {
+		logger.Fatalf("error starting service: %v", err)
 	}
 }
 
-func optionsHandler(c *gin.Context) {
-	c.Header("Allow", "POST")
-	c.Header("Content-Type", "application/json")
-	c.AbortWithStatus(http.StatusOK)
+func runHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err error) {
+	logger.Printf("Binding - Metadata:%v, Data:%v", in.Metadata, in.Data)
+
+	// TODO: do something with the cloud event data
+
+	return nil, nil
 }
 
-func runHandler(c *gin.Context) {
-	// TODO: do something interesting here
-	log.Printf("invocation received: %v", time.Now())
-	c.JSON(http.StatusOK, nil)
+func getEnvVar(key, fallbackValue string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return strings.TrimSpace(val)
+	}
+	return fallbackValue
 }
