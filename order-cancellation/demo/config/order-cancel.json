@@ -6,7 +6,7 @@
                 "type": "Http",
                 "inputs": {
                     "method": "POST",
-                    "uri": "http://localhost:3500/v1.0/publish/cancellations",
+                    "uri": "http://localhost:3500/v1.0/publish/queue/cancellations",
                     "body": {
                         "id": "@triggerBody().id",
                         "note": "@triggerBody().note",
@@ -43,7 +43,7 @@
                 "type": "Http",
                 "inputs": {
                     "method": "POST",
-                    "uri": "http://localhost:3500/v1.0/publish/processed",
+                    "uri": "http://localhost:3500/v1.0/publish/queue/processed",
                     "body": "@triggerBody()",
                     "headers": {
                         "Content-Type": "application/json"
