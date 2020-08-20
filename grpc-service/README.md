@@ -1,23 +1,18 @@
 # grpc-service
 
-> To help you start with this demo as a template for your new project I created [dapr-grpc-service-template](https://github.com/mchmarny/dapr-grpc-service-template)
+For more information about service invocation see the [Dapr docs](https://github.com/dapr/docs/tree/master/concepts/service-invocation)
 
-Dapr service handler demo in `go`. To use run it, first start the service
+## Run 
+
+To run this demo in Dapr, run:
 
 ```shell
-dapr run --app-id my-service \
-	    --app-port 50001 \
-	    --protocol grpc \
-	    --port 3500 \
+dapr run --app-id grpc-service-demo \
+	     --app-port 50001 \
+		 --app-protocol grpc \
+		 --dapr-http-port 3500 \
+         --components-path ./config \
          go run main.go
-```
-
-To invoke that service
-
-```shell
-curl -d '{ "message": "ping" }' \
-     -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/invoke/my-service/method/echo"
 ```
 
 ## Disclaimer
@@ -26,4 +21,4 @@ This is my personal project and it does not represent my employer. I take no res
 
 ## License
 
-This software is released under the [MIT](../LICENSE)
+This software is released under the [MIT](./LICENSE)

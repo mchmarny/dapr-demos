@@ -1,5 +1,5 @@
 RELEASE_VERSION  =v0.10.0
-SERVICE_NAME    ?=dapr-cron-binding-demo
+SERVICE_NAME    ?=cron-binding-demo
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: help tidy build run image lint tag clean

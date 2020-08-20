@@ -1,7 +1,5 @@
 # cron-binding
 
-> To help you start with this demo as a template for your new project I created [dapr-http-cron-handler-template](https://github.com/mchmarny/dapr-http-cron-handler-template)
-
 ## Binding
 
 ```yaml
@@ -23,7 +21,7 @@ For more information about this binding see the [Dapr docs](https://github.com/d
 Dapr cron binding demo in `go`. To use run it, first start the service
 
 ```shell
-dapr run --app-id cron-demo \
+dapr run --app-id cron-binding-demo \
 	    --protocol http \
 	    --app-port 8080 \
 	    --components-path ./config \

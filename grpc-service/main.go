@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/dapr/go-sdk/service/common"
 	daprd "github.com/dapr/go-sdk/service/grpc"
 )
 
@@ -30,14 +31,14 @@ func main() {
 	}
 }
 
-func echoHandler(ctx context.Context, in *daprd.InvocationEvent) (out *daprd.Content, err error) {
+func echoHandler(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error) {
 	logger.Printf(
 		"Invocation (ContentType:%s, Verb:%s, QueryString:%s, Data:%s)",
 		in.ContentType, in.Verb, in.QueryString, string(in.Data),
 	)
 
 	// TODO: implement handling logic here
-	out = &daprd.Content{
+	out = &common.Content{
 		ContentType: in.ContentType,
 		Data:        in.Data,
 	}
