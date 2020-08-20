@@ -66,17 +66,18 @@ export DTOKEN=$(openssl rand -base64 36)
 And launch the Dapr container
 
 ```shell
-az container create --name $SNAME \
-                    --ports 3500 \
-                    --protocol TCP \
-                    --dns-name-label $SNAME \
-                    --image docker.io/daprio/daprd:0.10.0 \
-                    --command-line "/daprd --components-path /components --app-protocol http" \
-                    --secure-environment-variables "DAPR_API_TOKEN=${DTOKEN}" \
-                    --azure-file-volume-share-name $SNAME \
-                    --azure-file-volume-account-name $SNAME \
-                    --azure-file-volume-account-key $SKEY \
-                    --azure-file-volume-mount-path /components
+az container create \
+    --name $SNAME \
+    --ports 3500 \
+    --protocol TCP \
+    --dns-name-label $SNAME \
+    --image docker.io/daprio/daprd:0.10.0 \
+    --command-line "/daprd --components-path /components --app-protocol http" \
+    --secure-environment-variables "DAPR_API_TOKEN=${DTOKEN}" \
+    --azure-file-volume-share-name $SNAME \
+    --azure-file-volume-account-name $SNAME \
+    --azure-file-volume-account-key $SKEY \
+    --azure-file-volume-mount-path /components
 ```
 
 Then check on the status of the deployment 

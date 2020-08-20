@@ -1,9 +1,9 @@
-RELEASE_VERSION  =v0.1.2
-SERVICE_NAME    ?="publisher"
+RELEASE_VERSION  =v0.10.0
+SERVICE_NAME    ?=twitter-binding-demo
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
-.PHONY: mod test run debug build dapr event image show imagerun lint clean, tag, init
-all: test
+.PHONY: help tidy build run image lint tag clean
+all: help
 
 tidy: ## Updates the go modules and vendors all dependencies 
 	go mod tidy
@@ -18,18 +18,17 @@ build: tidy ## Builds local release binary
 debug: ## Runs uncompiled code it in Dapr in debug mode
 	dapr run \
 		--app-id $(SERVICE_NAME) \
-	    --app-protocol grpc \
-	    --app-port 50001 \
-	    --components-path ./config \
-	    --log-level debug \
-	    go run main.go
+        --app-port 8080 \
+        --app-protocol http \
+        --components-path ./config \
+        go run main.go
 
 run: build ## Builds binary and runs it in Dapr
 	dapr run \
 		--app-id $(SERVICE_NAME) \
-	    --app-protocol grpc \
-	    --app-port 50001 \
-        --components-path ./config \
+	    --app-port 8080 \
+        --app-protocol http \
+	    --components-path ./config \
         bin/$(SERVICE_NAME) 
 
 image: tidy ## Builds and publish docker image 

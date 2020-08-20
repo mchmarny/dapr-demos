@@ -1,56 +1,48 @@
 package main
 
 import (
+	"context"
 	"log"
-	"net"
+
 	"net/http"
 	"os"
+	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/mchmarny/gcputil/env"
+	"github.com/dapr/go-sdk/service/common"
+	daprd "github.com/dapr/go-sdk/service/http"
 )
 
 var (
-	logger = log.New(os.Stdout, "", 0)
-
-	// AppVersion will be overritten during build
-	AppVersion = "v0.0.1-default"
-
-	// service
-	servicePort = env.MustGetEnvVar("PORT", "8080")
+	logger  = log.New(os.Stdout, "", 0)
+	address = getEnvVar("ADDRESS", ":8080")
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	// create a Dapr service
+	s := daprd.NewService(address)
 
-	// router
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(Options)
-
-	// simple routes
-	r.GET("/", defaultHandler)
-	r.POST("/tweets", tweetHandler)
-
-	// server
-	hostPort := net.JoinHostPort("0.0.0.0", servicePort)
-	logger.Printf("Server (%s) starting: %s \n", AppVersion, hostPort)
-	if err := r.Run(hostPort); err != nil {
-		logger.Fatal(err)
+	// add some input binding handler
+	if err := s.AddBindingInvocationHandler("tweets", tweetHandler); err != nil {
+		logger.Fatalf("error adding binding handler: %v", err)
 	}
 
+	// start the service
+	if err := s.Start(); err != nil && err != http.ErrServerClosed {
+		logger.Fatalf("error starting service: %v", err)
+	}
 }
 
-// Options is
-func Options(c *gin.Context) {
-	if c.Request.Method != "OPTIONS" {
-		c.Next()
-	} else {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "POST,OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "authorization, origin, content-type, accept")
-		c.Header("Allow", "POST,OPTIONS")
-		c.Header("Content-Type", "application/json")
-		c.AbortWithStatus(http.StatusOK)
+func tweetHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err error) {
+	logger.Printf("Tweet - Metadata:%v, Data:%s", in.Metadata, in.Data)
+
+	// TODO: do something with the tweet data
+
+	return nil, nil
+}
+
+func getEnvVar(key, fallbackValue string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return strings.TrimSpace(val)
 	}
+	return fallbackValue
 }

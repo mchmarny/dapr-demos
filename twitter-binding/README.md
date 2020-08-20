@@ -44,12 +44,12 @@ The `query` is the twitter search query for which you want to receive tweets.
 Once the Twitter API consumer and access details are set, you are ready to run:
 
 ```shell
-dapr run go run handler.go main.go \
-         --app-id "consumer" \
-         --app-port 8080 \
-         --protocol http \
-         --components-path ./config \
-         --port 3500
+dapr run \
+		--app-id twitter-binding \
+    --app-port 8080 \
+    --app-protocol http \
+    --components-path ./config \
+    go run main.go
 ```
 
 Assuming everything went OK, you should see something like this:

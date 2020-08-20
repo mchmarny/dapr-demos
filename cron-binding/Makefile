@@ -16,18 +16,20 @@ build: tidy ## Builds local release binary
 	CGO_ENABLED=0 go build -a -tags netgo -mod vendor -o bin/$(SERVICE_NAME) .
 
 debug: ## Runs uncompiled code it in Dapr in debug mode
-	dapr run --app-id $(SERVICE_NAME) \
-             --app-port 8080 \
-             --app-protocol http \
-             --components-path ./config \
-             go run main.go
+	dapr run \
+		--app-id $(SERVICE_NAME) \
+        --app-port 8080 \
+        --app-protocol http \
+        --components-path ./config \
+        go run main.go
 
 run: build ## Builds binary and runs it in Dapr
-	dapr run --app-id $(SERVICE_NAME) \
-	         --app-port 8080 \
-             --app-protocol http \
-	         --components-path ./config \
-             bin/$(SERVICE_NAME) 
+	dapr run \
+		--app-id $(SERVICE_NAME) \
+	    --app-port 8080 \
+        --app-protocol http \
+	    --components-path ./config \
+        bin/$(SERVICE_NAME) 
 
 image: tidy ## Builds and publish docker image 
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .

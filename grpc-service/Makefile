@@ -13,23 +13,25 @@ test: tidy ## Tests the entire project
 	go test -count=1 -race ./...
 
 debug: tidy ## Runs uncompiled code in Dapr
-	dapr run --app-id $(SERVICE_NAME) \
-		     --app-port 50001 \
-		     --app-protocol grpc \
-		     --dapr-http-port 3500 \
-             --components-path ./config \
-         go run main.go
+	dapr run \
+		--app-id $(SERVICE_NAME) \
+		--app-port 50001 \
+		--app-protocol grpc \
+		--dapr-http-port 3500 \
+        --components-path ./config \
+        go run main.go
 
 build: tidy ## Builds local release binary
 	CGO_ENABLED=0 go build -a -tags netgo -mod vendor -o bin/$(SERVICE_NAME) .
 
 run: build ## Builds binary and runs it in Dapr
-	dapr run --app-id $(SERVICE_NAME) \
-			 --app-port 50001 \
-		     --app-protocol grpc \
-		     --dapr-http-port 3500 \
-             --components-path ./config \
-         bin/$(SERVICE_NAME) 
+	dapr run \
+		--app-id $(SERVICE_NAME) \
+		--app-port 50001 \
+		--app-protocol grpc \
+		--dapr-http-port 3500 \
+        --components-path ./config \
+        bin/$(SERVICE_NAME) 
 
 call: ## Invokes service through Dapr API 
 	curl -d '{ "message": "ping" }' \
