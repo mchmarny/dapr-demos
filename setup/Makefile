@@ -152,6 +152,13 @@ observe: ports ## Create Prometheus data source, Elastic log index, import Dapr 
 		 -d '{"value":"dapr"}' \
 		 "http://localhost:5601/api/kibana/settings/defaultIndex"
 
+.PHONY: redis
+redis: ## Install redis cluster
+	kubectl create ns data
+	helm install redis bitnami/redis -n data 
+	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
+	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)"
+
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
 	pkill kubectl -9	

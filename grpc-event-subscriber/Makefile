@@ -1,5 +1,5 @@
 RELEASE_VERSION  =v0.10.0
-SERVICE_NAME    ?=grpc-event-subscriber-demo
+SERVICE_NAME    ?=grpc-event-subscriber
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: tidy test debug build run jsonevent xmlevent binevent image lint clean tag
@@ -51,6 +51,18 @@ binevent: ## Publishes sample binary message to Dapr pubsub API
 image: tidy ## Builds and publish docker image 
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
+
+deploy: ## Deploys prebuild image to k8s using currently selected context 
+	kubectl apply -f config/pubsub.yaml
+	kubectl apply -f deployment.yaml
+	kubectl get pods
+
+event: ## Publishes sample JSON message to Dapr pubsub API 
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
+     -H "Content-type: application/json" \
+     -H "dapr-api-token: $(API_TOKEN)" \
+     "https://api.cloudylabs.dev/v1.0/publish/events/messages"
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m

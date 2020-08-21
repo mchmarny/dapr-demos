@@ -15,19 +15,21 @@ spec:
         app: grpc-event-subscriber
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "grpc-event-subscriber"
-        dapr.io/port: "50001"
-        dapr.io/protocol: "grpc"
+        dapr.io/app-id: "grpc-event-subscriber"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60002"
         dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/grpc-event-subscriber:latest
+        image: mchmarny/grpc-event-subscriber:v0.10.0
         ports:
-        - containerPort: 50001
+        - containerPort: 60002
         env:
         - name: ADDRESS
-          value: ":50001"
+          value: ":60002"
         - name: PUBSUB_NAME
           value: "events"
         - name: TOPIC_NAME

@@ -12,7 +12,7 @@ import (
 
 var (
 	logger         = log.New(os.Stdout, "", 0)
-	serviceAddress = getEnvVar("ADDRESS", ":50001")
+	serviceAddress = getEnvVar("ADDRESS", ":60002")
 	pubSubName     = getEnvVar("PUBSUB_NAME", "events")
 	topicName      = getEnvVar("TOPIC_NAME", "messages")
 )
