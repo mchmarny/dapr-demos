@@ -12,7 +12,7 @@ import (
 
 var (
 	logger         = log.New(os.Stdout, "", 0)
-	serviceAddress = getEnvVar("ADDRESS", ":50001")
+	serviceAddress = getEnvVar("ADDRESS", ":50002")
 )
 
 func main() {
@@ -26,6 +26,7 @@ func main() {
 	s.AddServiceInvocationHandler("echo", echoHandler)
 
 	// start the server to handle incoming events
+	log.Printf("starting server at %s...", serviceAddress)
 	if err := s.Start(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}

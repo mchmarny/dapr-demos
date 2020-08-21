@@ -1,5 +1,5 @@
 RELEASE_VERSION  =v0.10.0
-SERVICE_NAME    ?=grpc-service-demo
+SERVICE_NAME    ?=grpc-echo-service
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: tidy test debug build run call image lint clean tag
@@ -15,7 +15,7 @@ test: tidy ## Tests the entire project
 debug: tidy ## Runs uncompiled code in Dapr
 	dapr run \
 		--app-id $(SERVICE_NAME) \
-		--app-port 50001 \
+		--app-port 50002 \
 		--app-protocol grpc \
 		--dapr-http-port 3500 \
         --components-path ./config \
@@ -27,7 +27,7 @@ build: tidy ## Builds local release binary
 run: build ## Builds binary and runs it in Dapr
 	dapr run \
 		--app-id $(SERVICE_NAME) \
-		--app-port 50001 \
+		--app-port 50002 \
 		--app-protocol grpc \
 		--dapr-http-port 3500 \
         --components-path ./config \
@@ -41,6 +41,11 @@ call: ## Invokes service through Dapr API
 image: tidy ## Builds and publish docker image 
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
+
+deploy: ## Deploys prebuild image to k8s using currently selected context 
+	kubectl apply -f deployment.yaml
+	kubectl get pods
+
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m
