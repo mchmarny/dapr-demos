@@ -7,12 +7,13 @@ For more information about service invocation see the [Dapr docs](https://github
 To run this demo in Dapr, run:
 
 ```shell
-dapr run --app-id grpc-service-demo \
-	     --app-port 50001 \
-		 --app-protocol grpc \
-		 --dapr-http-port 3500 \
-         --components-path ./config \
-         go run main.go
+dapr run \
+    --app-id grpc-service-demo \
+    --app-port 50001 \
+    --app-protocol grpc \
+    --dapr-http-port 3500 \
+    --components-path ./config \
+    go run main.go
 ```
 
 ## Disclaimer
