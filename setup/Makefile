@@ -38,7 +38,7 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	# Installing Dapr...
 	kubectl create ns dapr-system
 	helm install dapr dapr/dapr -n dapr-system --set global.logAsJson=true
-	# Installing Observabiliity...
+	# Installing observabiliity...
 	kubectl create namespace dapr-monitoring
 	kubectl apply -f ./config/fluentd-config.yaml -f ./config/fluentd.yaml
 	kubectl apply -f ./config/zipkin-config.yaml -f ./config/zipkin.yaml
@@ -46,13 +46,15 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm install dapr-prom stable/prometheus -n dapr-monitoring
 	helm install grafana stable/grafana -n dapr-monitoring
 	helm install kibana elastic/kibana -n dapr-monitoring
-	# Deploying ingress...
+	# While observabiliity is insrtalling, deploying ingress...
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
 	helm install nginx ingress-nginx/ingress-nginx -f ./config/annotations.yaml
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
+	# Waiting for observabiliity to be ready (max 2 min)... 
+	kubectl wait -n dapr-monitoring --for=condition=ready pod --all --timeout=120s
 
 .PHONY: dns
 dns: ## Check DNS resolution for cluster IP
