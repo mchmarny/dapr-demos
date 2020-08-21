@@ -31,7 +31,8 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 * Run:
   * `make certs` to create TLS certs
   * `make dapr` to install Dapr
-  * `make test` to test install 
+  * `make testdns` to test DNS configuration 
+  * `make testapi` to test installation
   * `make forwards` to forward observability ports 
   * `make observe` to install observability components
 

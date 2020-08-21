@@ -8,11 +8,11 @@ metadata:
 spec:
   tls:
     - hosts:
-      - '*.cloudylabs.dev'  
-      - cloudylabs.dev
+      - '*.DOMAINNAME'  
+      - DOMAINNAME
       secretName: tls-secret
   rules:
-    - host: api.cloudylabs.dev
+    - host: api.DOMAINNAME
       http:
         paths:
           - path: /

@@ -1,16 +1,17 @@
-CLUSTER_NAME ?=demo6
-DOMAIN       ?=chmarny.dev
-API_TOKEN    ?=not-a-real-secret
+CLUSTER_NAME ?=demo
+DOMAIN       ?=cloudylabs.dev
 NODE_COUNT   ?=3
 NODE_TYPE    ?=Standard_D4_v2
 
-.PHONY: help cluster certs test dapr metricpass forwards unforward cleanup
+.PHONY: all
 all: help
 
+.PHONY: clusterlist
+clusterlist: ## Lists all AKS clusters
+	az aks list -o table
+
+.PHONY: clusterup
 clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
-	# Assumes your default az resource group and locaiton are defined
-	#   az account set --subscription <id or name>
-	#   az configure --defaults location=<preferred location> group=<preferred resource group>
 	az aks create \
 		--name $(CLUSTER_NAME) \
 		--node-count $(NODE_COUNT) \
@@ -19,12 +20,14 @@ clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
 		--generate-ssh-keys
 	az aks get-credentials --name $(CLUSTER_NAME)
 	
+.PHONY: certs
 certs: ## Create wildcard certificates using letsencrypt
 	sudo certbot certonly --manual --preferred-challenges dns -d "*.$(DOMAIN)"
 	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" ./cert-ca.pem	
 	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" ./cert-pk.pem
 	sudo chmod 644 *.pem
 
+.PHONY: dapr
 dapr: ## Install Dapr into current kubeconfig selected context
 	# Updating Help repos...
 	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
@@ -44,53 +47,111 @@ dapr: ## Install Dapr into current kubeconfig selected context
 	helm install grafana stable/grafana -n dapr-monitoring
 	helm install kibana elastic/kibana -n dapr-monitoring
 	# Deploying ingress...
+	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
-	helm install nginx stable/nginx-ingress -f ./config/annotations.yaml
+	helm install nginx ingress-nginx/ingress-nginx -f ./config/annotations.yaml
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
+	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
-	# Wating for monitoring to come up....
-	kubectl get pods -n dapr-monitoring -w
-	kubectl get service --selector=app=nginx-ingress,component=controller \
-		-o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}'
-	# Update DNS with an A * record for this IP
+	@echo
+	@echo Next: make testdns
+	@echo
 
-test: ## Execute Dapr API health call
+.PHONY: testdns
+testdns: ## Checks DNS resolution for cluster IP
+	dig api.$(DOMAIN)
+	$(eval LB_IP=$(shell kubectl get service --selector=app=nginx-ingress,component=controller -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}'))
+	@echo === DNS CHECK ===
+	@echo 
+	@echo "Ensure the A record for 'api.${DOMAIN}' in the ANSWER SECTION resolves to:"
+	@echo 
+	@echo "  ${LB_IP}"
+	@echo 
+	@echo If not, update DNS with below entry and re-run this test before moving to the next step  
+	@echo
+	@echo "  Hostname:   *"
+	@echo "  IP address: ${LB_IP}"
+	@echo "  TTL:        1m"
+	@echo
+	@echo Next: make testapi
+	@echo
+
+.PHONY: testapi
+testapi: ## Execute Dapr API health call
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
 	curl -v \
 		 -H "Content-type: application/json" \
 		 -H "dapr-api-token: $(API_TOKEN)" \
 		 "https://api.$(DOMAIN)/v1.0/healthz"
+	@echo 
+	@echo === DNS CHECK ===
+	@echo Ensure server certificate has:
+	@echo 
+	@echo "  subject: CN=*.${DOMAIN}"
+	@echo "  subjectAltName: host 'api.${DOMAIN}' matched cert's '*.${DOMAIN}'"
+	@echo "  SSL certificate verify ok"
+	@echo 
+	@echo And that the response status from Dapr health checks was '200'
+	@echo 
+	@echo "  HTTP/2 200"
+	@echo
+	@echo Next: make forwards
+	@echo
 
+.PHONY: apitoken
+apitoken: ## Execute Dapr API health call
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	@echo
+	@echo Dapr API token is: 
+	@echo
+	@echo "  ${API_TOKEN}"
+	@echo
+
+.PHONY: metricpass
 metricpass: ## Retrieve grafana admin password
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
-	@echo Grafana admin password is: $(GPASS)
+	@echo
+	@echo Grafana admin password is: 
+	@echo 
+	@echo "  ${GPASS}"
+	@echo 
 
+.PHONY: forwards
 forwards: ## Forward observability ports
-	# Forwarding ports: kibana=5601, grafana=8080, zipkin=9411
 	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
-	kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
-	kubectl port-forward svc/zipkin 9411:9411 &
-	open http://localhost:5601
-	open http://localhost:8080
-	open http://localhost:9411
+	kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
+	kubectl port-forward svc/zipkin 9411 &
+	@echo Ports forwarded:
+	@echo
+	@echo   kibana  - http://localhost:5601
+	@echo   grafana - http://localhost:8888
+	@echo   zipkin  - http://localhost:9411
+	@echo
+	@echo "To stop forwarding run 'make unforward'"
+	@echo
+	@echo Next: make observe
+	@echo
+	
 
+.PHONY: observe
 observe: ## Create Prometheus data source, Elastic log index, import Dapr dashboards
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
 		 -d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
-	     http://localhost:8080/api/datasources
+	     http://localhost:8888/api/datasources
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
 		 -d @config/system-services-dashboard.json \
-	     http://localhost:8080/api/dashboards/db
+	     http://localhost:8888/api/dashboards/db
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
 		 -d @config/sidecar-dashboard.json \
-	     http://localhost:8080/api/dashboards/db
+	     http://localhost:8888/api/dashboards/db
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
 		 -d @config/actor-dashboard.json \
-	     http://localhost:8080/api/dashboards/db
+	     http://localhost:8888/api/dashboards/db
 	curl -X POST -H "kbn-xsrf: true" \
 		 -H "Content-Type: application/json" \
 		 -d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
@@ -100,15 +161,18 @@ observe: ## Create Prometheus data source, Elastic log index, import Dapr dashbo
 		 -d '{"value":"dapr"}' \
 		 "http://localhost:5601/api/kibana/settings/defaultIndex"
 
-
+.PHONY: unforward
 unforward: ## Stop previously forwarded ports 
 	pkill kubectl -9	
 
-clusterdown: ## Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
-	$(info Previously created clusters)
-	az aks list -o table
-	az aks delete --name $(CLUSTER_NAME) \
+.PHONY: clusterdown
+clusterdown: clusterlist ## Delete previously created AKS cluster (make clusterdown CLUSTER_NAME=demo)
+	az aks delete --name $(CLUSTER_NAME)
 
+.PHONY: help
 help: ## Display available commands
+	# Assumes your default az resource group and locaiton are already defined
+	#   az account set --subscription <id or name>
+	#   az configure --defaults location=<preferred location> group=<preferred resource group>
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk \
 		'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
