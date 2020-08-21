@@ -1,5 +1,5 @@
-CLUSTER_NAME ?=demo
 DOMAIN       ?=cloudylabs.dev
+CLUSTER_NAME ?=demo
 NODE_COUNT   ?=3
 NODE_TYPE    ?=Standard_D4_v2
 
@@ -10,8 +10,8 @@ all: help
 clusterlist: ## Lists all AKS clusters
 	az aks list -o table
 
-.PHONY: clusterup
-clusterup: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
+.PHONY: cluster
+cluster: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
 	az aks create \
 		--name $(CLUSTER_NAME) \
 		--node-count $(NODE_COUNT) \
@@ -54,11 +54,11 @@ dapr: ## Install Dapr into current kubeconfig selected context
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
 	@echo
-	@echo Next: make testdns
+	@echo Next: make dns
 	@echo
 
-.PHONY: testdns
-testdns: ## Checks DNS resolution for cluster IP
+.PHONY: dns
+dns: ## Checks DNS resolution for cluster IP
 	dig api.$(DOMAIN)
 	$(eval LB_IP=$(shell kubectl get service --selector=app=nginx-ingress,component=controller -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}'))
 	@echo === DNS CHECK ===
@@ -73,11 +73,11 @@ testdns: ## Checks DNS resolution for cluster IP
 	@echo "  IP address: ${LB_IP}"
 	@echo "  TTL:        1m"
 	@echo
-	@echo Next: make testapi
+	@echo Next: make observe
 	@echo
 
-.PHONY: testapi
-testapi: ## Execute Dapr API health call
+.PHONY: test
+test: ## Tests deployment and execute Dapr API health checks
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
 	curl -v \
 		 -H "Content-type: application/json" \
@@ -95,11 +95,11 @@ testapi: ## Execute Dapr API health call
 	@echo 
 	@echo "  HTTP/2 200"
 	@echo
-	@echo Next: make forwards
+	@echo Next: make ports
 	@echo
 
-.PHONY: apitoken
-apitoken: ## Execute Dapr API health call
+.PHONY: token
+token: ## Execute Dapr API health call
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
 	@echo
 	@echo Dapr API token is: 
@@ -107,8 +107,8 @@ apitoken: ## Execute Dapr API health call
 	@echo "  ${API_TOKEN}"
 	@echo
 
-.PHONY: metricpass
-metricpass: ## Retrieve grafana admin password
+.PHONY: pass
+pass: ## Retrieve grafana admin password
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	@echo
 	@echo Grafana admin password is: 
@@ -116,8 +116,8 @@ metricpass: ## Retrieve grafana admin password
 	@echo "  ${GPASS}"
 	@echo 
 
-.PHONY: forwards
-forwards: ## Forward observability ports
+.PHONY: ports
+ports: ## Forward observability ports
 	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
 	kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
 	kubectl port-forward svc/zipkin 9411 &
@@ -127,14 +127,14 @@ forwards: ## Forward observability ports
 	@echo   grafana - http://localhost:8888
 	@echo   zipkin  - http://localhost:9411
 	@echo
-	@echo "To stop forwarding run 'make unforward'"
+	@echo "To stop forwarding run 'make portstop'"
 	@echo
 	@echo Next: make observe
 	@echo
 	
 
 .PHONY: observe
-observe: ## Create Prometheus data source, Elastic log index, import Dapr dashboards
+observe: ports ## Create Prometheus data source, Elastic log index, import Dapr dashboards
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	curl -X POST -s -k -u "admin:$(GPASS)" \
 		 -H "Content-Type: application/json" \
@@ -161,12 +161,12 @@ observe: ## Create Prometheus data source, Elastic log index, import Dapr dashbo
 		 -d '{"value":"dapr"}' \
 		 "http://localhost:5601/api/kibana/settings/defaultIndex"
 
-.PHONY: unforward
-unforward: ## Stop previously forwarded ports 
+.PHONY: portstop
+portstop: ## Stop previously forwarded ports 
 	pkill kubectl -9	
 
-.PHONY: clusterdown
-clusterdown: clusterlist ## Delete previously created AKS cluster (make clusterdown CLUSTER_NAME=demo)
+.PHONY: cleanup
+cleanup: clusterlist ## Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
 	az aks delete --name $(CLUSTER_NAME)
 
 .PHONY: help

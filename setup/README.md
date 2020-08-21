@@ -1,4 +1,4 @@
-## Dapr setup
+# Dapr setup
 
 An opinionated Dapr deployment on Kubernetes clusters. I often use it for the deployment of my demos. It includes:
 
@@ -18,111 +18,69 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
   
 ## Prerequisites
 
-* 1.15+ Kubernates cluster (if you don't have one, see `make cluster` option to set one up on AKS)
+* 1.15+ Kubernates cluster (see [Create Cluster](#create-cluster) section below if you don't already have one)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
 * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
 * [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard certificates (`brew install certbot`)
 
-## How to use it - TL;DR
+## Deployment 
 
-### Deploy to existing k8s cluster 
-
-* Update `DOMAIN`, `API_TOKEN` in [Makefile](./Makefile)
-* Run:
+* Update `DOMAIN` in [Makefile](./Makefile)
+* Run commands (see below for details):
   * `make certs` to create TLS certs
   * `make dapr` to install Dapr
-  * `make testdns` to test DNS configuration 
-  * `make testapi` to test installation
-  * `make forwards` to forward observability ports 
+  * `make dns` to configure DNS
   * `make observe` to install observability components
+  * `make test` to test deployment 
 
-## Create NEW cluster on AKS
+## Observability
 
-* Update `CLUSTER_NAME`, `NODE_COUNT`, `NODE_TYPE` in [Makefile](./Makefile)
-* Run `make clusterup`
-
-## How to use it - Longer Version
-
-This section assumes you already have a Kubernates cluster. If not, see the [Create Cluster](#create-cluster) section below
-
-> Note, Currently this only supports default namespace deployments
-
-Start by updating the variables at the top of the makefile:
-
-* `DOMAIN` - The root of the domain for which you will be creating wildcard certificates
-* `API_TOKEN` - Dapr public API token 
-
-
-To create a wildcard certificate using [Let's Encrypt](https://letsencrypt.org/) run
+To get access to the Kibana, Grafana, Zipkin dashboards run:
 
 ```shell
-make certs
+make ports
 ```
 
-To install Dapr and all observability components as well as configure TLS run 
+Once ports are forwarded, you can access these dashboards using: 
 
-```shell
-make dapr
-```
-
-To test your deployment and to validate the API Authentication run
-
-```shell
-make test
-```
-
-To get access to the observability dashboards run
-
-> Note, this action will open Kibana (port 5601), Grafana (port 8080), Zipkin (port 9411) dashboards in your default browser. If these ports are already being used you may have to edit the `forwards` action in `Makefile`
-
-```shell
-make forwards
-```
-
-### Setup Metrics Dashboards
-
-To create Prometheus data source and import Dapr dashboards run 
-
-```shell
-make metricdash
-```
-
-To stop forwarding the above ports run `make unforward`
-
-To login to the Grafana UI (http://localhost:8080) you will admin password, you can get it using the `make metricpass` action
-
-### Setup Log Indexes 
-
-To create Kibana index run 
-
-```shell
-make logindex
-```
-
-To login to Kibana UI (http://localhost:5601) forward the observability ports `make forwards`
+* kibana - http://localhost:5601
+* grafana - http://localhost:8888
+* zipkin - http://localhost:9411
 
 ## Create Cluster
 
-If you don't already have a cluster, you can create one on AKS. Start by updating these variables at the `Makefile`
+If you don't already have a Kubernates cluster, you can create one in AKS by following these steps
 
-* `CLUSTER_NAME` - Used in cluster creation only 
-* `NODE_COUNT` - NUmber of nodes in the cluster default pool
-* `NODE_TYPE` - VM type used for the nodes in default pool 
+* Update [Makefile](./Makefile) to set:
+  * `CLUSTER_NAME` - Name of the cluster you want to create 
+  * `NODE_COUNT` - NUmber of nodes in the cluster default pool
+  * `NODE_TYPE` - VM type used for the nodes in default pool 
+* Run `make cluster`
 
-This action assumes your default Azure resource group and location are already defined. If not, run
+> Note, this action assumes your default Azure resource group and location are already defined. If not, run
 
 ```shell
 az account set --subscription <id or name>
 az configure --defaults location=<preferred location> group=<preferred resource group>
 ```
 
-To create a demo cluster on AKS run
+
+## Cleanup
+
+To lists previously created clusters run 
 
 ```shell
-make clusterup
+make clusterlist
 ```
 
-To delete the cluster and all of its resources run `make clusterdown`
+To delete any of the previously created clusters run 
+
+> No worries, there will be a prompt to confirm before deleting
+
+```shell
+make cleanup CLUSTER_NAME=name
+```
+
 
 ## Disclaimer
 
