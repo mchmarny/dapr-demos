@@ -33,6 +33,7 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
 	helm repo add bitnami https://charts.bitnami.com/bitnami
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo add elastic https://helm.elastic.co
 	helm repo update
 	# Installing Dapr...
@@ -53,6 +54,7 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
+	kubectl scale --replicas=3 deployment/nginx-ingress-nginx-controller
 	# Waiting for observabiliity to be ready (max 2 min)... 
 	kubectl wait -n dapr-monitoring --for=condition=ready pod --all --timeout=120s
 
@@ -154,8 +156,12 @@ observe: ports ## Create Prometheus data source, Elastic log index, import Dapr 
 		 -d '{"value":"dapr"}' \
 		 "http://localhost:5601/api/kibana/settings/defaultIndex"
 
-.PHONY: redis
-redis: ## Install redis cluster
+.PHONY: reload
+reload: ## Reloads API to pickup new components 
+	kubectl rollout restart deployment/nginx-ingress-nginx-controller
+
+.PHONY: data
+data: ## Install redis cluster
 	kubectl create ns data
 	helm install redis bitnami/redis -n data 
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
