@@ -1,95 +1,121 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
-	"net"
 	"net/http"
 	"os"
+	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/mchmarny/gcputil/env"
 	"gopkg.in/olahol/melody.v1"
+
+	"github.com/dapr/go-sdk/service/common"
+	daprd "github.com/dapr/go-sdk/service/http"
+	"github.com/pkg/errors"
 )
 
 var (
-	logger = log.New(os.Stdout, "VIEWER == ", 0)
-
 	// AppVersion will be overritten during build
 	AppVersion = "v0.0.1-default"
 
 	// service
-	servicePort = env.MustGetEnvVar("PORT", "8080")
-	sourceTopic = env.MustGetEnvVar("VIEWER_SOURCE_TOPIC_NAME", "processed")
+	logger     = log.New(os.Stdout, "", 0)
+	address    = getEnvVar("ADDRESS", ":8083")
+	pubSubName = getEnvVar("PUBSUB_NAME", "queue")
+	topicName  = getEnvVar("TOPIC_NAME", "processed")
 
 	broadcaster *melody.Melody
+	templates   *template.Template
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
 
-	// router
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(Options)
+	// server mux
+	mux := http.NewServeMux()
 
-	// ws
+	// static content
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("resource/static"))))
+	mux.HandleFunc("/favicon.ico", faviconHandler)
+
+	// tempalates
+	templates = template.Must(template.ParseGlob("resource/template/*"))
+
+	// websocket upgrade
 	broadcaster = melody.New()
 	broadcaster.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-	// static
-	r.LoadHTMLGlob("resource/template/*")
-	r.Static("/static", "./resource/static")
-	r.StaticFile("/favicon.ico", "./resource/static/img/favicon.ico")
+	// other handlers
+	mux.HandleFunc("/", rootHandler)
+	mux.HandleFunc("/ws", wsHandler)
 
-	// simple routes
-	r.GET("/", rootHandler)
+	// create a Dapr service
+	s := daprd.NewServiceWithMux(address, mux)
 
-	// topic route
-	viewerRoute := fmt.Sprintf("/%s", sourceTopic)
-	logger.Printf("viewer route: %s", viewerRoute)
-	r.POST(viewerRoute, eventHandler)
+	// add some topic subscriptions
+	subscription := &common.Subscription{
+		PubsubName: pubSubName,
+		Topic:      topicName,
+		Route:      fmt.Sprintf("/%s", topicName),
+	}
 
-	// subscription
-	r.GET("/dapr/subscribe", func(c *gin.Context) {
-		data := []subscription{
-			{
-				Topic: sourceTopic,
-				Route: viewerRoute,
-			},
-		}
-		logger.Printf("subscription topics: %+v", data)
-		c.JSON(http.StatusOK, data)
-	})
+	if err := s.AddTopicEventHandler(subscription, eventHandler); err != nil {
+		logger.Fatalf("error adding topic subscription: %v", err)
+	}
 
-	// websockets
-	r.GET("/ws", func(c *gin.Context) {
-		broadcaster.HandleRequest(c.Writer, c.Request)
-	})
-
-	// server
-	hostPort := net.JoinHostPort("0.0.0.0", servicePort)
-	logger.Printf("Server (%s) starting: %s \n", AppVersion, hostPort)
-	if err := http.ListenAndServe(hostPort, r); err != nil {
-		logger.Fatalf("server error: %v", err)
+	// start the service
+	if err := s.Start(); err != nil && err != http.ErrServerClosed {
+		logger.Fatalf("error starting service: %v", err)
 	}
 }
 
-type subscription struct {
-	Topic string `json:"topic"`
-	Route string `json:"route"`
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+	broadcaster.HandleRequest(w, r)
 }
 
-// Options midleware
-func Options(c *gin.Context) {
-	if c.Request.Method != "OPTIONS" {
-		c.Next()
-	} else {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "POST,OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "authorization, origin, content-type, accept")
-		c.Header("Allow", "POST,OPTIONS")
-		c.Header("Content-Type", "application/json")
-		c.AbortWithStatus(http.StatusOK)
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	proto := r.Header.Get("x-forwarded-proto")
+	if proto == "" {
+		proto = "http"
 	}
+
+	data := map[string]string{
+		"host":    r.Host,
+		"proto":   proto,
+		"version": AppVersion,
+	}
+
+	err := templates.ExecuteTemplate(w, "index", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./resource/static/img/favicon.ico")
+}
+
+func eventHandler(ctx context.Context, e *common.TopicEvent) error {
+	logger.Printf(
+		"event - PubsubName:%s, Topic:%s, ID:%s, Data: %v",
+		e.PubsubName, e.Topic, e.ID, e.Data,
+	)
+
+	b, err := json.Marshal(e.Data)
+	if err != nil {
+		return errors.Wrap(err, "error marshaling data")
+	}
+
+	broadcaster.Broadcast(b)
+	return nil
+}
+
+func getEnvVar(key, fallbackValue string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return strings.TrimSpace(val)
+	}
+	return fallbackValue
 }

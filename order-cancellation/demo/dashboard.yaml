@@ -1,43 +1,47 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: viewer
+  name: cancel-order-viewer
   labels:
-    app: viewer
+    app: cancel-order-viewer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: viewer
+      app: cancel-order-viewer
   template:
     metadata:
       labels:
-        app: viewer
+        app: cancel-order-viewer
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "viewer"
-        dapr.io/port: "8080"
+        dapr.io/app-id: "cancel-order-viewer"
+        dapr.io/app-protocol: "http"
+        dapr.io/app-port: "8080"
         dapr.io/config: "tracing"
-        dapr.io/protocol: "http"
         dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
     spec:
       containers:
       - name: viewer
-        image: mchmarny/orderviewer:v0.3.7
+        image: mchmarny/cancel-order-viewer:v0.10.0
         ports:
         - containerPort: 8080
-        imagePullPolicy: Always
         env:
-        - name: VIEWER_SOURCE_TOPIC_NAME
+        - name: ADDRESS
+          value: ":8080"
+        - name: PUBSUB_NAME
+          value: queue
+        - name: TOPIC_NAME
           value: processed
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: viewer
+  name: cancel-order-viewer
 spec:
   selector:
-    app: viewer
+    app: cancel-order-viewer
   ports:
     - protocol: TCP
       port: 80

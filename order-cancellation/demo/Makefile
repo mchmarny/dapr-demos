@@ -21,10 +21,11 @@ postcancel: ## Invokes cancel on the workflow
 		 http://localhost:3500/v1.0/invoke/workflows/method/order-cancel
 
 postgateway: ## Invokes cancel on the gateway 
-		curl -v -d @data/cancellation.json \
-			-H "Content-type: application/json" \
-			-H "dapr-api-token: ${DEMO_TOKEN}" \
-			http://api.thingz.io/order
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -v -d @data/cancellation.json \
+     -H "Content-type: application/json" \
+     -H "dapr-api-token: $(API_TOKEN)" \
+     "https://api.cloudylabs.dev/v1.0/publish/queue/processed"
 
 	
 help: ## Display available commands

@@ -19,4 +19,11 @@ spec:
             backend:
               serviceName: nginx-ingress-dapr
               servicePort: 80
+    - host: viewer.cloudylabs.dev
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: cancel-order-viewer
+              servicePort: 80
     

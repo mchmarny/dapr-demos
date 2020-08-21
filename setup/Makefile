@@ -172,9 +172,24 @@ reload: ## Reloads API to pickup new components
 .PHONY: data
 data: ## Install redis cluster
 	kubectl create ns data
+	# redis 
 	helm install redis bitnami/redis -n data 
+	kubectl wait -n data --for=condition=ready pod --all --timeout=120s
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)"
+
+
+.PHONY: apps
+apps: ## Install few samples apps
+	# cron-binding
+	kubectl apply -f ../cron-binding/config/cron.yaml
+	kubectl apply -f ../cron-binding/deployment.yaml
+	# grpc-echo-service
+	kubectl apply -f ../grpc-echo-service/deployment.yaml
+	# grpc-event-subscriber
+	kubectl apply -f ../grpc-event-subscriber/config/pubsub.yaml
+	kubectl apply -f ../grpc-event-subscriber/deployment.yaml
+
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

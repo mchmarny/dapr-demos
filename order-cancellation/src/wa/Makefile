@@ -1,5 +1,5 @@
-APP_NAME         =orderviewer
-RELEASE_VERSION  =v0.3.7
+APP_NAME         =cancel-order-viewer
+RELEASE_VERSION  =v0.10.0
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: test mod run dapr lint image tag clean help
@@ -14,7 +14,7 @@ test: mod ## Tests the entire project
 	# go test -v -count=1 -run NameOfSingleTest ./...
 
 run: mod ## Runs the uncompiled code by itsef 
-	go run -v handler.go main.go
+	go run -v main.go
 
 build: mod ## Build app binary locally 
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
@@ -23,17 +23,17 @@ build: mod ## Build app binary locally
     -mod vendor -o ./bin/service .
 
 dapr: mod ## Runs the uncompiled code in Dapr
-	env PORT=8083 dapr run --app-id viewer \
+	dapr run --app-id viewer \
 			 --app-port 8083 \
-			 --protocol http \
-			 --port 3500 \
+			 --app-protocol http \
+			 --dapr-http-port 3500 \
 			 --components-path ./config \
-			 go run handler.go main.go
+			 go run main.go
 
 event: ## Publishes event onto the Dapr topic 
 	curl -d @../../demo/data/cancellation.json \
 		 -H "Content-type: application/json" \
-		 http://localhost:3500/v1.0/publish/processed
+		 http://localhost:3500/v1.0/publish/queue/processed
 
 image: mod ## Builds docker image and publishes it to Dockerhub
 	docker build --build-arg APP_VERSION=$(RELEASE_VERSION) \
