@@ -1,6 +1,6 @@
 # Dapr setup
 
-An opinionated Dapr deployment on Kubernetes clusters. I often use it for the deployment of my demos. It includes:
+An opinionated Kubernetes clusters Dapr deployment. It includes:
 
 * Latest version of Dapr
 * Metrics Monitoring
@@ -9,7 +9,7 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 * Log Management
   * [Fluentd](https://www.fluentd.org/) for log collection and forwarding
   * [Elasticsearch](https://www.elastic.co/) for log aggregation and query execution
-  * [Kibana](https://www.elastic.co/products/kibana) for tull0text log query and visualization
+  * [Kibana](https://www.elastic.co/products/kibana) for full-text log query and visualization
 * Distributed Tracing
   * [Jaeger](https://www.jaegertracing.io/) for capturing traces, latency and dependency trace viewing
 * Ingress and TLS termination
@@ -21,7 +21,7 @@ An opinionated Dapr deployment on Kubernetes clusters. I often use it for the de
 * 1.15+ Kubernates cluster (see [Create Cluster](#create-cluster) section below if you don't already have one)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
 * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
-* [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard certificates (`brew install certbot`)
+* [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
 
 ## Deployment 
 
@@ -47,6 +47,12 @@ Once ports are forwarded, you can access these dashboards using:
 * grafana - http://localhost:8888
 * zipkin - http://localhost:9411
 
+To stop port forwarding run 
+
+```shell
+make portstop
+```
+
 ## Create Cluster
 
 If you don't already have a Kubernates cluster, you can create one in AKS by following these steps
@@ -57,13 +63,12 @@ If you don't already have a Kubernates cluster, you can create one in AKS by fol
   * `NODE_TYPE` - VM type used for the nodes in default pool 
 * Run `make cluster`
 
-> Note, this action assumes your default Azure resource group and location are already defined. If not, run
+> Note, this assumes your default Azure resource group and location are already defined. If not, run
 
 ```shell
 az account set --subscription <id or name>
 az configure --defaults location=<preferred location> group=<preferred resource group>
 ```
-
 
 ## Cleanup
 

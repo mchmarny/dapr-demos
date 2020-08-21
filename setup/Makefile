@@ -7,11 +7,11 @@ NODE_TYPE    ?=Standard_D4_v2
 all: help
 
 .PHONY: clusterlist
-clusterlist: ## Lists all AKS clusters
+clusterlist: ## List all your AKS clusters in the default resource group
 	az aks list -o table
 
 .PHONY: cluster
-cluster: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
+cluster: ## Create AKS cluster (make cluster CLUSTER_NAME=demo)
 	az aks create \
 		--name $(CLUSTER_NAME) \
 		--node-count $(NODE_COUNT) \
@@ -21,14 +21,14 @@ cluster: ## Create k8s cluster in AKS (make cluster CLUSTER_NAME=demo)
 	az aks get-credentials --name $(CLUSTER_NAME)
 	
 .PHONY: certs
-certs: ## Create wildcard certificates using letsencrypt
+certs: ## Create wildcard TLS certificates using letsencrypt
 	sudo certbot certonly --manual --preferred-challenges dns -d "*.$(DOMAIN)"
 	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" ./cert-ca.pem	
 	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" ./cert-pk.pem
 	sudo chmod 644 *.pem
 
 .PHONY: dapr
-dapr: ## Install Dapr into current kubeconfig selected context
+dapr: ## Install and configures Dapr along with all its dependancies 
 	# Updating Help repos...
 	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
 	helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -53,12 +53,9 @@ dapr: ## Install Dapr into current kubeconfig selected context
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
-	@echo
-	@echo Next: make dns
-	@echo
 
 .PHONY: dns
-dns: ## Checks DNS resolution for cluster IP
+dns: ## Check DNS resolution for cluster IP
 	dig api.$(DOMAIN)
 	$(eval LB_IP=$(shell kubectl get service --selector=app=nginx-ingress,component=controller -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}'))
 	@echo === DNS CHECK ===
@@ -73,11 +70,9 @@ dns: ## Checks DNS resolution for cluster IP
 	@echo "  IP address: ${LB_IP}"
 	@echo "  TTL:        1m"
 	@echo
-	@echo Next: make observe
-	@echo
 
 .PHONY: test
-test: ## Tests deployment and execute Dapr API health checks
+test: ## Test deployment and execute Dapr API health checks
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
 	curl -v \
 		 -H "Content-type: application/json" \
@@ -95,11 +90,9 @@ test: ## Tests deployment and execute Dapr API health checks
 	@echo 
 	@echo "  HTTP/2 200"
 	@echo
-	@echo Next: make ports
-	@echo
 
 .PHONY: token
-token: ## Execute Dapr API health call
+token: ## Print Dapr API token 
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
 	@echo
 	@echo Dapr API token is: 
@@ -108,7 +101,7 @@ token: ## Execute Dapr API health call
 	@echo
 
 .PHONY: pass
-pass: ## Retrieve grafana admin password
+pass: ## Print Grafana admin password
 	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	@echo
 	@echo Grafana admin password is: 
@@ -128,8 +121,6 @@ ports: ## Forward observability ports
 	@echo   zipkin  - http://localhost:9411
 	@echo
 	@echo "To stop forwarding run 'make portstop'"
-	@echo
-	@echo Next: make observe
 	@echo
 	
 
@@ -162,7 +153,7 @@ observe: ports ## Create Prometheus data source, Elastic log index, import Dapr 
 		 "http://localhost:5601/api/kibana/settings/defaultIndex"
 
 .PHONY: portstop
-portstop: ## Stop previously forwarded ports 
+portstop: ## Stop previously forwarded observability ports 
 	pkill kubectl -9	
 
 .PHONY: cleanup
@@ -171,8 +162,5 @@ cleanup: clusterlist ## Delete previously created AKS cluster (make cleanup CLUS
 
 .PHONY: help
 help: ## Display available commands
-	# Assumes your default az resource group and locaiton are already defined
-	#   az account set --subscription <id or name>
-	#   az configure --defaults location=<preferred location> group=<preferred resource group>
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk \
 		'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
