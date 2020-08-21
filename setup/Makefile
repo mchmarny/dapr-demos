@@ -19,7 +19,16 @@ cluster: ## Create AKS cluster (make cluster CLUSTER_NAME=demo)
 		--enable-addons monitoring \
 		--generate-ssh-keys
 	az aks get-credentials --name $(CLUSTER_NAME)
-	
+
+.PHONY: nodepool
+nodepool: ## Adds new node pool to the existing cluster (make cluster CLUSTER_NAME=demo)
+	az aks nodepool add \
+		--cluster-name $(CLUSTER_NAME) \
+		--name nodepool$(date +"%m%d%y") \
+		--node-count $(NODE_COUNT) \
+		--node-vm-size $(NODE_TYPE) \
+		--no-wait
+
 .PHONY: certs
 certs: ## Create wildcard TLS certificates using letsencrypt
 	sudo certbot certonly --manual --preferred-challenges dns -d "*.$(DOMAIN)"
@@ -52,16 +61,16 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
 	helm install nginx ingress-nginx/ingress-nginx -f ./config/annotations.yaml
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
+	# Waiting for ingress to be ready (max 2 min)... 
+	kubectl wait --for=condition=ready pod --all --timeout=120s
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
 	kubectl scale --replicas=3 deployment/nginx-ingress-nginx-controller
-	# Waiting for observabiliity to be ready (max 2 min)... 
-	kubectl wait -n dapr-monitoring --for=condition=ready pod --all --timeout=120s
 
 .PHONY: dns
 dns: ## Check DNS resolution for cluster IP
 	dig api.$(DOMAIN)
-	$(eval LB_IP=$(shell kubectl get service --selector=app=nginx-ingress,component=controller -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}'))
+	$(eval LB_IP=$(shell kubectl get svc nginx-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'))
 	@echo === DNS CHECK ===
 	@echo 
 	@echo "Ensure the A record for 'api.${DOMAIN}' in the ANSWER SECTION resolves to:"

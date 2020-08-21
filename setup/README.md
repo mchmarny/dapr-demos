@@ -30,7 +30,8 @@ An opinionated Kubernetes clusters Dapr deployment. It includes:
   * `make certs` to create TLS certs
   * `make dapr` to install Dapr
   * `make dns` to configure DNS
-  * `make observe` to install observability components
+  * `make ports` to forward observability ports
+  * `make observe` to configure observability components
   * `make test` to test deployment 
 
 ## Observability
@@ -76,6 +77,7 @@ az configure --defaults location=<preferred location> group=<preferred resource 
 $ make help
 clusterlist                    List all your AKS clusters in the default resource group
 cluster                        Create AKS cluster (make cluster CLUSTER_NAME=demo)
+nodepool                       Adds new node pool to the existing cluster (make cluster CLUSTER_NAME=demo)
 certs                          Create wildcard TLS certificates using letsencrypt
 dapr                           Install and configures Dapr along with all its dependencies
 dns                            Check DNS resolution for cluster IP
@@ -84,6 +86,8 @@ token                          Print Dapr API token
 pass                           Print Grafana admin password
 ports                          Forward observability ports
 observe                        Create Prometheus data source, Elastic log index, import Dapr dashboards
+reload                         Reloads API to pickup new components
+data                           Install redis cluster
 portstop                       Stop previously forwarded observability ports
 cleanup                        Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
 help                           Display available commands

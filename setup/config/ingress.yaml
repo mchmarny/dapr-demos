@@ -19,3 +19,4 @@ spec:
             backend:
               serviceName: nginx-ingress-dapr
               servicePort: 80
+      
