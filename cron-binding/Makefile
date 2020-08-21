@@ -35,6 +35,11 @@ image: tidy ## Builds and publish docker image
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
+deploy: ## Deploys prebuild image to k8s using currently selected context 
+	kubectl apply -f config/cron.yaml
+	kubectl apply -f deployment.yaml
+	kubectl get pods
+
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m
 
