@@ -26,7 +26,7 @@ An opinionated Kubernetes clusters Dapr deployment. It includes:
 ## Deployment 
 
 * Update `DOMAIN` in [Makefile](./Makefile)
-* Run commands (see below for details):
+* Run:
   * `make certs` to create TLS certs
   * `make dapr` to install Dapr
   * `make dns` to configure DNS
