@@ -24,7 +24,7 @@ cluster: ## Create AKS cluster (make cluster CLUSTER_NAME=demo)
 nodepool: ## Adds new node pool to the existing cluster (make cluster CLUSTER_NAME=demo)
 	az aks nodepool add \
 		--cluster-name $(CLUSTER_NAME) \
-		--name nodepool$(date +"%m%d%y") \
+		--name nodepool$(date +"%y%d%m") \
 		--node-count $(NODE_COUNT) \
 		--node-vm-size $(NODE_TYPE) \
 		--no-wait
