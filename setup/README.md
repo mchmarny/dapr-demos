@@ -70,6 +70,25 @@ az account set --subscription <id or name>
 az configure --defaults location=<preferred location> group=<preferred resource group>
 ```
 
+## Other Commands 
+
+```shell
+$ make help
+clusterlist                    List all your AKS clusters in the default resource group
+cluster                        Create AKS cluster (make cluster CLUSTER_NAME=demo)
+certs                          Create wildcard TLS certificates using letsencrypt
+dapr                           Install and configures Dapr along with all its dependencies
+dns                            Check DNS resolution for cluster IP
+test                           Test deployment and execute Dapr API health checks
+token                          Print Dapr API token
+pass                           Print Grafana admin password
+ports                          Forward observability ports
+observe                        Create Prometheus data source, Elastic log index, import Dapr dashboards
+portstop                       Stop previously forwarded observability ports
+cleanup                        Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
+help                           Display available commands
+```
+
 ## Cleanup
 
 To lists previously created clusters run 

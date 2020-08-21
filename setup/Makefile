@@ -28,7 +28,7 @@ certs: ## Create wildcard TLS certificates using letsencrypt
 	sudo chmod 644 *.pem
 
 .PHONY: dapr
-dapr: ## Install and configures Dapr along with all its dependancies 
+dapr: ## Install and configures Dapr along with all its dependencies 
 	# Updating Help repos...
 	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
 	helm repo add bitnami https://charts.bitnami.com/bitnami
