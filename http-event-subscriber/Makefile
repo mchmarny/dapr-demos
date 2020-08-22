@@ -38,21 +38,35 @@ run: build ## Builds binary and runs it in Dapr
 jsonevent: ## Publishes sample JSON message to Dapr pubsub API 
 	curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
      -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/publish/events/messages"
+     "http://localhost:3500/v1.0/publish/http-events/messages"
 
 xmlevent: ## Publishes sample XML message to Dapr pubsub API 
 	curl -d '<message><from>John</from><to>Lary</to></message>' \
      -H "Content-type: application/xml" \
-     "http://localhost:3500/v1.0/publish/events/messages"
+     "http://localhost:3500/v1.0/publish/http-events/messages"
 
 binevent: ## Publishes sample binary message to Dapr pubsub API 
 	curl -d '0x18, 0x2d, 0x44, 0x54, 0xfb, 0x21, 0x09, 0x40' \
      -H "Content-type: application/octet-stream" \
-     "http://localhost:3500/v1.0/publish/events/messages"
+     "http://localhost:3500/v1.0/publish/http-events/messages"
 
 image: tidy ## Builds and publishes docker image 
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
+
+deploy: ## Deploys prebuild image to k8s using currently selected context 
+	kubectl apply -f k8s/component.yaml
+	kubectl apply -f k8s/deployment.yaml
+	kubectl rollout restart deployment/http-event-subscriber
+	kubectl rollout restart deployment/nginx-ingress-nginx-controller
+	watch kubectl get pods
+
+event: ## Publishes sample JSON message to Dapr pubsub API 
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
+     -H "Content-type: application/json" \
+     -H "dapr-api-token: $(API_TOKEN)" \
+     "https://api.cloudylabs.dev/v1.0/publish/http-events/messages"
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m

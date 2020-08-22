@@ -40,6 +40,7 @@ Deploy and wait for the pod to be ready
 kubectl apply -f k8s/component.yaml
 kubectl apply -f k8s/deployment.yaml
 kubectl rollout restart deployment/grpc-event-subscriber
+kubectl rollout restart deployment/nginx-ingress-nginx-controller
 watch kubectl get pods
 ```
 

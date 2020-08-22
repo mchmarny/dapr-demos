@@ -6,7 +6,6 @@ metadata:
     app: grpc-event-subscriber
     demo: grpc-event
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: grpc-event-subscriber

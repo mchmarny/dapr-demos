@@ -16,7 +16,7 @@ import (
 var (
 	logger     = log.New(os.Stdout, "", 0)
 	address    = getEnvVar("ADDRESS", ":8080")
-	pubSubName = getEnvVar("PUBSUB_NAME", "events")
+	pubSubName = getEnvVar("PUBSUB_NAME", "http-events")
 	topicName  = getEnvVar("TOPIC_NAME", "messages")
 )
 

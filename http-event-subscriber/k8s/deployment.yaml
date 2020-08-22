@@ -4,8 +4,8 @@ metadata:
   name: http-event-subscriber
   labels:
     app: http-event-subscriber
+    demo: http-event
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: http-event-subscriber
@@ -13,16 +13,18 @@ spec:
     metadata:
       labels:
         app: http-event-subscriber
+        demo: http-event
       annotations:
         dapr.io/enabled: "true"
         dapr.io/id: "http-event-subscriber"
         dapr.io/port: "8080"
-        dapr.io/log-as-json: "true"
         dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/http-event-subscriber:latest
+        image: mchmarny/http-event-subscriber:v0.10.0
         ports:
         - containerPort: 8080
         env:
@@ -31,6 +33,6 @@ spec:
         - name: DAPR_HTTP_PORT
           value: "3500"
         - name: PUBSUB_NAME
-          value: "events"
+          value: "http-events"
         - name: TOPIC_NAME
           value: "messages"
