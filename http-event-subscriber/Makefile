@@ -59,7 +59,7 @@ deploy: ## Deploys prebuild image to k8s using currently selected context
 	kubectl apply -f k8s/deployment.yaml
 	kubectl rollout restart deployment/http-event-subscriber
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
-	watch kubectl get pods
+	kubectl rollout status deployment/nginx-ingress-nginx-controller
 
 event: ## Publishes sample JSON message to Dapr pubsub API 
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))

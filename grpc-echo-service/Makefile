@@ -45,7 +45,7 @@ image: tidy ## Builds and publish docker image
 deploy: ## Deploys prebuild image to k8s using currently selected context 
 	kubectl apply -f deployment.yaml
 	kubectl rollout restart deployment/grpc-echo-service
-	watch kubectl get pods
+	kubectl rollout status deployment/grpc-echo-service
 
 call: ## Invokes service through Dapr API 
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
