@@ -45,21 +45,46 @@ Once the Twitter API consumer and access details are set, you are ready to run:
 
 ```shell
 dapr run \
-		--app-id twitter-binding \
+    --app-id twitter-binding-demo \
     --app-port 8080 \
     --app-protocol http \
+    --dapr-http-port 3500 \
     --components-path ./config \
     go run main.go
 ```
 
-Assuming everything went OK, you should see something like this:
+
+## Deploy
+
+Create secrets 
 
 ```shell
-ℹ️  Updating metadata for app command: handler.go main.go
-✅  You're up and running! Both Dapr and your app logs will appear here.
+kubectl create secret generic twitter-secret \
+  --from-literal=consumerKey=$TW_CONSUMER_KEY \
+  --from-literal=consumerSecret=$TW_CONSUMER_SECRET \
+  --from-literal=accessToken=$TW_ACCESS_TOEKN \
+  --from-literal=accessSecret=$TW_ACCESS_SECRET
 ```
 
-Hope you found this demo helpful. 
+Deploy and wait for the pod to be ready 
+
+```shell
+kubectl apply -f k8s/component.yaml
+kubectl apply -f k8s/deployment.yaml
+```
+
+If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
+
+```shell
+kubectl rollout restart deployment/twitter-binding-demo
+kubectl wait --for=condition=ready pod -l demo=twitter --timeout=60s
+```
+
+Follow logs to see tweets for the "term" used in query
+
+```shell
+kubectl logs -l demo=twitter -c service -f
+```
 
 ## Disclaimer
 

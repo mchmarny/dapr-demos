@@ -1,32 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cron-binding-demo
+  name: twitter-binding-demo
   labels:
-    app: cron-binding-demo
-    demo: cron
+    app: twitter-binding-demo
+    demo: twitter
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: cron-binding-demo
+      app: twitter-binding-demo
   template:
     metadata:
       labels:
-        app: cron-binding-demo
-        demo: cron
+        app: twitter-binding-demo
+        demo: twitter
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "cron-binding-demo"
-        dapr.io/app-protocol: "http"
-        dapr.io/app-port: "8080"
+        dapr.io/id: "twitter-binding-demo"
+        dapr.io/port: "8080"
         dapr.io/config: "tracing"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/cron-binding-demo:v0.10.0
+        image: mchmarny/twitter-binding-demo:v0.10.0
         ports:
         - containerPort: 8080
         env:

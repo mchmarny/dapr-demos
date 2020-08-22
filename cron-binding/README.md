@@ -28,6 +28,29 @@ dapr run --app-id cron-binding-demo \
 	    go run *.go
 ```
 
+
+## Deploy
+
+Deploy and wait for the pod to be ready 
+
+```shell
+kubectl apply -f k8s/component.yaml
+kubectl apply -f k8s/deployment.yaml
+```
+
+If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
+
+```shell
+kubectl rollout restart deployment/cron-binding-demo
+kubectl wait --for=condition=ready pod -l demo=cron --timeout=60s
+```
+
+Follow logs to view schedule firing 
+
+```shell
+kubectl logs -l demo=cron -c daprd -f
+```
+
 ## Disclaimer
 
 This is my personal project and it does not represent my employer. I take no responsibility for issues caused by this code. I do my best to ensure that everything works, but if something goes wrong, my apologies is all you will get.
