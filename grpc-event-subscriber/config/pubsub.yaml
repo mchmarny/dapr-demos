@@ -6,8 +6,6 @@ spec:
   type: pubsub.redis
   metadata:
   - name: redisHost
-    value: redis-master.data.svc.cluster.local:6379
+    value: localhost:6379
   - name: redisPassword
-    secretKeyRef:
-      name: redis-secret
-      key: password
+    value: ""

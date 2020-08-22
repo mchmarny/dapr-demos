@@ -53,9 +53,10 @@ image: tidy ## Builds and publish docker image
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
 deploy: ## Deploys prebuild image to k8s using currently selected context 
-	kubectl apply -f config/pubsub.yaml
-	kubectl apply -f deployment.yaml
-	kubectl get pods
+	kubectl apply -f k8s/component.yaml
+	kubectl apply -f k8s/deployment.yaml
+	kubectl rollout restart deployment/grpc-event-subscriber
+	watch kubectl get pods
 
 event: ## Publishes sample JSON message to Dapr pubsub API 
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
