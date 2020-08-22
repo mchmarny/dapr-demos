@@ -22,7 +22,7 @@ Deploy and wait for the pod to be ready
 
 ```shell
 kubectl apply -f deployment.yaml
-watch kubectl get pods
+kubectl wait --for=condition=ready pod -l demo=echo --timeout=60s
 ```
 
 Follow logs

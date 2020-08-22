@@ -42,7 +42,7 @@ If you have changed an existing component, make sure to reload the deployment an
 
 ```shell
 kubectl rollout restart deployment/cron-binding-demo
-kubectl wait --for=condition=ready pod -l demo=cron --timeout=60s
+kubectl rollout status deployment/cron-binding-demo
 ```
 
 Follow logs to view schedule firing 

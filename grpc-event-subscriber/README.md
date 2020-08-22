@@ -39,9 +39,14 @@ Deploy and wait for the pod to be ready
 ```shell
 kubectl apply -f k8s/component.yaml
 kubectl apply -f k8s/deployment.yaml
+```
+
+If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
+
+```shell
 kubectl rollout restart deployment/grpc-event-subscriber
 kubectl rollout restart deployment/nginx-ingress-nginx-controller
-watch kubectl get pods
+kubectl rollout status deployment/nginx-ingress-nginx-controller
 ```
 
 Follow logs
