@@ -53,7 +53,6 @@ dapr run \
     go run main.go
 ```
 
-
 ## Deploy
 
 Create secrets 
@@ -77,7 +76,8 @@ If you have changed an existing component, make sure to reload the deployment an
 
 ```shell
 kubectl rollout restart deployment/twitter-binding-demo
-kubectl wait --for=condition=ready pod -l demo=twitter --timeout=60s
+kubectl rollout restart deployment/nginx-ingress-nginx-controller
+kubectl rollout status deployment/nginx-ingress-nginx-controller
 ```
 
 Follow logs to see tweets for the "term" used in query

@@ -39,7 +39,7 @@ deploy: ## Deploys prebuild image to k8s using currently selected context
 	kubectl apply -f k8s/component.yaml
 	kubectl apply -f k8s/deployment.yaml
 	kubectl rollout restart deployment/cron-binding-demo
-	watch kubectl get pods
+	kubectl rollout status deployment/cron-binding-demo
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m
