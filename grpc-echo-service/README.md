@@ -18,7 +18,7 @@ dapr run \
 
 ## Deploy
 
-DEploy and wait for the pod to be ready 
+Deploy and wait for the pod to be ready 
 
 ```shell
 kubectl apply -f deployment.yaml

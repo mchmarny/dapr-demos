@@ -13,7 +13,7 @@ import (
 var (
 	logger         = log.New(os.Stdout, "", 0)
 	serviceAddress = getEnvVar("ADDRESS", ":60002")
-	pubSubName     = getEnvVar("PUBSUB_NAME", "events")
+	pubSubName     = getEnvVar("PUBSUB_NAME", "grpc-events")
 	topicName      = getEnvVar("TOPIC_NAME", "messages")
 )
 

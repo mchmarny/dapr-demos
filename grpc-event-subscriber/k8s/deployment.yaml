@@ -4,6 +4,7 @@ metadata:
   name: grpc-event-subscriber
   labels:
     app: grpc-event-subscriber
+    demo: grpc-event
 spec:
   replicas: 1
   selector:
@@ -13,6 +14,7 @@ spec:
     metadata:
       labels:
         app: grpc-event-subscriber
+        demo: grpc-event
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "grpc-event-subscriber"
@@ -31,6 +33,6 @@ spec:
         - name: ADDRESS
           value: ":60002"
         - name: PUBSUB_NAME
-          value: "events"
+          value: "grpc-events"
         - name: TOPIC_NAME
           value: "messages"

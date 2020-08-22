@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: events
+  name: grpc-events
 spec:
   type: pubsub.redis
   metadata:
@@ -13,5 +13,6 @@ spec:
       key: password
   - name: allowedTopics
     value: "messages"
-  - name: subscriptionScopes
-    value: "grpc-event-subscriber=messages"
+scopes:
+- nginx-ingress
+- grpc-event-subscriber
