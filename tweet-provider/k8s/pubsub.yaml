@@ -1,0 +1,18 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: tweeter-pubsub
+spec:
+  type: pubsub.redis
+  metadata:
+  - name: redisHost
+    value: redis-master.data.svc.cluster.local:6379
+  - name: redisPassword
+    secretKeyRef:
+      name: redis-secret
+      key: password
+  - name: allowedTopics
+    value: "tweets"
+scopes:
+- tweet-provider
+- pipeline-processor

@@ -5,7 +5,7 @@ Collection of personal Dapr demo
 * [setup](./setup) - Deploys and configures Dapr in Kubernates 
 * Bindings
   * [cron](./cron-binding) - Using scheduler to execute service 
-  * [twitter](./twitter-binding) - Subscribing to a Twitter even stream
+  * [twitter](./tweet-provider) - Subscribing to a Twitter even stream and publishing to a pub/sub topic
   * [state change handler](./state-change-handler) - RethinkDB state changes streamed into topic
 * Eventing (Subscribing to topic and processing its events)
   * [gRPC event subscriber](./grpc-event-subscriber)

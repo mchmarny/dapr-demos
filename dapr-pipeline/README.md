@@ -79,7 +79,7 @@ http://localhost:8083
 
 The UI should look something like this 
 
-![](images/ui.png)
+![](img/ui.png)
 
 ## Demo 3
 
@@ -206,41 +206,12 @@ open "http://${VIEWER_IP}/"
 
 You can view the scored tweets in Azure table storage 
 
-![](images/state.png)
+![](img/state.png)
 
 Similarly you can monitor the pubsub topic throughout in Azure Service Bus 
 
-![](images/pubsub.png)
+![](img/pubsub.png)
 
-In addition to the state and pubsub, you can also observe Dapr metrics and logs for this demo. 
-
-The Dapr sidecar Grafana dashboard 
-
-![](images/metric.png)
-
-And the Elastic backed Kibana dashboard for logs
-
-![](images/log.png)
-
-For tracing first apply the tracing config 
-
-```shell
-kubectl apply -f tracing/tracing.yaml
-```
-
-And then, if you have not already have it, install Zipkin 
-
-
-```shell
-kubectl create deployment zipkin --image openzipkin/zipkin
-kubectl expose deployment zipkin --type ClusterIP --port 9411
-```
-
-And configure the Zipkin exporter
-
-```shell
-kubectl apply -f tracing/zipkin .yaml
-```
 
 You may have to restart the deployments 
 

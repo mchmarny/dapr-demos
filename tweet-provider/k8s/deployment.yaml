@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tweet-provider
+  labels:
+    app: tweet-provider
+    demo: twitter
+spec:
+  selector:
+    matchLabels:
+      app: tweet-provider
+  template:
+    metadata:
+      labels:
+        app: tweet-provider
+        demo: twitter
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/id: "tweet-provider"
+        dapr.io/port: "8080"
+        dapr.io/config: "tracing" 
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/tweet-provider:v0.10.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ADDRESS
+          value: ":8080"
+        - name: PUBSUB_NAME
+          value: "tweeter-pubsub"
+        - name: TOPIC_NAME
+          value: "tweets"
