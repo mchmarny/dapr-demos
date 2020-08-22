@@ -33,7 +33,7 @@ run: build ## Builds binary and runs it in Dapr
         --components-path ./config \
         bin/$(SERVICE_NAME) 
 
-call: ## Invokes service through Dapr API 
+invoke: ## Invokes service through Dapr API 
 	curl -d '{ "message": "ping" }' \
      -H "Content-type: application/json" \
      "http://localhost:3500/v1.0/invoke/$(SERVICE_NAME)/method/echo"
@@ -44,8 +44,15 @@ image: tidy ## Builds and publish docker image
 
 deploy: ## Deploys prebuild image to k8s using currently selected context 
 	kubectl apply -f deployment.yaml
-	kubectl get pods
+	kubectl rollout restart deployment/grpc-echo-service
+	watch kubectl get pods
 
+call: ## Invokes service through Dapr API 
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -d '{ "message": "ping" }' \
+     -H "Content-type: application/json" \
+     -H "dapr-api-token: $(API_TOKEN)" \
+     "https://api.cloudylabs.dev/v1.0/invoke/$(SERVICE_NAME)/method/echo"
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m
