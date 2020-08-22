@@ -4,6 +4,7 @@ metadata:
   name: grpc-echo-service
   labels:
     app: grpc-echo-service
+    demo: echo
 spec:
   replicas: 1
   selector:
@@ -13,6 +14,7 @@ spec:
     metadata:
       labels:
         app: grpc-echo-service
+        demo: echo
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "grpc-echo-service"
