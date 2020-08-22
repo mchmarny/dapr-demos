@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auditor
+  name: order-auditor
   labels:
-    app: auditor
+    app: order-auditor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auditor
+      app: order-auditor
   template:
     metadata:
       labels:
-        app: auditor
+        app: order-auditor
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "auditor"
+        dapr.io/id: "order-auditor"
         dapr.io/port: "3001"
         dapr.io/config: "tracing"
         dapr.io/protocol: "http"
@@ -29,8 +29,10 @@ spec:
         imagePullPolicy: Always
         env:
         - name: StateStore
-          value: "fn-store"
+          value: "order-audit-store"
         - name: StateKey
           value: "id"
+        - name: PubSubName
+          value: "order-queue"
         - name: TopicName
           value: "cancellations"

@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: run
+  name: schedule
 spec:
   type: bindings.cron
   metadata:

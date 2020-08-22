@@ -6,7 +6,7 @@
                 "type": "Http",
                 "inputs": {
                     "method": "POST",
-                    "uri": "http://localhost:3500/v1.0/publish/queue/cancellations",
+                    "uri": "http://localhost:3500/v1.0/publish/order-queue/cancellations",
                     "body": {
                         "id": "@triggerBody().id",
                         "note": "@triggerBody().note",
@@ -22,7 +22,7 @@
                 "type": "Http",
                 "inputs": {
                     "method": "POST",
-                    "uri": "http://localhost:3500/v1.0/state/workflow-store",
+                    "uri": "http://localhost:3500/v1.0/state/order-store",
                     "body": [
                         {
                             "key": "@triggerBody().id",
@@ -43,7 +43,7 @@
                 "type": "Http",
                 "inputs": {
                     "method": "POST",
-                    "uri": "http://localhost:3500/v1.0/publish/queue/processed",
+                    "uri": "http://localhost:3500/v1.0/publish/order-queue/processed",
                     "body": "@triggerBody()",
                     "headers": {
                         "Content-Type": "application/json"
@@ -59,7 +59,7 @@
                 "type": "Http",
                 "inputs": {
                     "method": "POST",
-                    "uri": "http://localhost:3500/v1.0/bindings/email",
+                    "uri": "http://localhost:3500/v1.0/bindings/order-email",
                     "body": {
                         "operation": "create",
                         "metadata": {

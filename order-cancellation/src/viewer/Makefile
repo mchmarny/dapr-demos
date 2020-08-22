@@ -1,4 +1,4 @@
-APP_NAME         =cancel-order-viewer
+APP_NAME         =order-viewer
 RELEASE_VERSION  =v0.10.0
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -29,11 +29,6 @@ dapr: mod ## Runs the uncompiled code in Dapr
 			 --dapr-http-port 3500 \
 			 --components-path ./config \
 			 go run main.go
-
-event: ## Publishes event onto the Dapr topic 
-	curl -d @../../demo/data/cancellation.json \
-		 -H "Content-type: application/json" \
-		 http://localhost:3500/v1.0/publish/queue/processed
 
 image: mod ## Builds docker image and publishes it to Dockerhub
 	docker build --build-arg APP_VERSION=$(RELEASE_VERSION) \

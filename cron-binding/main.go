@@ -22,7 +22,7 @@ func main() {
 	s := daprd.NewService(address)
 
 	// add some input binding handler
-	if err := s.AddBindingInvocationHandler("run", runHandler); err != nil {
+	if err := s.AddBindingInvocationHandler("schedule", scheduleHandler); err != nil {
 		logger.Fatalf("error adding binding handler: %v", err)
 	}
 
@@ -32,8 +32,8 @@ func main() {
 	}
 }
 
-func runHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err error) {
-	logger.Printf("Binding - Metadata:%v, Data:%v", in.Metadata, in.Data)
+func scheduleHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err error) {
+	logger.Printf("Schedule - Metadata:%v, Data:%v", in.Metadata, in.Data)
 
 	// TODO: do something with the cloud event data
 

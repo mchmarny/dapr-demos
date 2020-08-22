@@ -1,5 +1,7 @@
 # Dapr integrations demo
 
+> WIP: This demo is being currently updated to Dapr v0.10
+
 ## Use-case
 
 Order cancellation demo, loosely based on [Shopify API](https://shopify.dev/docs/admin-api/rest/reference/orders/order?api[version]=2020-04) order cancellation use-case to showcase multiple Dapr service integrations in a single solution: 
@@ -20,7 +22,7 @@ Order cancellation demo, loosely based on [Shopify API](https://shopify.dev/docs
 
 ## Demo 
 
-For deployments and demo script see [demo](./demo).
+For script through this demo see [demo](./demo).
 
 
 

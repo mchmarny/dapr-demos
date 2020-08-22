@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dapr-workflows-host
+  name: workflows-host
   labels:
-    app: dapr-workflows-host
+    app: workflows-host
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dapr-workflows-host
+      app: workflows-host
   template:
     metadata:
       labels:
-        app: dapr-workflows-host
+        app: workflows-host
       annotations:
         dapr.io/id: "workflows"
         dapr.io/enabled: "true"

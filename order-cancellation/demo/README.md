@@ -9,7 +9,7 @@ Dapr integration demo consists of:
 5. Showing order cancellation confirmation email 
 6. Review of the distributed traces for entire process 
 
-> NOte, instructions on how to setup a Kubernetes cluster for this demo are located [here](../setup/README.md)
+> Note, instructions on how to setup a Kubernetes cluster for this demo are located [here](../setup/README.md)
 
 ### 1. Dashboard 
 
@@ -34,17 +34,11 @@ curl -v \
 
 ### 3. Dashboard (updated)
 
-Back in the dashboard UI, there should be now processed cancellation 
-
-![Dashboard UI](../img/ui2.png)
 
 ### 4. Email 
 
 Show confirmation email delivered after the processed completed 
 
-> Note, email may be in junk folder 
-
-![Confirmation Email](../img/email.png)
 
 ## 5. Observability 
 
@@ -52,43 +46,125 @@ Show confirmation email delivered after the processed completed
 
 Forward local port to Zipkin
 
-```shell
-kubectl port-forward svc/zipkin 9411:9411 &
-```
-
-Navigate to http://localhost:9411
-
-![Tracing](../img/trace.png)
-
 
 ### Logging 
 
 Forward local port to Kibana
-
-```shell
-kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
-```
-
-Navigate to http://localhost:5601
 
 
 ### Metrics 
 
 Forward local port to Grafana
 
+
+
+## Setup 
+
+
+## PubSub Queue
+
+
 ```shell
-kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
+kubectl apply -f config/queue.yaml
 ```
 
-Get the Grafana admin password 
+## State Store 
 
 ```shell
-export GPASS=$(kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode)
-echo "Grafana admin password is: ${GPASS}"
+kubectl apply -f config/fn-store.yaml \
+              -f config/workflow-store.yaml
 ```
 
-Navigate to http://localhost:8080 and use `admin` as username and the above printed password
+## Email 
+
+Create the SandGrid secret
+
+```shell
+kubectl create secret generic email --from-literal=api-key="<YOUR-SECRET>"
+```
+
+And the email component
+
+```shell
+kubectl apply -f config/email.yaml
+```
+
+
+## Auditor 
+
+Deploy Dapr Functions
+
+```shell
+kubectl apply -f function.yaml
+```
+
+Check logs for errors from both containers
+
+```shell
+kubectl logs -l app=auditor -c daprd
+kubectl logs -l app=auditor -c auditor
+```
+
+## Workflow 
+
+Create the config map to hold the Dapr workflow definition
+
+```shell
+kubectl create configmap workflows --from-file config/order-cancel.json
+```
+
+Create the Azure storage account 
+
+```shell
+az storage account create --name daprintdemo --sku Standard_LRS
+export AZSAKEY=$(az storage account keys list --account-name daprintdemo --query "[0].value" --output tsv)
+```
+
+Create secret to hold the workflow Azure storage account key
+
+> TODO: Remove Azure storage account  dependency 
+
+```shell
+kubectl create secret generic dapr-workflows \
+  --from-literal=accountName=daprintdemo \
+  --from-literal=accountKey=$AZSAKEY
+```
+
+Deploy Dapr Workflows host
+
+```shell
+kubectl apply -f workflow.yaml
+```
+
+Check logs for errors from both containers
+
+```shell
+kubectl logs -l app=dapr-workflows-host -c daprd
+kubectl logs -l app=dapr-workflows-host -c host
+```
+
+
+## Web App 
+
+Deploy Dashboard 
+
+```shell
+kubectl apply -f dashboard.yaml
+```
+
+
+Patch ingress
+
+```shell
+kubectl patch deployment patch-demo --patch "$(cat config/ingress.yaml)"
+```
+
+Test it
+
+https://viewer.cloudylabs.dev
 
 
 
+## Cleanup 
 
+> TODO: list cleanup steps 

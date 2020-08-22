@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-demos/order-cancellation/src/wa
+module github.com/mchmarny/dapr-demos/order-cancellation/src/viewer
 
 go 1.15
 

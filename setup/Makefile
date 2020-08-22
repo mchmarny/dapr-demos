@@ -178,6 +178,18 @@ data: ## Install redis cluster
 	kubectl wait -n data --for=condition=ready pod --all --timeout=120s
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)"
+	# mongo 
+	helm install state \
+		--set architecture=replicaset \
+		--set auth.username=dapr \
+		--set auth.database=dapr \
+		--set replicaSetName=staters0 \
+		--set replicaCount=3 \
+		bitnami/mongodb \
+		-n data
+	kubectl wait -n data --for=condition=ready pod --all --timeout=120s
+	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data state-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
+	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

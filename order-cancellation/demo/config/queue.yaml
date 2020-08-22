@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: queue
+  name: order-queue
 spec:
   type: pubsub.redis
   metadata:
@@ -11,3 +11,7 @@ spec:
     secretKeyRef:
       name: redis-secret
       key: password
+scopes:
+- order-auditor
+- workflows-host
+- order-viewer
