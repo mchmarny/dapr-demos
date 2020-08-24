@@ -1,0 +1,15 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: send-email
+spec:
+  type: bindings.twilio.sendgrid
+  metadata:
+  - name: emailFrom
+    value: "demo@thingz.io"
+  - name: apiKey
+    secretKeyRef:
+      name: email-secret
+      key: apiKey
+scopes:
+- nginx-ingress

@@ -1,0 +1,8 @@
+{
+    "operation": "create",
+    "metadata": {
+        "emailTo": "daprdemo@chmarny.com",
+        "subject": "Dapr Demo"
+    },
+    "data": "<h1>Greetings</h1><p>Hi</p>"
+}
