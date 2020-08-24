@@ -46,12 +46,10 @@ func main() {
 }
 
 func tweetHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err error) {
-	logger.Printf("Tweet - Metadata:%v, Data:%s", in.Metadata, in.Data)
-
+	//logger.Printf("Tweet - Metadata:%v", in.Metadata)
 	if err := client.PublishEvent(ctx, pubSubName, topicName, in.Data); err != nil {
 		return nil, errors.Wrapf(err, "error publishing to %s/%s", pubSubName, topicName)
 	}
-
 	return nil, nil
 }
 

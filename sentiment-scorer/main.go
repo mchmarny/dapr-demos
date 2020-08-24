@@ -23,7 +23,7 @@ const (
 var (
 	logger = log.New(os.Stdout, "", 0)
 
-	serviceAddress = getEnvVar("ADDRESS", ":60002")
+	serviceAddress = getEnvVar("ADDRESS", ":60005")
 	apiToken       = getEnvVar("API_TOKEN", "")
 	apiDomain      = getEnvVar("API_DOMAIN", "tweetmaptextanalytics")
 
@@ -48,32 +48,28 @@ func main() {
 }
 
 func sentimentHandler(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error) {
-	logger.Printf("Data: %s", in.Data)
-
+	logger.Printf("Processing: %s", in.Data)
 	var req map[string]string
 	if err := json.Unmarshal(in.Data, &req); err != nil {
 		return nil, errors.Wrapf(err, "error deserializing data: %s", in.Data)
 	}
 
-	logger.Printf("Request: %v", req)
 	score, err := getSentiment(ctx, req["language"], req["text"])
 	if err != nil {
 		logger.Printf("error scoring sentiment: %v", err)
 		return nil, errors.Wrapf(err, "error scoring sentiment: %s", in.Data)
 	}
-	logger.Printf("Score: %v)", score)
 
 	b, err := json.Marshal(score)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error serializing score: %v", score)
 	}
 
-	out = &common.Content{
+	logger.Printf("Processed: %s", b)
+	return &common.Content{
 		ContentType: "application/json",
 		Data:        b,
-	}
-
-	return
+	}, nil
 }
 
 // SentimentScore represents sentiment result

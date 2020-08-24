@@ -14,4 +14,4 @@ spec:
   - name: accessSecret
     value: "" # twitter api access secret, required
   - name: query
-    value: "dapr" # use common term for demo
+    value: "serverless" # use common term for demo

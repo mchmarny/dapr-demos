@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.0
+RELEASE_VERSION  =v0.10.1
 SERVICE_NAME    ?=sentiment-scorer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -12,22 +12,22 @@ tidy: ## Updates the go modules and vendors all dependencies
 debug: tidy ## Runs uncompiled code in Dapr
 	dapr run \
 		--app-id $(SERVICE_NAME) \
-		--app-port 60002 \
+		--app-port 60005 \
 		--app-protocol grpc \
-		--dapr-http-port 3500 \
+		--dapr-http-port 3505 \
 		--log-level debug \
         go run main.go
 
 invoke: ## Invokes service through Dapr API 
 	curl -d '{ "text": "dapr is the best" }' \
      -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
+     "http://localhost:3505/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
 	curl -d '{ "text": "spinach is the worst" }' \
      -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
+     "http://localhost:3505/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
 	curl -d '{ "text": "something is green" }' \
      -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
+     "http://localhost:3505/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
 
 image: tidy ## Builds and publish docker image 
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .

@@ -12,7 +12,7 @@ spec:
       name: redis-secret
       key: password
   - name: allowedTopics
-    value: "tweets"
+    value: "processed-tweets"
 scopes:
 - tweet-processor
 - tweet-viewer

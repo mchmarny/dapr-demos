@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.0
+RELEASE_VERSION  =v0.10.1
 SERVICE_NAME    ?=tweet-processor
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -19,6 +19,7 @@ debug: tidy ## Runs uncompiled code in Dapr
         --app-protocol grpc \
         --dapr-http-port 3500 \
         --components-path ./config \
+		--log-level debug \
         go run main.go
 
 build: tidy ## Builds local release binary
@@ -38,9 +39,11 @@ image: tidy ## Builds and publish docker image
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
 deploy: ## Deploys prebuild image to k8s using currently selected context 
-	kubectl apply -f k8s/component.yaml
+	kubectl apply -f k8s/source-pubsub.yaml
+	kubectl apply -f k8s/result-pubsub.yaml
 	kubectl apply -f k8s/deployment.yaml
 	kubectl rollout restart deployment/tweet-processor
+	kubectl rollout status deployment/tweet-processor
 
 event: ## Publishes sample JSON message to Dapr pubsub API 
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))

@@ -22,7 +22,9 @@ var (
 	srcTopicName  = getEnvVar("SOURCE_TOPIC_NAME", "tweets")
 
 	resultPubSubName = getEnvVar("RESULT_PUBSUB_NAME", "processed-tweets-pubsub")
-	resultTopicName  = getEnvVar("RESULT_TOPIC_NAME", "tweets")
+	resultTopicName  = getEnvVar("RESULT_TOPIC_NAME", "processed-tweets")
+
+	sentimentServiceName = getEnvVar("SENTIMENT_SERVICE_NAME", "sentiment-scorer")
 
 	client dapr.Client
 )
@@ -54,34 +56,101 @@ func main() {
 	}
 }
 
-func tweetHandler(ctx context.Context, e *common.TopicEvent) error {
-	logger.Printf(
-		"Processing Tweet (pubsub:%s/topic:%s) - ID:%s, Data: %s",
-		e.PubsubName, e.Topic, e.ID, e.Data,
-	)
-
-	tweet, ok := e.Data.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("event data not in expected type: %T", e.Data)
+func topicDataToSentimentRequest(b []byte) (s *SentimentRequest, err error) {
+	var t TweetText
+	if err := json.Unmarshal(b, &t); err != nil {
+		return nil, errors.Wrapf(err, "error deserializing tweet into request: %s", b)
 	}
 
-	// TODO: invoke sentiment scoring service
+	s = &SentimentRequest{
+		Text:     t.Text,
+		Language: t.Lang,
+	}
 
-	// TODO: augment tweet with sentiment
+	if t.Extended.Text != "" {
+		s.Text = t.Extended.Text
+	}
 
-	// publish augmented tweet
-	content, err := json.Marshal(tweet)
+	return
+}
+
+func getSentimentScore(ctx context.Context, req *SentimentRequest) (score *SentimentScore, err error) {
+	cb, err := json.Marshal(req)
 	if err != nil {
-		return errors.Wrap(err, "unable to serialize tweet map")
+		return nil, errors.Wrap(err, "unable to serialize sentiment request")
+	}
+
+	c := &dapr.DataContent{ContentType: "application/json", Data: cb}
+
+	b, err := client.InvokeServiceWithContent(ctx, sentimentServiceName, "sentiment", c)
+	if err != nil {
+		return nil, errors.Wrap(err, "error invoking sentiment service")
+	}
+
+	var s SentimentScore
+	if err := json.Unmarshal(b, &s); err != nil {
+		return nil, errors.Wrap(err, "error deserializing sentiment")
+	}
+
+	return &s, nil
+}
+
+func tweetHandler(ctx context.Context, e *common.TopicEvent) error {
+	logger.Printf("Processing pubsub:%s/topic:%s id:%s", e.PubsubName, e.Topic, e.ID)
+
+	b, ok := e.Data.([]byte)
+	if !ok {
+		return fmt.Errorf("invalid data type, expected []bytes: %T", e.Data)
+	}
+
+	sentReq, err := topicDataToSentimentRequest(b)
+	if err != nil {
+		return errors.Wrap(err, "error getting tweet text")
+	}
+
+	sentScore, err := getSentimentScore(ctx, sentReq)
+	if err != nil {
+		return errors.Wrap(err, "error getting sentiment score")
+	}
+
+	var tweetMap map[string]interface{}
+	if err := json.Unmarshal(b, &tweetMap); err != nil {
+		return errors.Wrap(err, "error deserializing content into map")
+	}
+
+	tweetMap["sentiment"] = sentScore
+	content, err := json.Marshal(tweetMap)
+	if err != nil {
+		return errors.Wrap(err, "unable to serialize tweet map content")
 	}
 
 	if err := client.PublishEvent(ctx, resultPubSubName, resultTopicName, content); err != nil {
-		return errors.Wrapf(err,
-			"error while publishing content to pubsub:%s, topic:%s", resultPubSubName, resultTopicName,
-		)
+		return errors.Wrapf(err, "error publishing to %s/%s", resultPubSubName, resultTopicName)
 	}
 
+	logger.Printf("Processed tweet:%s - %v", e.ID, sentScore)
 	return nil
+}
+
+// TweetText represents only the text of tweet for sentiment
+type TweetText struct {
+	Text     string `json:"text"`
+	Lang     string `json:"lang"`
+	Extended struct {
+		Text string `json:"full_text"`
+	} `json:"extended_tweet"`
+}
+
+// SentimentRequest represents the sentiment request
+type SentimentRequest struct {
+	Text     string `json:"text"`
+	Language string `json:"language"`
+}
+
+// SentimentScore represents sentiment result
+type SentimentScore struct {
+	Sentiment  string  `json:"sentiment"`
+	Confidence float64 `json:"confidence"`
 }
 
 func getEnvVar(key, fallbackValue string) string {

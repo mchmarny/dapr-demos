@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/tweet-processor:v0.10.0
+        image: mchmarny/tweet-processor:v0.10.1
         ports:
         - containerPort: 60002
         env:
@@ -36,4 +36,6 @@ spec:
         - name: RESULT_PUBSUB_NAME
           value: "processed-tweets-pubsub"
         - name: RESULT_TOPIC_NAME
-          value: "tweets"
+          value: "processed-tweets"
+        - name: SENTIMENT_SERVICE_NAME
+          value: "sentiment-scorer"
