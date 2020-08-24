@@ -39,11 +39,19 @@ window.onload = function () {
             var t = JSON.parse(e.data);
             console.log(t);
 
+            
             var scoreStr = "neutral";
             if (t.hasOwnProperty("sentiment")) { 
                 console.log(t.sentiment);
-                scoreStr = t.sentiment.sentiment;
+                if (t.sentiment.sentiment.length > 0) {
+                    scoreStr = t.sentiment.sentiment;
+                }
             } 
+
+            var tweetText = t.text;
+            if (t.truncated == true) {
+                tweetText = t.full_text;
+            }
 
             var item = document.createElement("div");
             item.className = "item";
@@ -53,7 +61,7 @@ window.onload = function () {
                 ".svg' alt='sentiment' class='sentiment' />" + t.user.screen_name +
                 "<a href='https://twitter.com/" + t.user.screen_name + "/status/" + t.id_str +
                 "' target='_blank'><img src='static/img/tw.svg' class='tweet-link' /></a></b>" +
-                "<br /><i>" + t.text + "</i></div>";
+                "<br /><i>" + tweetText + "</i></div>";
             item.innerHTML = tmsg
             appendLog(item);
         };

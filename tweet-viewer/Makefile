@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.1
+RELEASE_VERSION  =v0.10.2
 SERVICE_NAME    ?=tweet-viewer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -28,7 +28,7 @@ post: ## Posts sample tweet
 		 http://localhost:3500/v1.0/publish/processed-tweets-pubsub/processed-tweets
 
 image: tidy ## Builds and publish docker image 
-	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
+	docker build --build-arg APP_VERSION=$(RELEASE_VERSION) -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
 deploy: ## Deploys prebuild image to k8s using currently selected context 
