@@ -1,7 +1,6 @@
-# Use of Dapr as a binding API 
+# Use of Dapr as a component API Server
 
-* Purpose-configured instance of Dapr with API token authentication using single command 
-* Use of Dapr output binding + Dapr as a microservice (in this case email sending)
+This demo users Dapr instance with API token authentication to show the use of Dapr as a API server for any of its 70+ components. This demo uses Sendgrid output binding.
 
 ## Setup 
 
