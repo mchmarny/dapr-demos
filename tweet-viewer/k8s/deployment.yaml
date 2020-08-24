@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tweet-viewer
+  labels:
+    app: tweet-viewer
+    demo: tweet-viewer
+spec:
+  selector:
+    matchLabels:
+      app: tweet-viewer
+  template:
+    metadata:
+      labels:
+        app: tweet-viewer
+        demo: tweet-viewer
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "tweet-viewer"
+        dapr.io/app-protocol: "http"
+        dapr.io/app-port: "8084"
+        dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/tweet-viewer:v0.10.1
+        ports:
+        - containerPort: 8084
+        env:
+        - name: ADDRESS
+          value: ":8084"
+        - name: PUBSUB_NAME
+          value: "processed-tweets-pubsub"
+        - name: TOPIC_NAME
+          value: "processed-tweets"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tweet-viewer
+spec:
+  selector:
+    app: tweet-viewer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8084

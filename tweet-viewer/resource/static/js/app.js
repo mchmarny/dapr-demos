@@ -15,7 +15,6 @@ window.onload = function () {
         if (doScroll) {
             log.scrollTop = log.scrollHeight - log.clientHeight;
         }
-
     }
 
     if (log) {
@@ -40,27 +39,21 @@ window.onload = function () {
             var t = JSON.parse(e.data);
             console.log(t);
 
-            var scoreStr = ""
-            var score = parseFloat(t.sentiment)
-            if (score <= parseFloat(0.3)) {
-                scoreStr = "negative"
-            } else if (score >= parseFloat(0.6)) {
-                scoreStr = "positive"
-            }else {
-                scoreStr = "neutral"
-            }
-            
+            var scoreStr = "neutral";
+            if (t.hasOwnProperty("sentiment")) { 
+                console.log(t.sentiment);
+                scoreStr = t.sentiment.sentiment;
+            } 
 
             var item = document.createElement("div");
             item.className = "item";
             // TODO: template this
-            var tmsg = "<img src='" + t.author_pic + "' class='profile-pic' />" +
+            var tmsg = "<img src='" + t.user.profile_image_url_https + "' class='profile-pic' />" +
                 "<div class='item-text'><b><img src='static/img/" + scoreStr +
-                ".svg' alt='sentiment' class='sentiment' />" + t.author +
-                "<a href='https://twitter.com/" + t.author + "/status/" + t.id +
+                ".svg' alt='sentiment' class='sentiment' />" + t.user.screen_name +
+                "<a href='https://twitter.com/" + t.user.screen_name + "/status/" + t.id_str +
                 "' target='_blank'><img src='static/img/tw.svg' class='tweet-link' /></a></b>" +
-                "<br /><i>" + t.content + "</i><br /><i class='small'>Query: " +
-                t.query + "</i></div>";
+                "<br /><i>" + t.text + "</i></div>";
             item.innerHTML = tmsg
             appendLog(item);
         };

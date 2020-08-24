@@ -1,0 +1,18 @@
+[{
+  "op": "add",
+  "path": "/spec/rules/-",
+  "value": {
+    "host": "viewer.cloudylabs.dev",
+    "http": {
+      "paths": [
+        {
+          "path": "/",
+          "backend": {
+            "serviceName": "tweet-viewer",
+            "servicePort": 80
+          }
+        }
+      ]
+    }
+  }
+}]

@@ -52,7 +52,7 @@ kubectl rollout status deployment/nginx-ingress-nginx-controller
 Follow logs
 
 ```shell
-kubectl logs -l demo=grpc-event -c service -f
+kubectl logs -l demo=tweet-processor -c service -f
 ```
 
 In a separate terminal session export API token
