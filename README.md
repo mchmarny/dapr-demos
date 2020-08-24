@@ -7,6 +7,7 @@ Collection of personal Dapr demo
   * [cron](./cron-binding) - Using scheduler to execute service 
   * [twitter](./tweet-provider) - Subscribing to a Twitter even stream and publishing to a pub/sub topic
   * [state change handler](./state-change-handler) - RethinkDB state changes streamed into topic
+  * [Dapr as binding API](./binding-api) - Zero app Dapr instance as binding API server 
 * Eventing (Subscribing to topic and processing its events)
   * [gRPC event subscriber](./grpc-event-subscriber)
   * [HTTP event subscriber](./http-event-subscriber)
