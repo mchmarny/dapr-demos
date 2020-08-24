@@ -2,7 +2,12 @@
 
 Collection of personal Dapr demo
 
-* [setup](./setup) - Deploys and configures Dapr in Kubernates 
+* [Setup](./setup) - Deploys and configures Dapr in Kubernates 
+  * Cluster - List existing, create, add node pool, delete
+  * Cert - Create and installs TLS certificates 
+  * Infra - Configure DNS, ingress, observability, forward ports
+  * Dapr - Deploys, configures, and test Dapr API 
+  * Data - Install Redis and Mongo stateful clusters
 * Bindings
   * [cron](./cron-binding) - Using scheduler to execute service 
   * [twitter](./tweet-provider) - Subscribing to a Twitter even stream and publishing to a pub/sub topic
