@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tweet-processor
+  labels:
+    app: tweet-processor
+    demo: grpc-event
+spec:
+  selector:
+    matchLabels:
+      app: tweet-processor
+  template:
+    metadata:
+      labels:
+        app: tweet-processor
+        demo: grpc-event
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "tweet-processor"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60002"
+        dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/tweet-processor:v0.10.0
+        ports:
+        - containerPort: 60002
+        env:
+        - name: SOURCE_PUBSUB_NAME
+          value: "tweeter-pubsub"
+        - name: SOURCE_TOPIC_NAME
+          value: "tweets"
+        - name: RESULT_PUBSUB_NAME
+          value: "processed-tweets-pubsub"
+        - name: RESULT_TOPIC_NAME
+          value: "tweets"

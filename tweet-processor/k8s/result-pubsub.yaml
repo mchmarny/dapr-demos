@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: tweeter-pubsub
+  name: processed-tweets-pubsub
 spec:
   type: pubsub.redis
   metadata:
@@ -14,5 +14,5 @@ spec:
   - name: allowedTopics
     value: "tweets"
 scopes:
-- tweet-provider
 - tweet-processor
+- tweet-viewer

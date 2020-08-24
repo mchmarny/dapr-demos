@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiment-scorer
+  labels:
+    app: sentiment-scorer
+    demo: sentiment
+spec:
+  selector:
+    matchLabels:
+      app: sentiment-scorer
+  template:
+    metadata:
+      labels:
+        app: sentiment-scorer
+        demo: sentiment
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "sentiment-scorer"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60002"
+        dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/sentiment-scorer:v0.10.0
+        ports:
+        - containerPort: 60002
+        env:
+        - name: ADDRESS
+          value: ":60002"
+        - name: API_DOMAIN
+          value: "tweetmaptextanalytics"
+        - name: API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sentiment-secret
+              key: token
