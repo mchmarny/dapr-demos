@@ -11,12 +11,13 @@ Collection of personal Dapr demo
 * Eventing (Subscribing to topic and processing its events)
   * [gRPC event subscriber](./grpc-event-subscriber)
   * [HTTP event subscriber](./http-event-subscriber)
-* Service 
+* Services 
   * [gRPC service](./grpc-service) - gRPC service example
   * [Sentiment Scorer](./sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
 * Integrations
-  * [order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
+* Solutions 
+  * [order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * Dapr Pipeline - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
     * [Tweet Provider](./tweet-provider) - Tweet provider 
     * [Tweet Processor](./tweet-processor) - Tweet processor  
