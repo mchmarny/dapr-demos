@@ -18,6 +18,9 @@ To run these demos locally, you will have first create a secret file (`pipeline/
         "ConsumerSecret": "",
         "AccessToken": "",
         "AccessSecret": ""
+    },
+    "Azure": {
+        "CognitiveAPIKey": ""
     }
 }
 ```
