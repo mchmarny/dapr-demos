@@ -25,7 +25,7 @@ To run these demos you will have first create a secret file (`secrets.json`) in 
 
 For this demo we will need an event source. Start by, create your Event Hubs (if you don't already have one) using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-create). Then capture the connection string using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string). 
 
-To mock up events we will use the included `./eventmaker` utility which will generate random temperature and humidity events and publish them to the Event Hub. Navigate to the `./eventmaker` directory and run:
+To mock up events we will use the included `./eventmaker` utility which will generate random `temperature` and `humidity` events and publish them to the Event Hub. Navigate to the `./eventmaker` directory and run:
 
 ```shell
 go run *.go --conn "your-eventhubs-connection-string"
@@ -40,7 +40,7 @@ sending: {"id":"775ccb8f-8039-4c97-9849-15fdf6a26a1e","temperature":60.469982195
 sending: {"id":"ef658e1f-a16d-4cc7-99a9-6e17d5542fb8","temperature":66.45935972131686,"humidity":43.77704157682614,"time":1598373740}
 ```
 
-> You can leave this runnng during the demo, just remmber to stop it on the end to avoid getting charge for the mocked up events. 
+> You can leave this running during the demo, just remember to stop it on the end to avoid getting charge for the mocked up events. 
 
 ## Run 
 
