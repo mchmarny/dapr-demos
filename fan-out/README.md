@@ -23,7 +23,7 @@ To run these demos you will have first create a secret file (`secrets.json`) in 
 
 ## Events 
 
-For this demo, to mock up events and publish them Azure Event Hubs, we will use included `eventmaker` utility. Start by, create your Event Hubs if you don't already have one using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-create). Then capture the connection string using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string).
+To mock up events for this demo and publish them Azure Event Hubs, we will use included `eventmaker` utility. Start by, create your Event Hubs if you don't already have one using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-create). Then capture the connection string using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string).
 
 To run the `eventmaker`, first navigate to the `./eventmaker` directory and run this command:
 
