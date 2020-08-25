@@ -23,11 +23,12 @@ Collection of personal Dapr demo
   * [Dapr as component API](./component-api) - Zero app Dapr instance as component API server 
 * Solutions 
   * [order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
-  * Dapr Pipeline - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
+  * Pipeline - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
     * [Tweet Provider](./tweet-provider) - Tweet provider 
     * [Tweet Processor](./tweet-processor) - Tweet processor  
     * [Tweet Sentiment Scorer](./sentiment-scorer) - Tweet sentiment scoring
     * [Tweet Viewer](./tweet-viewer) - Tweet viewer UI application  
+  * [Fan-out](./fan-out) - Single message source (Event Hub) "broadcasted" to multiple, configurable targets (e.g. Redis PubSub, HTTP, gRPC)
 
 ## Disclaimer
 
