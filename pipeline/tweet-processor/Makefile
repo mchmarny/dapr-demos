@@ -1,5 +1,5 @@
 RELEASE_VERSION  =v0.10.2
-SERVICE_NAME    ?=tweet-viewer
+SERVICE_NAME    ?=tweet-processor
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: tidy test debug build run jsonevent xmlevent binevent image lint clean tag
@@ -9,37 +9,33 @@ tidy: ## Updates the go modules and vendors all dependencies
 	go mod tidy
 	go mod vendor
 
-test: tidy ## Tests the entire project 
-	go test -count=1 -race ./...
-
 debug: tidy ## Runs uncompiled code in Dapr
 	dapr run \
         --app-id $(SERVICE_NAME) \
-        --app-port 8084 \
-        --app-protocol http \
+        --app-port 60002 \
+        --app-protocol grpc \
         --dapr-http-port 3500 \
         --components-path ./config \
 		--log-level debug \
         go run main.go
 
-post: ## Posts sample tweet 
-	curl -v -d @tweet.json \
-		 -H "Content-type: application/json" \
-		 http://localhost:3500/v1.0/publish/processed-tweets-pubsub/processed-tweets
-
 image: tidy ## Builds and publish docker image 
-	docker build --build-arg APP_VERSION=$(RELEASE_VERSION) -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
+	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
 deploy: ## Deploys prebuild image to k8s using currently selected context 
 	kubectl apply -f k8s/source-pubsub.yaml
+	kubectl apply -f k8s/result-pubsub.yaml
 	kubectl apply -f k8s/deployment.yaml
-	kubectl rollout restart deployment/tweet-viewer
-	kubectl rollout status deployment/tweet-viewer
+	kubectl rollout restart deployment/tweet-processor
+	kubectl rollout status deployment/tweet-processor
 
-api-patch: ## Patch API gatewaty to add route map
-	kubectl patch ingress ingress-rules --type json -p "$(cat k8s/ingress.json)"
-
+event: ## Publishes sample JSON message to Dapr pubsub API 
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
+     -H "Content-type: application/json" \
+     -H "dapr-api-token: $(API_TOKEN)" \
+     "https://api.cloudylabs.dev/v1.0/publish/grpc-events/messages"
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m

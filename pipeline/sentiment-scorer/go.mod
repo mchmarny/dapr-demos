@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-demos/tweet-processor
+module github.com/mchmarny/dapr-demos/pipeline/sentiment-scorer
 
 go 1.15
 

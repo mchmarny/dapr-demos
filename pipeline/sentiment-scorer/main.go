@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	dapr "github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
 	daprd "github.com/dapr/go-sdk/service/grpc"
 	"github.com/pkg/errors"
@@ -18,6 +19,8 @@ import (
 
 const (
 	languageDefault = "en"
+	secretStoreName = "pipeline-secrets"
+	secretStoreKey  = "Azure:CognitiveAPIKey"
 )
 
 var (
@@ -31,6 +34,7 @@ var (
 )
 
 func main() {
+
 	// create serving server
 	s, err := daprd.NewService(serviceAddress)
 	if err != nil {
@@ -85,6 +89,10 @@ func getSentiment(ctx context.Context, lang, text string) (out *SentimentScore, 
 
 	if lang == "" {
 		lang = languageDefault
+	}
+
+	if apiToken == "" {
+		apiToken = getSecret(secretStoreName, secretStoreKey)
 	}
 
 	r := fmt.Sprintf(`{
@@ -161,4 +169,17 @@ func getEnvVar(key, fallbackValue string) string {
 		return strings.TrimSpace(val)
 	}
 	return fallbackValue
+}
+
+func getSecret(store, key string) string {
+	// try to find it in Dapr secret store
+	c, err := dapr.NewClient()
+	if err != nil {
+		logger.Fatal("unable to create Dapr client")
+	}
+	if m, err := c.GetSecret(context.Background(), store, key, map[string]string{}); err == nil {
+		return m[key]
+	}
+	logger.Fatalf("no item found in Dapr secret store for %s", key)
+	return ""
 }

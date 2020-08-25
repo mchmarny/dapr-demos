@@ -1,6 +1,6 @@
-module github.com/mchmarny/dapr-pipeline/src/viewer
+module github.com/mchmarny/dapr-demos/pipeline/tweet-viewer
 
-go 1.14
+go 1.15
 
 require (
 	github.com/dapr/go-sdk v0.10.0

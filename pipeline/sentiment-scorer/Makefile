@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.1
+RELEASE_VERSION  =v0.10.2
 SERVICE_NAME    ?=sentiment-scorer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -9,12 +9,13 @@ tidy: ## Updates the go modules and vendors all dependencies
 	go mod tidy
 	go mod vendor
 
-debug: tidy ## Runs uncompiled code in Dapr
+run: tidy ## Runs uncompiled code in Dapr
 	dapr run \
 		--app-id $(SERVICE_NAME) \
 		--app-port 60005 \
 		--app-protocol grpc \
 		--dapr-http-port 3505 \
+        --components-path ./config \
 		--log-level debug \
         go run main.go
 

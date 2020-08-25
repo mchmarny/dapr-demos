@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.1
+RELEASE_VERSION  =v0.10.2
 SERVICE_NAME    ?=tweet-provider
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -9,27 +9,13 @@ tidy: ## Updates the go modules and vendors all dependencies
 	go mod tidy
 	go mod vendor
 
-test: tidy ## Tests the entire project 
-	go test -count=1 -race ./...
-
-build: tidy ## Builds local release binary
-	CGO_ENABLED=0 go build -a -tags netgo -mod vendor -o bin/$(SERVICE_NAME) .
-
-debug: ## Runs uncompiled code it in Dapr in debug mode
+run: ## Runs uncompiled code it in Dapr in debug mode
 	dapr run \
 		--app-id $(SERVICE_NAME) \
         --app-port 8080 \
         --app-protocol http \
         --components-path ./config \
         go run main.go
-
-run: build ## Builds binary and runs it in Dapr
-	dapr run \
-		--app-id $(SERVICE_NAME) \
-	    --app-port 8080 \
-        --app-protocol http \
-	    --components-path ./config \
-        bin/$(SERVICE_NAME) 
 
 image: tidy ## Builds and publish docker image 
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .

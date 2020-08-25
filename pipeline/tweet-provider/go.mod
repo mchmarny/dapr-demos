@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-demos/tweet-provider
+module github.com/mchmarny/dapr-demos/pipeline/tweet-provider
 
 go 1.15
 

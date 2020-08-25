@@ -1,5 +1,5 @@
-RELEASE_VERSION  =v0.10.1
-SERVICE_NAME    ?=tweet-processor
+RELEASE_VERSION  =v0.10.3
+SERVICE_NAME    ?=tweet-viewer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: tidy test debug build run jsonevent xmlevent binevent image lint clean tag
@@ -15,42 +15,31 @@ test: tidy ## Tests the entire project
 debug: tidy ## Runs uncompiled code in Dapr
 	dapr run \
         --app-id $(SERVICE_NAME) \
-        --app-port 60002 \
-        --app-protocol grpc \
+        --app-port 8084 \
+        --app-protocol http \
         --dapr-http-port 3500 \
         --components-path ./config \
 		--log-level debug \
         go run main.go
 
-build: tidy ## Builds local release binary
-	CGO_ENABLED=0 go build -a -tags netgo -mod vendor -o bin/$(SERVICE_NAME) .
-
-run: build ## Builds binary and runs it in Dapr
-	dapr run \
-        --app-id $(SERVICE_NAME) \
-        --app-port 60002 \
-        --app-protocol grpc \
-        --dapr-http-port 3500 \
-        --components-path ./config \
-        bin/$(SERVICE_NAME) 
+post: ## Posts sample tweet 
+	curl -v -d @tweet.json \
+		 -H "Content-type: application/json" \
+		 http://localhost:3500/v1.0/publish/processed-tweets-pubsub/processed-tweets
 
 image: tidy ## Builds and publish docker image 
-	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
+	docker build --build-arg APP_VERSION=$(RELEASE_VERSION) -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
 deploy: ## Deploys prebuild image to k8s using currently selected context 
 	kubectl apply -f k8s/source-pubsub.yaml
-	kubectl apply -f k8s/result-pubsub.yaml
 	kubectl apply -f k8s/deployment.yaml
-	kubectl rollout restart deployment/tweet-processor
-	kubectl rollout status deployment/tweet-processor
+	kubectl rollout restart deployment/tweet-viewer
+	kubectl rollout status deployment/tweet-viewer
 
-event: ## Publishes sample JSON message to Dapr pubsub API 
-	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
-	curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
-     -H "Content-type: application/json" \
-     -H "dapr-api-token: $(API_TOKEN)" \
-     "https://api.cloudylabs.dev/v1.0/publish/grpc-events/messages"
+api-patch: ## Patch API gatewaty to add route map
+	kubectl patch ingress ingress-rules --type json -p "$(cat k8s/ingress.json)"
+
 
 lint: ## Lints the entire project 
 	golangci-lint run --timeout=3m
