@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-event-subscriber
+  labels:
+    app: grpc-event-subscriber
+    demo: grpc-event
+spec:
+  selector:
+    matchLabels:
+      app: grpc-event-subscriber
+  template:
+    metadata:
+      labels:
+        app: grpc-event-subscriber
+        demo: grpc-event
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "grpc-event-subscriber"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60002"
+        dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/grpc-event-subscriber:v0.10.0
+        ports:
+        - containerPort: 60002
+        env:
+        - name: ADDRESS
+          value: ":60002"
+        - name: PUBSUB_NAME
+          value: "grpc-events"
+        - name: TOPIC_NAME
+          value: "messages"

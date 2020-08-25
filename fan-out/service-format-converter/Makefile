@@ -1,6 +1,9 @@
 RELEASE_VERSION  =v0.10.0
-SERVICE_NAME    ?=grpc-echo-service
+SERVICE_NAME    ?=service-format-converter
 DOCKER_USERNAME ?=$(DOCKER_USER)
+TARGET_FORMAT    =xml
+TARGET_SERVICE   =grpc-echo-service
+TARGET_METHOD    =echo
 
 .PHONY: all
 all: help
@@ -10,24 +13,22 @@ tidy: ## Updates the go modules and vendors all dependencies
 	go mod tidy
 	go mod vendor
 
-.PHONY: test
+.PHONY: tidy
 test: tidy ## Tests the entire project 
 	go test -count=1 -race ./...
 
 .PHONY: run
-run: tidy ## Runs uncompiled code in Dapr
+run: tidy ## Runs uncompiled code in Dapr (make run TARGET_FORMAT=csv)
+	TARGET_FORMAT=$(TARGET_FORMAT) \
+	TARGET_SERVICE=$(TARGET_SERVICE) \
+	TARGET_METHOD=$(TARGET_METHOD) \
 	dapr run \
-		--app-id $(SERVICE_NAME) \
-		--app-port 60002 \
-		--app-protocol grpc \
-		--dapr-http-port 3500 \
+        --app-id $(SERVICE_NAME) \
+        --app-port 60006 \
+        --app-protocol grpc \
+        --components-path ./config \
+		--log-level debug \
         go run main.go
-
-.PHONY: invoke
-invoke: ## Invokes service through Dapr API 
-	curl -d '{ "message": "ping" }' \
-     -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/invoke/$(SERVICE_NAME)/method/echo"
 
 .PHONY: image
 image: tidy ## Builds and publish docker image 
@@ -36,17 +37,9 @@ image: tidy ## Builds and publish docker image
 
 .PHONY: deploy
 deploy: ## Deploys prebuild image to k8s using currently selected context 
-	kubectl apply -f deployment.yaml
-	kubectl rollout restart deployment/grpc-echo-service
-	kubectl rollout status deployment/grpc-echo-service
-
-.PHONY: call
-call: ## Invokes service through Dapr API 
-	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
-	curl -d '{ "message": "ping" }' \
-     -H "Content-type: application/json" \
-     -H "dapr-api-token: $(API_TOKEN)" \
-     "https://api.cloudylabs.dev/v1.0/invoke/$(SERVICE_NAME)/method/echo"
+	kubectl apply -f k8s/components.yaml
+	kubectl apply -f k8s/deployment.yaml
+	kubectl rollout restart deployment/$(SERVICE_NAME)
 
 .PHONY: lint
 lint: ## Lints the entire project 

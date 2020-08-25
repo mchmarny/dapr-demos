@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: source-event-binding
+spec:
+  type: bindings.azure.eventhubs
+  metadata:
+  - name: connectionString      
+    value: "" # Azure EventHubs connection string
+  - name: consumerGroup
+    value: "demo"
+  - name: storageAccountName
+    value: "fanoutdemo"   
+  - name: storageAccountKey
+    value: "" # Azure Storage Account Key  
+  - name: storageContainerName
+    value: "fanoutdemo"

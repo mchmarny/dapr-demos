@@ -1,0 +1,11 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: target-post-binding
+spec:
+  type: bindings.http
+  metadata:
+  - name: url
+    value: https://postman-echo.com/post
+  - name: method
+    value: POST
