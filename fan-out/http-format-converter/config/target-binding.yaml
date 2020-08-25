@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: target-post-binding
+  name: fanout-http-target-post-binding
 spec:
   type: bindings.http
   metadata:

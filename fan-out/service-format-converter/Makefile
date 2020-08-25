@@ -24,7 +24,7 @@ run: tidy ## Runs uncompiled code in Dapr (make run TARGET_FORMAT=csv)
 	TARGET_METHOD=$(TARGET_METHOD) \
 	dapr run \
         --app-id $(SERVICE_NAME) \
-        --app-port 60006 \
+        --app-port 60012 \
         --app-protocol grpc \
         --components-path ./config \
 		--log-level debug \

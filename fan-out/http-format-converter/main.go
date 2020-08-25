@@ -20,9 +20,9 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 	client dapr.Client
 
-	serviceAddress    = getEnvVar("ADDRESS", ":60002")
-	sourceBindingName = getEnvVar("SOURCE_BINDING", "source-event-binding")
-	targetBindingName = getEnvVar("TARGET_BINDING", "target-post-binding")
+	serviceAddress    = getEnvVar("ADDRESS", ":60011")
+	sourceBindingName = getEnvVar("SOURCE_BINDING", "fanout-http-source-event-binding")
+	targetBindingName = getEnvVar("TARGET_BINDING", "fanout-http-target-post-binding")
 	targetFormat      = getEnvVar("TARGET_FORMAT", "json")
 )
 

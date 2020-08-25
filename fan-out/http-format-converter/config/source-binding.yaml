@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: source-event-binding
+  name: fanout-http-source-event-binding
 spec:
   type: bindings.azure.eventhubs
   metadata:
@@ -9,7 +9,7 @@ spec:
     secretKeyRef:
       name: eventhubConnStr
   - name: consumerGroup
-    value: "demo"
+    value: "fanouthttp"
   - name: storageAccountName
     value: "fanoutdemo"   
   - name: storageAccountKey
@@ -17,5 +17,7 @@ spec:
       name: storageAccountKey
   - name: storageContainerName
     value: "fanoutdemo"
+  - name: partitionID
+    value: "0"
 auth:
     secretStore: fanout-secrets

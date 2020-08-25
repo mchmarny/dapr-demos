@@ -19,9 +19,8 @@ test: tidy ## Tests the entire project
 run: tidy ## Runs uncompiled code in Dapr (make run TARGET_FORMAT=csv)
 	TARGET_FORMAT=$(TARGET_FORMAT) dapr run \
         --app-id $(SERVICE_NAME) \
-        --app-port 60002 \
+        --app-port 60011 \
         --app-protocol grpc \
-        --dapr-http-port 3500 \
         --components-path ./config \
 		--log-level debug \
         go run main.go

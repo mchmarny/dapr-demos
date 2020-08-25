@@ -20,9 +20,9 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 	client dapr.Client
 
-	serviceAddress    = getEnvVar("ADDRESS", ":60002")
-	sourceBindingName = getEnvVar("SOURCE_BINDING", "source-event-binding")
-	targetPubSubName  = getEnvVar("TARGET_PUBSUB_NAME", "target-event-binding")
+	serviceAddress    = getEnvVar("ADDRESS", ":60010")
+	sourceBindingName = getEnvVar("SOURCE_BINDING", "fanout-queue-source-event-binding")
+	targetPubSubName  = getEnvVar("TARGET_PUBSUB_NAME", "fanout-queue-target-event-binding")
 	targetTopicName   = getEnvVar("TARGET_TOPIC_NAME", "events")
 	targetTopicFormat = getEnvVar("TARGET_TOPIC_FORMAT", "json")
 )

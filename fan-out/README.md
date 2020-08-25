@@ -52,11 +52,10 @@ This step will subscribe to the Event Hub source using Dapr binding, convert the
 
 > To change the target, simply update the [queue-format-converter/config/source-binding.yaml](./queue-format-converter/config/source-binding.yaml) file with the desired Pub/Sub.
 
-To start, navigate to the directory (`cd ./queue-format-converter`) and export the desired format and service address:
+To start, navigate to the directory (`cd ./queue-format-converter`) and export the desired format:
 
 ```shell
 export TARGET_TOPIC_FORMAT="xml" 
-export ADDRESS=":60001"
 ```
 
 Now run the service using Dapr:
@@ -64,7 +63,7 @@ Now run the service using Dapr:
 ```shell
 dapr run \
     --app-id redis-xml-publisher \
-    --app-port 60001 \
+    --app-port 60010 \
     --app-protocol grpc \
     --components-path ./config \
     go run main.go
@@ -83,11 +82,10 @@ This step will subscribe to the Event Hub source using Dapr binding, convert the
 
 > To change the target, simply update the [http-format-converter/config/target-binding.yaml](./http-format-converter/config/target-binding.yaml) file with the desired output binding.
 
-To start, navigate to the directory (`cd ./http-format-converter`) and export the desired format and service address:
+To start, navigate to the directory (`cd ./http-format-converter`) and export the desired format:
 
 ```shell
 export TARGET_TOPIC_FORMAT="json" 
-export ADDRESS=":60002"
 ```
 
 Now run the service using Dapr:
@@ -95,7 +93,7 @@ Now run the service using Dapr:
 ```shell
 dapr run \
     --app-id http-json-publisher \
-    --app-port 60002 \
+    --app-port 60011 \
     --app-protocol grpc \
     --components-path ./config \
     go run main.go
@@ -113,10 +111,9 @@ This step will subscribe to the Event Hub source using Dapr binding, convert the
 
 > For purposes of this demo, we are going to use the [grpc-echo-service](../grpc-echo-service). You will need to start that service before this one. You can find instructions [here](../grpc-echo-service)
 
-To start, navigate to the directory (`cd ./service-format-converter`) and export the desired format and service address:
+To start, navigate to the directory (`cd ./service-format-converter`) and export the desired format:
 
 ```shell
-export ADDRESS=":60003"
 export TARGET_SERVICE="grpc-echo-service"
 export TARGET_METHOD="echo"
 ```
@@ -126,7 +123,7 @@ Now run the service using Dapr:
 ```shell
 dapr run \
     --app-id grpc-service-publisher \
-    --app-port 60003 \
+    --app-port 60012 \
     --app-protocol grpc \
     --components-path ./config \
     go run main.go
