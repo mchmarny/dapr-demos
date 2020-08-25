@@ -8,6 +8,8 @@ This demo illustrates to how to `fan-out` events in posted to Azure Event Hubs i
 * REST endpoint as a HTTP POST content in JSON format 
 * gRPC service in original binary format 
 
+![](./img/fan-out-in-dapr.png)
+
 For more information about pub/sub see the [Dapr docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
 
 ## Setup 
