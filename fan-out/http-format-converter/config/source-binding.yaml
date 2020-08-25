@@ -7,7 +7,7 @@ spec:
   metadata:
   - name: connectionString      
     secretKeyRef:
-      name: eventhubConn
+      name: eventhubConnStr
   - name: consumerGroup
     value: "demo"
   - name: storageAccountName

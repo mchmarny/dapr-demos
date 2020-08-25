@@ -13,7 +13,7 @@ build: mod ## Builds binaries
 
 .PHONY: events
 events: ## Sends mocked events to configured target
-	bin/$(APP_NAME) --conn "${EVENT_HUB_CONN}"
+	go run *.go --conn "${EVENT_HUB_CONN}"
 
 help: ## Display available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk \
