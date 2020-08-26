@@ -74,7 +74,7 @@ To send email, first edit the [sample email](./sample/email.json) file:
 And POST it to the Dapr API:
 
 ```shell
-curl -v -d @./sample/email.json \
+curl -d @./sample/email.json \
      -H "Content-Type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
      "https://api.cloudylabs.dev/v1.0/bindings/send-email"
@@ -108,7 +108,7 @@ Metadata parameters:
 And POST it to the Dapr API:
 
 ```shell
-curl -v -d @./sample/twitter.json \
+curl -d @./sample/twitter.json \
      -H "Content-Type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
      "https://api.cloudylabs.dev/v1.0/bindings/query-twitter"
@@ -117,7 +117,7 @@ curl -v -d @./sample/twitter.json \
 And if you have the command-line JSON processor [jq](https://shapeshed.com/jq-json/),  you can format the API results. For example, this will display only the ID, Author, and Text of each tweet:
 
 ```
-curl -v -d @./sample/twitter.json \
+curl -d @./sample/twitter.json \
      -H "Content-Type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
      "https://api.cloudylabs.dev/v1.0/bindings/query-twitter" \
