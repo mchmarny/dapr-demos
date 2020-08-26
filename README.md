@@ -1,18 +1,12 @@
 # Dapr demos
 
-Collection of personal Dapr demo
+Collection of personal Dapr demos
 
-## Cluster Setup 
+## Setup
 
-[Setup](./setup) - Deploys and configures Dapr in Kubernates:
+Demo cluster [setup](./setup) for latest version of Dapr, Ingress gateway configured with token auth and with wildcard TLS cert, Observability, and cluster-local Redis and Mongo services.
 
-  * Cluster - List existing, create, add node pool, delete
-  * Cert - Create and installs TLS certificates 
-  * Infra - Configure DNS, ingress, observability, forward ports
-  * Dapr - Deploys, configures, and test Dapr API 
-  * Data - Install Redis and Mongo stateful clusters
-
-## Demos 
+## Demos
 
 * Bindings
   * [Scheduling using cron](./cron-binding) - Using scheduler to execute service 
@@ -26,7 +20,7 @@ Collection of personal Dapr demo
   * [Sentiment Scorer](./sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
 * Integrations
   * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
-  * [Dapr as component API](./component-api) - Zero app Dapr instance as component API server 
+  * [Dapr as component API](./component-api) - Zero-app Dapr instance used as a component API server 
 * Solutions
   * [Order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Pipeline](./pipeline) - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
