@@ -2,7 +2,7 @@
 
 Collection of personal Dapr demos
 
-> Note, some of the demos in this repo require the latest version of Dapr, Ingress gateway, Observability components, or cluster-local Redis and Mongo services. To create Kubernates cluster on AKS or quickly configure these dependencies on existing cluster take a look in the [Cluster Setup](./setup) section. 
+> Note, some of these demos require latest version of Dapr, Ingress gateway, Observability components, or cluster-local Redis and Mongo services. To create Kubernates cluster with all these components on AKS, or quickly configure an existing cluster, consider the [Dapr Cluster Setup](./setup) utility.
 
 
 * Bindings

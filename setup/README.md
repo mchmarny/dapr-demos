@@ -1,6 +1,6 @@
-# Dapr setup
+# Dapr Cluster Setup
 
-An opinionated Kubernetes clusters Dapr deployment. It includes:
+An opinionated Kubernetes clusters Dapr deployment:
 
 * Latest version of Dapr
 * Metrics Monitoring
@@ -19,9 +19,10 @@ An opinionated Kubernetes clusters Dapr deployment. It includes:
 ## Prerequisites
 
 * 1.15+ Kubernates cluster (see [Create Cluster](#create-cluster) section below if you don't already have one)
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
-* [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
-* [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
+* CLIs locally on the machine where you will be running this setup:
+  * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
+  * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
+  * [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
 
 ## Deployment 
 
@@ -33,6 +34,8 @@ An opinionated Kubernetes clusters Dapr deployment. It includes:
   * `make ports` to forward observability ports
   * `make observe` to configure observability components
   * `make test` to test deployment 
+
+> See [Create Cluster](#create-cluster) if you do not have a Kubernetes cluster 
 
 ## Observability
 
