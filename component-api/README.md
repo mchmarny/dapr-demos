@@ -85,7 +85,7 @@ To query Twitter, first edit the [sample query](./sample/twitter.json) file:
 {
     "operation": "get",
     "metadata": {
-        "query": "dapr",
+        "query": "dapr AND serverless",
         "lang": "en",
         "result": "recent"        
     }

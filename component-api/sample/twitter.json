@@ -1,7 +1,7 @@
 {
     "operation": "get",
     "metadata": {
-        "query": "dapr",
+        "query": "dapr AND serverless",
         "lang": "en",
         "result": "recent"        
     }
