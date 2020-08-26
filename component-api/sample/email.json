@@ -4,5 +4,5 @@
         "emailTo": "daprdemo@chmarny.com",
         "subject": "Dapr Demo"
     },
-    "data": "<h1>Greetings</h1><p>Hi</p>"
+    "data": "<h1>Greetings:</h1><p>Hi</p>"
 }

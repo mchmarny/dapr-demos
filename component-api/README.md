@@ -114,22 +114,28 @@ curl -d @./sample/twitter.json \
      "https://api.cloudylabs.dev/v1.0/bindings/query-twitter"
 ```
 
-And if you have the command-line JSON processor [jq](https://shapeshed.com/jq-json/),  you can format the API results. For example, this will display only the ID, Author, and Text of each tweet:
+And if you have the command-line JSON processor [jq](https://shapeshed.com/jq-json/),  you can format the API results. For example, this will display only the ID, Author, and Text of each tweet as a new JSON object:
 
 ```
 curl -d @./sample/twitter.json \
      -H "Content-Type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
      "https://api.cloudylabs.dev/v1.0/bindings/query-twitter" \
-     | jq ".[] | .id_str, .user.screen_name, .text"
+     | jq ".[] | { id: .id_str, user: .user.screen_name, text: .text}"
 ```
 
 The result
 
 ```shell
-"1296550502633627648"
-"pacodelacruz"
-"RT @daprdev: 📣Announcing the release of Dapr v0.10.0!🎉\nTons of new goodies across the board in one of our most packed releases to date!"
+  "id": "1298546227211055109",
+  "user": "markgossa",
+  "text": "What a blast! @AzureFunctions Live of August was fully packed with news (new extension bundle, Dapr extension)"
+}
+{
+  "id": "1298181483547357184",
+  "user": "ysakashita3",
+  "text": "I submitted a blog post to https://t.co/DXGTgtC4Xc. 'Serverless plugin': #KEDA for scaling down your containers"
+}
 ```
 
 ## Disclaimer
