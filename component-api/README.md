@@ -127,6 +127,7 @@ curl -d @./sample/twitter.json \
 The result
 
 ```shell
+{
   "id": "1298546227211055109",
   "user": "markgossa",
   "text": "What a blast! @AzureFunctions Live of August was fully packed with news (new extension bundle, Dapr extension)"
