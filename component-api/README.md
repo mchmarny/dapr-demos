@@ -1,10 +1,13 @@
 # Use of Dapr as a component API Server
 
-This demo users Dapr instance with API token authentication to show the use of Dapr as a API server for any of its 70+ components. This demo uses Sendgrid output binding.
+This demo users Dapr instance with API token authentication to show the use of Dapr as a API server for any of its 70+ components. To illustrate, this demo will show two use-cases:
+
+* Sending email using Sendgrid output binding
+* Querying tweets using Twitter bi-directional binding
 
 ## Setup 
 
-### Email 
+### Email Component 
 
 Create a `email-secret`
 
@@ -18,7 +21,7 @@ Deploy component and ensure the gateway instances are aware of it
 kubectl apply -f config/email.yaml
 ```
 
-### Twitter 
+### Twitter Component
 
 Create a `twitter-secret`
 
@@ -36,7 +39,7 @@ Deploy component and ensure the gateway instances are aware of it
 kubectl apply -f config/twitter.yaml
 ```
 
-### Gateway 
+### Ingress Gateway
 
 Ensure all the gateway instances are aware of these new components
 
@@ -45,9 +48,9 @@ kubectl rollout restart deployment/nginx-ingress-nginx-controller
 kubectl rollout status deployment/nginx-ingress-nginx-controller
 ```
 
-## Use
+## Usage
 
-First, export API token
+To use any of the components you will need the Dapr API toke: 
 
 ```shell
 export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
@@ -79,7 +82,7 @@ curl -v -d @./sample/email.json \
 
 ### Twitter 
 
-To query Twitter, first edit the [sample query](./sample/twitter.json) file:
+To query the last 100 tweets for particular query, first edit the [sample query](./sample/twitter.json) file:
 
 ```json
 {
@@ -94,7 +97,7 @@ To query Twitter, first edit the [sample query](./sample/twitter.json) file:
 
 Metadata parameters:
 
-* `query` - can be any valid Twitter query
+* `query` - can be any valid Twitter query (supports `AND`, `OR` `BUT NOT`, `FROM`, `TO`, `#`, `@`...)
 * `lang` - (optional) is the [ISO 639-1](https://meta.wikimedia.org/wiki/Template:List_of_language_names_ordered_by_code) language code
 * `result` - (optional) is one of:
   * `mixed` - include both popular and real time results in the response
