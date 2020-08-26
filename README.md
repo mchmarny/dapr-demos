@@ -2,11 +2,8 @@
 
 Collection of personal Dapr demos
 
-## Setup
+> Some of the demos in this repo require the latest version of Dapr, Ingress gateway, Observability components, or cluster-local Redis and Mongo services. To create Kubernates cluster on AKS or quickly configure these dependencies on existing cluster take a look in the [Cluster Setup](./setup) section. 
 
-Demo cluster [setup](./setup) for latest version of Dapr, Ingress gateway configured with token auth and with wildcard TLS cert, Observability, and cluster-local Redis and Mongo services.
-
-## Demos
 
 * Bindings
   * [Scheduling using cron](./cron-binding) - Using scheduler to execute service 
