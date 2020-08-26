@@ -44,6 +44,8 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo add elastic https://helm.elastic.co
+	helm repo add kedacore https://kedacore.github.io/charts
+	helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
 	helm repo update
 	# Installing Dapr...
 	kubectl create ns dapr-system
@@ -56,7 +58,10 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm install dapr-prom stable/prometheus -n dapr-monitoring
 	helm install grafana stable/grafana -n dapr-monitoring
 	helm install kibana elastic/kibana -n dapr-monitoring
-	# While observabiliity is insrtalling, deploying ingress...
+	# Installing KEDA
+	kubectl create namespace keda
+	helm install keda kedacore/keda -n keda
+	# While observabiliity and KADA is insrtalling, deploying ingress...
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
 	helm install nginx ingress-nginx/ingress-nginx -f ./config/annotations.yaml
@@ -190,6 +195,8 @@ data: ## Install redis cluster
 	kubectl wait -n data --for=condition=ready pod --all --timeout=120s
 	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data state-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
+	# kafka 
+	helm install kafka incubator/kafka -n data 
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

@@ -216,6 +216,7 @@ kubectl create secret generic twitter-secret \
 Deploy the `tweet-provider` service and its components
 
 ```shell
+kubectl apply -f k8s/state.yaml
 kubectl apply -f k8s/pubsub.yaml
 kubectl apply -f k8s/twitter.yaml
 kubectl apply -f k8s/deployment.yaml

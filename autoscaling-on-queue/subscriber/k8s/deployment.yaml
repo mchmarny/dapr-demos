@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscaling-on-queue
+  labels:
+    app: autoscaling-on-queue
+    demo: autoscaling-demo
+spec:
+  selector:
+    matchLabels:
+      app: autoscaling-on-queue
+  template:
+    metadata:
+      labels:
+        app: autoscaling-on-queue
+        demo: autoscaling-demo
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/id: "autoscaling-on-queue"
+        dapr.io/port: "8089"
+        dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/autoscaling-on-queue:v0.10.2
+        ports:
+        - containerPort: 8089
+        env:
+        - name: ADDRESS
+          value: ":8089"
+        - name: PUBSUB_NAME
+          value: "autoscaling-kafka-queue"
+        - name: TOPIC_NAME
+          value: "primes"
+        - name: STORE_NAME
+          value: "prime-store"
