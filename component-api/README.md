@@ -121,6 +121,14 @@ curl -v -d @./sample/twitter.json \
      | jq ".[] | .id_str, .user.screen_name, .text"
 ```
 
+The result
+
+```shell
+"1296550502633627648"
+"pacodelacruz"
+"RT @daprdev: 📣Announcing the release of Dapr v0.10.0!🎉\nTons of new goodies across the board in one of our most packed releases to date!"
+```
+
 ## Disclaimer
 
 This is my personal project and it does not represent my employer. I take no responsibility for issues caused by this code. I do my best to ensure that everything works, but if something goes wrong, my apologies is all you will get.
