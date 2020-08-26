@@ -4,16 +4,43 @@ This demo users Dapr instance with API token authentication to show the use of D
 
 ## Setup 
 
+### Email 
+
 Create a `email-secret`
 
 ```shell
-kubectl create secret generic email-secret --from-literal=apiKey="your-sandgrid-api-key"
+kubectl create secret generic email-secret --from-literal=apiKey=""
 ```
 
 Deploy component and ensure the gateway instances are aware of it
 
 ```shell
-kubectl apply -f binding.yaml
+kubectl apply -f config/email.yaml
+```
+
+### Twitter 
+
+Create a `twitter-secret`
+
+```shell
+kubectl create secret generic twitter-secret \
+  --from-literal=consumerKey="" \
+  --from-literal=consumerSecret="" \
+  --from-literal=accessToken="" \
+  --from-literal=accessSecret=""
+```
+
+Deploy component and ensure the gateway instances are aware of it
+
+```shell
+kubectl apply -f config/twitter.yaml
+```
+
+### Gateway 
+
+Ensure all the gateway instances are aware of these new components
+
+```shell
 kubectl rollout restart deployment/nginx-ingress-nginx-controller
 kubectl rollout status deployment/nginx-ingress-nginx-controller
 ```
@@ -26,14 +53,72 @@ First, export API token
 export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
 ```
 
-Now POST an email to the Dapr API following message using `curl`.
+### Email 
 
+To send email, first edit the [sample email](./sample/email.json) file: 
+
+```json
+{
+    "operation": "create",
+    "metadata": {
+        "emailTo": "daprdemo@chmarny.com",
+        "subject": "Dapr Demo"
+    },
+    "data": "<h1>Greetings</h1><p>Hi</p>"
+}
+```
+
+And POST it to the Dapr API:
 
 ```shell
-curl -v -d @./email.json \
+curl -v -d @./sample/email.json \
      -H "Content-Type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
      "https://api.cloudylabs.dev/v1.0/bindings/send-email"
+```
+
+### Twitter 
+
+To query Twitter, first edit the [sample query](./sample/twitter.json) file:
+
+```json
+{
+    "operation": "get",
+    "metadata": {
+        "query": "dapr",
+        "lang": "en",
+        "result": "recent"        
+    }
+}
+```
+
+Metadata parameters:
+
+* `query` - can be any valid Twitter query
+* `lang` - (optional) is the [ISO 639-1](https://meta.wikimedia.org/wiki/Template:List_of_language_names_ordered_by_code) language code
+* `result` - (optional) is one of:
+  * `mixed` - include both popular and real time results in the response
+  * `recent` - return only the most recent results in the response
+  * `popular` - return only the most popular results in the response
+* `since_id` - (optional) the not inclusive tweet ID query should start from 
+
+And POST it to the Dapr API:
+
+```shell
+curl -v -d @./sample/twitter.json \
+     -H "Content-Type: application/json" \
+     -H "dapr-api-token: ${API_TOKEN}" \
+     "https://api.cloudylabs.dev/v1.0/bindings/query-twitter"
+```
+
+And if you have the command-line JSON processor [jq](https://shapeshed.com/jq-json/),  you can format the API results. For example, this will display only the ID, Author, and Text of each tweet:
+
+```
+curl -v -d @./sample/twitter.json \
+     -H "Content-Type: application/json" \
+     -H "dapr-api-token: ${API_TOKEN}" \
+     "https://api.cloudylabs.dev/v1.0/bindings/query-twitter" \
+     | jq ".[] | .id_str, .user.screen_name, .text"
 ```
 
 ## Disclaimer

@@ -1,0 +1,8 @@
+{
+    "operation": "get",
+    "metadata": {
+        "query": "dapr",
+        "lang": "en",
+        "result": "recent"        
+    }
+}
