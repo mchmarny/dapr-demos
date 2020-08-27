@@ -110,6 +110,15 @@ kafka-topic-list: kafka-client ## Lists Kafka topics
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
 		--zookeeper kafka-zookeeper:2181 \
 		--list
+
+.PHONY: kafka-load
+kafka-load: kafka-client ## Kafka load from the server  
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-producer-perf-test.sh \
+		--topic prime-requests \
+		--payload-file ./test.json \
+		--throughput 100000 \
+		--num-records 1000000000 \
+		--producer-ops bootstrap.servers=kafka:9092
 		
 .PHONY: clean
 clean: ## Cleans up generated files 
