@@ -19,14 +19,18 @@ image: tidy ## Builds and publishes docker image
 	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
 	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
 
-.PHONY: exec
-exec: ## Execute producer 
+.PHONY: load
+load: ## Execute producer and publish events onto the topic 
 	kubectl apply -n data -f config/producer.yaml
-	kubectl wait -n data --for=condition=ready pod $(SERVICE_NAME) --timeout=120s
-	kubectl logs $(SERVICE_NAME) -n data -f
+	kubectl rollout -n data status deployment/$(SERVICE_NAME)
+	kubectl logs -n data -l demo=autoscaling-producer -f
+
+.PHONY: scale
+scale: ## Scale producer
+	kubectl scale -n data --replicas=10 deployment/$(SERVICE_NAME)
 
 .PHONY: stop
-stop: ## Stod producer 
+stop: ## Stop producer 
 	kubectl delete -n data -f config/producer.yaml
 
 .PHONY: lint

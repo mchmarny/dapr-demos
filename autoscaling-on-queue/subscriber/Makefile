@@ -30,9 +30,12 @@ deploy: ## Deploys prebuild image to k8s using currently selected context
 	kubectl apply -f k8s/binding.yaml
 	kubectl apply -f k8s/state.yaml
 	kubectl apply -f k8s/deployment.yaml
-	kubectl apply -f k8s/keda.yaml
 	kubectl rollout restart deployment/$(SERVICE_NAME)
 	kubectl rollout status deployment/$(SERVICE_NAME)
+
+.PHONY: autoscale
+autoscale: ## Applies Keda to the deployed service 
+	kubectl apply -f k8s/keda.yaml
 
 .PHONY: kafka-port
 kafka-port: ## Forwards cluster Kafka port locally
