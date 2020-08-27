@@ -3,9 +3,11 @@ kind: Component
 metadata:
   name: autoscaling-kafka-queue
 spec:
-  type: pubsub.redis
+  type: pubsub.kafka
   metadata:
-  - name: redisHost
-    value: localhost:6379
-  - name: redisPassword
-    value: ""
+    - name: brokers
+      value: "localhost:9092"
+    - name: authRequired
+      value: "false"
+    - name: consumerID
+      value: "autoscaling"

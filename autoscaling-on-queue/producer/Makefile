@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.3
+RELEASE_VERSION  =v0.10.5
 SERVICE_NAME    ?=autoscaling-producer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -12,7 +12,7 @@ tidy: ## Updates the go modules and vendors all dependencies
 
 .PHONY: run
 run: tidy ## Runs uncompiled code
-	NUMBER_OF_THREADS=10 go run main.go
+	go run main.go
 
 .PHONY: image
 image: tidy ## Builds and publishes docker image 
@@ -55,15 +55,52 @@ kafka-port: ## Forwards cluster Kafka port locally
 kafka-portless: ## Stops forwarding cluster Kafka port locally
 	@echo use 'pkill kubectl -9' to stop 
 
-.PHONY: kafka-connect
-kafka-connect: ## Connects to Kafka client port
+.PHONY: kafka-client
+kafka-client: ## Creates Kafka client 
 	kubectl apply -n data -f conf/kafka-client.yaml
 	kubectl wait -n data --for=condition=ready pod kafka-client --timeout=120s
+
+
+.PHONY: kafka-sub
+kafka-sub: kafka-client ## Subscribes to the Kafka topic 
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-console-consumer.sh \
-		--topic primes \
+		--topic prime-requests \
 		--from-beginning \
 		--bootstrap-server kafka:9092
 
+.PHONY: kafka-topic-count
+kafka-topic-count: kafka-client ## Counts number of messages on the topic
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-run-class.sh kafka.tools.GetOffsetShell \
+		--broker-list kafka:9092 \
+		--topic prime-requests \
+		--time -1
+
+.PHONY: kafka-topic-retention
+kafka-topic-retentiont: kafka-client ## Counts number of messages on the topic to 1 min 
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-configs.sh \
+		--zookeeper kafka-zookeeper:2181 \
+		--alter \
+		--entity-type topics \
+		--entity-name prime-requests \
+		--add-config retention.ms=60000
+
+.PHONY: kafka-topic
+kafka-topic: kafka-client ## Creates primes topic used for autoscaling demo 
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
+		--zookeeper kafka-zookeeper:2181 \
+		--topic prime-requests \
+		--create \
+		--partitions 1 \
+		--replication-factor 1 \
+		--config retention.ms=120000
+
+.PHONY: kafka-topic-describe
+kafka-topic-describe: kafka-client ## Describes primes topic used for autoscaling demo 
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
+		--zookeeper kafka-zookeeper:2181 \
+		--describe \
+		--topic prime-requests
+		
 .PHONY: clean
 clean: ## Cleans up generated files 
 	go clean

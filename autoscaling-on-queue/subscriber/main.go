@@ -29,7 +29,7 @@ var (
 
 	address    = getEnvVar("ADDRESS", ":8089")
 	pubSubName = getEnvVar("PUBSUB_NAME", "autoscaling-kafka-queue")
-	topicName  = getEnvVar("TOPIC_NAME", "primes")
+	topicName  = getEnvVar("TOPIC_NAME", "prime-requests")
 	storeName  = getEnvVar("STORE_NAME", "prime-store")
 )
 

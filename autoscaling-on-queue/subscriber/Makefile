@@ -41,6 +41,10 @@ deploy: ## Deploys prebuild image to k8s using currently selected context
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 
+.PHONY: restart
+restart: ## Restarts k8s deployment
+	kubectl rollout restart deployment/$(SERVICE_NAME)
+
 .PHONY: api-event
 api-event: ## Publishes sample JSON message to Dapr pubsub API 
 	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
@@ -48,6 +52,16 @@ api-event: ## Publishes sample JSON message to Dapr pubsub API
      -H "Content-type: application/json" \
      -H "dapr-api-token: $(API_TOKEN)" \
      "https://api.cloudylabs.dev/v1.0/publish/autoscaling-kafka-queue/primes"
+
+
+.PHONY: kafka-port
+kafka-port: ## Forwards cluster Kafka port locally
+	kubectl port-forward svc/kafka -n data 9092 &
+	@echo use 'pkill kubectl -9' to stop 
+
+.PHONY: kafka-portless
+kafka-portless: ## Stops forwarding cluster Kafka port locally
+	@echo use 'pkill kubectl -9' to stop 
 
 .PHONY: lint
 lint: ## Lints the entire project 

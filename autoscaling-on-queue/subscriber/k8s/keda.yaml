@@ -13,7 +13,7 @@ spec:
       type: kafkaTrigger
       direction: in
       name: event
-      topic: primes
+      topic: prime-requests
       bootstrapServers: kafka.data.svc.cluster.local:6379
       consumerGroup: group1
       dataType: binary

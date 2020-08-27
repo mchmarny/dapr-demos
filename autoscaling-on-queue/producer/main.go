@@ -24,9 +24,9 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 
 	brokerAddress = getEnvVar("KAFKA_BROKER", "localhost:9092")
-	topicName     = getEnvVar("KAFKA_TOPIC", "primes")
+	topicName     = getEnvVar("KAFKA_TOPIC", "prime-requests")
 
-	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "3")
+	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "1")
 )
 
 type calcRequest struct {
@@ -58,7 +58,7 @@ func main() {
 	defer p.Close()
 
 	stopCh := make(chan struct{})
-	outCh := make(chan int64, 100)
+	outCh := make(chan int64, numOfThreads)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
@@ -67,7 +67,7 @@ func main() {
 		close(stopCh)
 	}()
 
-	for i := 1; i < numOfThreads; i++ {
+	for i := 1; i <= numOfThreads; i++ {
 		go publish(p, outCh, stopCh)
 	}
 
@@ -82,7 +82,8 @@ func main() {
 			counter++
 			mux.Unlock()
 		case <-tickerCh:
-			logger.Printf("%10d - %.0f/sec", counter, float64(counter)/time.Since(startTime).Seconds())
+			logger.Printf("%10d - %.0f/sec",
+				counter, float64(counter)/time.Since(startTime).Seconds())
 		case <-stopCh:
 			os.Exit(0)
 		}
@@ -103,7 +104,10 @@ func publish(producer sarama.SyncProducer, outCh chan<- int64, stopCh <-chan str
 			if err != nil {
 				logger.Fatalf("error generating request: %v", err)
 			}
-			m := &sarama.ProducerMessage{Topic: topicName, Value: sarama.ByteEncoder(b)}
+			m := &sarama.ProducerMessage{
+				Topic: topicName,
+				Value: sarama.ByteEncoder(b),
+			}
 			if _, _, err := producer.SendMessage(m); err != nil {
 				logger.Fatalf("error publishing request: %v", err)
 			}
