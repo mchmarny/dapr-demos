@@ -1,36 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: autoscaling-on-queue
+  name: queue-prime-calculator
   labels:
-    app: autoscaling-on-queue
+    app: queue-prime-calculator
     demo: autoscaling-demo
 spec:
   selector:
     matchLabels:
-      app: autoscaling-on-queue
+      app: queue-prime-calculator
   template:
     metadata:
       labels:
-        app: autoscaling-on-queue
+        app: queue-prime-calculator
         demo: autoscaling-demo
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "autoscaling-on-queue"
-        dapr.io/port: "8089"
+        dapr.io/id: "queue-prime-calculator"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60022"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/autoscaling-on-queue:v0.10.3
+        image: mchmarny/queue-prime-calculator:v0.10.0
         ports:
-        - containerPort: 8089
+        - containerPort: 60022
         env:
         - name: ADDRESS
-          value: ":8089"
-        - name: PUBSUB_NAME
+          value: ":60022"
+        - name: BINDING_NAME
           value: "autoscaling-kafka-queue"
-        - name: TOPIC_NAME
-          value: "prime-requests"
         - name: STORE_NAME
           value: "prime-store"

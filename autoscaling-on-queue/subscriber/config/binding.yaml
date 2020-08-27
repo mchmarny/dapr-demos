@@ -1,0 +1,15 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: autoscaling-kafka-queue
+spec:
+  type: bindings.kafka
+  metadata:
+  - name: brokers
+    value: localhost:9092
+  - name: topics
+    value: prime-requests
+  - name: consumerGroup
+    value: autoscaling
+  - name: authRequired
+    value: "false"

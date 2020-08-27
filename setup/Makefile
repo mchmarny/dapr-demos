@@ -22,9 +22,10 @@ cluster: ## Create AKS cluster (make cluster CLUSTER_NAME=demo)
 
 .PHONY: nodepool
 nodepool: ## Adds new node pool to the existing cluster (make cluster CLUSTER_NAME=demo)
+	$(eval NODE_SUFIX=$(shell date +"%d%m"))
 	az aks nodepool add \
 		--cluster-name $(CLUSTER_NAME) \
-		--name nodepool$(date +"%y%d%m") \
+		--name nodepool$(NODE_SUFIX) \
 		--node-count $(NODE_COUNT) \
 		--node-vm-size $(NODE_TYPE) \
 		--no-wait
@@ -196,7 +197,9 @@ data: ## Install redis cluster
 	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data state-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
 	# kafka 
-	helm install kafka incubator/kafka -n data 
+	helm install kafka incubator/kafka -n data \
+		--set persistence.size=16Gi \
+		--set zookeeper.storage=8Gi
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

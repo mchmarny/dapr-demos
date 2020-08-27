@@ -21,7 +21,7 @@ func main() {
 	// create Dapr service
 	s, err := daprd.NewService(serviceAddress)
 	if err != nil {
-		log.Fatalf("failed to start the server: %v", err)
+		logger.Fatalf("failed to start the server: %v", err)
 	}
 
 	// add handler to the service
@@ -33,7 +33,7 @@ func main() {
 
 	// start the server to handle incoming events
 	if err := s.Start(); err != nil {
-		log.Fatalf("server error: %v", err)
+		logger.Fatalf("server error: %v", err)
 	}
 }
 

@@ -1,5 +1,5 @@
-RELEASE_VERSION  =v0.10.3
-SERVICE_NAME    ?=autoscaling-on-queue
+RELEASE_VERSION  =v0.10.0
+SERVICE_NAME    ?=queue-prime-calculator
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: all
@@ -14,18 +14,11 @@ tidy: ## Updates the go modules and vendors all dependencies
 run: tidy ## Runs uncompiled code in Dapr
 	dapr run \
       --app-id $(SERVICE_NAME) \
-      --app-port 8089 \
-      --app-protocol http \
-      --dapr-http-port 3500 \
+      --app-port 60022 \
+      --app-protocol grpc \
       --components-path ./config \
       --log-level debug \
-      go run main.go
-
-.PHONY: local-event
-local-event: ## Publishes sample messages in JSON formats to Dapr pubsub API 
-	curl -v -d '{ "id": "$(shell uuidgen)", "max": 999999, "Time": $(shell date +%s) }' \
-     -H "Content-type: application/json" \
-     "http://localhost:3500/v1.0/publish/autoscaling-kafka-queue/primes"
+      go run main.go		
 
 .PHONY: image
 image: tidy ## Builds and publishes docker image 
@@ -34,25 +27,12 @@ image: tidy ## Builds and publishes docker image
 
 .PHONY: deploy
 deploy: ## Deploys prebuild image to k8s using currently selected context 
-	kubectl apply -f k8s/kafka.yaml
-	kubectl apply -f k8s/keda.yaml
+	kubectl apply -f k8s/binding.yaml
+	kubectl apply -f k8s/state.yaml
 	kubectl apply -f k8s/deployment.yaml
+	kubectl apply -f k8s/keda.yaml
 	kubectl rollout restart deployment/$(SERVICE_NAME)
-	kubectl rollout restart deployment/nginx-ingress-nginx-controller
-	kubectl rollout status deployment/nginx-ingress-nginx-controller
-
-.PHONY: restart
-restart: ## Restarts k8s deployment
-	kubectl rollout restart deployment/$(SERVICE_NAME)
-
-.PHONY: api-event
-api-event: ## Publishes sample JSON message to Dapr pubsub API 
-	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
-	curl -v -d '{ "id": "$(shell uuidgen)", "max": 100, "Time": $(shell date +%s) }' \
-     -H "Content-type: application/json" \
-     -H "dapr-api-token: $(API_TOKEN)" \
-     "https://api.cloudylabs.dev/v1.0/publish/autoscaling-kafka-queue/primes"
-
+	kubectl rollout status deployment/$(SERVICE_NAME)
 
 .PHONY: kafka-port
 kafka-port: ## Forwards cluster Kafka port locally

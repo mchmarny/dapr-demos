@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"math"
 	"time"
@@ -14,8 +13,7 @@ import (
 
 	dapr "github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
-	daprd "github.com/dapr/go-sdk/service/http"
-	"github.com/mitchellh/mapstructure"
+	daprd "github.com/dapr/go-sdk/service/grpc"
 	"github.com/pkg/errors"
 )
 
@@ -27,14 +25,13 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 	client dapr.Client
 
-	address    = getEnvVar("ADDRESS", ":8089")
-	pubSubName = getEnvVar("PUBSUB_NAME", "autoscaling-kafka-queue")
-	topicName  = getEnvVar("TOPIC_NAME", "prime-requests")
-	storeName  = getEnvVar("STORE_NAME", "prime-store")
+	address     = getEnvVar("ADDRESS", ":60022")
+	bindingName = getEnvVar("BINDING_NAME", "autoscaling-kafka-queue")
+	storeName   = getEnvVar("STORE_NAME", "prime-store")
 )
 
 func main() {
-	// create Dapr client
+	// Dapr client
 	c, err := dapr.NewClient()
 	if err != nil {
 		log.Fatalf("error creating Dapr client: %v", err)
@@ -42,21 +39,18 @@ func main() {
 	client = c
 	defer client.Close()
 
-	// create a Dapr service
-	s := daprd.NewService(address)
-
-	// add some topic subscriptions
-	subscription := &common.Subscription{
-		PubsubName: pubSubName,
-		Topic:      topicName,
-		Route:      fmt.Sprintf("/%s", topicName),
+	// Dapr service
+	s, err := daprd.NewService(address)
+	if err != nil {
+		logger.Fatalf("failed to start the service: %v", err)
 	}
 
-	if err := s.AddTopicEventHandler(subscription, eventHandler); err != nil {
+	// Add binding
+	if err := s.AddBindingInvocationHandler(bindingName, eventHandler); err != nil {
 		logger.Fatalf("error adding topic subscription: %v", err)
 	}
 
-	// start the service
+	// Start
 	if err := s.Start(); err != nil && err != http.ErrServerClosed {
 		logger.Fatalf("error starting service: %v", err)
 	}
@@ -69,36 +63,33 @@ type calcRequest struct {
 	Time  int64  `json:"time"`
 }
 
-func eventHandler(ctx context.Context, e *common.TopicEvent) error {
-	logger.Printf("Request - PubSub:%s, Topic:%s, ID:%s", e.PubsubName, e.Topic, e.ID)
+func eventHandler(ctx context.Context, e *common.BindingEvent) (out []byte, err error) {
 	if err := processRequest(ctx, e.Data); err != nil {
 		logger.Printf("error processing request: %v", err)
-		return errors.Wrap(err, "error processing request")
+		return nil, errors.Wrap(err, "error processing request")
 	}
-	return nil
+	return nil, nil
 }
 
-func processRequest(ctx context.Context, in interface{}) error {
+func processRequest(ctx context.Context, in []byte) error {
 	var r calcRequest
-	if err := mapstructure.Decode(in, &r); err != nil {
+	if err := json.Unmarshal(in, &r); err != nil {
 		return errors.Wrap(err, "error serializing input data")
 	}
 
 	r.Prime = calcHighestPrime(&r)
-	logger.Printf("Highest prime for %d is %d", r.Max, r.Prime)
 
 	sr, err := getHighestPrime(ctx)
 	if err != nil {
 		return errors.Wrap(err, "error getting highest prime")
 	}
 
-	logger.Printf("Previous high: %d, New: %d", sr.Prime, r.Prime)
+	logger.Printf("Highest prime for this request (max: %d): %d, all: %d.", r.Max, r.Prime, sr.Prime)
 	if r.Prime > sr.Prime {
 		bb, err := json.Marshal(r)
 		if err != nil {
 			return errors.Wrap(err, "error serializing request")
 		}
-		logger.Printf("Saving new high: %d", r.Prime)
 		if err := client.SaveState(ctx, storeName, primeStateKey, bb); err != nil {
 			return errors.Errorf("error saving prime content: %v", err)
 		}

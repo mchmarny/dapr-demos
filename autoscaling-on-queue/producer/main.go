@@ -23,9 +23,8 @@ const (
 var (
 	logger = log.New(os.Stdout, "", 0)
 
-	brokerAddress = getEnvVar("KAFKA_BROKER", "localhost:9092")
-	topicName     = getEnvVar("KAFKA_TOPIC", "prime-requests")
-
+	brokerAddress   = getEnvVar("KAFKA_BROKER", "localhost:9092")
+	topicName       = getEnvVar("KAFKA_TOPIC", "prime-requests")
 	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "1")
 )
 
@@ -47,9 +46,8 @@ func main() {
 
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 5
+	config.Producer.Retry.Max = 2
 	config.Producer.Return.Successes = true
-	config.Version = sarama.V1_0_0_0
 
 	p, err := sarama.NewSyncProducer(strings.Split(brokerAddress, ","), config)
 	if err != nil {

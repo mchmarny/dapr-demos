@@ -1,12 +1,13 @@
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
 metadata:
-  name: kafka-scaler
+  name: queue-prime-calculator-scaler
   labels:
-    deploymentName: autoscaling-on-queue
+    deploymentName: queue-prime-calculator
 spec:
   scaleTargetRef:
-    deploymentName: autoscaling-on-queue
+    deploymentName: queue-prime-calculator
+  pollingInterval: 30
   triggers:
   - type: kafka
     metadata:
@@ -14,7 +15,7 @@ spec:
       direction: in
       name: event
       topic: prime-requests
-      bootstrapServers: kafka.data.svc.cluster.local:6379
-      consumerGroup: group1
+      bootstrapServers: kafka.data.svc.cluster.local:9092
+      consumerGroup: autoscaling
       dataType: binary
       lagThreshold: "5"

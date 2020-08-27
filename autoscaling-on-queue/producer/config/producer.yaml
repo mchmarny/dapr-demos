@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prime-calculator-request-producer
+spec:
+  containers:
+  - name: producer
+    image: mchmarny/prime-calculator-request-producer:v0.10.0
+    env:
+    - name: KAFKA_BROKER
+      value: kafka.data.svc.cluster.local:9092
+    - name: KAFKA_TOPIC
+      value: prime-requests
+    - name: NUMBER_OF_THREADS
+      value: "10"
