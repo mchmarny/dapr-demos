@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.0
+RELEASE_VERSION  =v0.10.1
 SERVICE_NAME    ?=prime-calculator-request-producer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -27,7 +27,7 @@ load: ## Execute producer and publish events onto the topic
 
 .PHONY: scale
 scale: ## Scale producer
-	kubectl scale -n data --replicas=10 deployment/$(SERVICE_NAME)
+	kubectl scale -n data --replicas=30 deployment/$(SERVICE_NAME)
 
 .PHONY: stop
 stop: ## Stop producer 

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: producer
-        image: mchmarny/prime-calculator-request-producer:v0.10.0
+        image: mchmarny/prime-calculator-request-producer:v0.10.1
         env:
         - name: KAFKA_BROKER
           value: kafka.data.svc.cluster.local:9092

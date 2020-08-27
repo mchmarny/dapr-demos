@@ -17,4 +17,4 @@ spec:
       bootstrapServers: kafka.data.svc.cluster.local:9092
       consumerGroup: autoscaling
       topic: prime-requests
-      lagThreshold: "5"
+      lagThreshold: "3"

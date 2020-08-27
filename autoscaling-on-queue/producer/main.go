@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/google/uuid"
 )
 
 const (
@@ -45,20 +44,21 @@ func main() {
 	logger.Printf("number of thread: %d", numOfThreads)
 
 	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 2
 	config.Producer.Return.Successes = true
+	config.Producer.Return.Errors = true
 
-	p, err := sarama.NewSyncProducer(strings.Split(brokerAddress, ","), config)
+	p, err := sarama.NewAsyncProducer(strings.Split(brokerAddress, ","), config)
 	if err != nil {
 		logger.Fatalf("error creating producer: %v", err)
 	}
-	defer p.Close()
+	defer p.AsyncClose()
 
 	stopCh := make(chan struct{})
 	outCh := make(chan int64, numOfThreads)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
+
+	go processResponse(p, outCh)
 
 	go func() {
 		<-c
@@ -66,7 +66,7 @@ func main() {
 	}()
 
 	for i := 1; i <= numOfThreads; i++ {
-		go publish(p, outCh, stopCh)
+		go publish(p, stopCh)
 	}
 
 	var mux sync.Mutex
@@ -88,28 +88,34 @@ func main() {
 	}
 }
 
-func publish(producer sarama.SyncProducer, outCh chan<- int64, stopCh <-chan struct{}) {
+func processResponse(p sarama.AsyncProducer, outCh chan<- int64) {
+	for {
+		select {
+		case <-p.Successes():
+			outCh <- 1
+		case err := <-p.Errors():
+			logger.Printf("error publishing: %v", err)
+		}
+	}
+}
+
+func publish(p sarama.AsyncProducer, stopCh <-chan struct{}) {
 	for {
 		select {
 		case <-stopCh:
 			return
 		default:
 			b, err := json.Marshal(calcRequest{
-				ID:   uuid.New().String(),
 				Max:  rand.Intn(max-min) + min,
 				Time: time.Now().UTC().Unix(),
 			})
 			if err != nil {
 				logger.Fatalf("error generating request: %v", err)
 			}
-			m := &sarama.ProducerMessage{
+			p.Input() <- &sarama.ProducerMessage{
 				Topic: topicName,
 				Value: sarama.ByteEncoder(b),
 			}
-			if _, _, err := producer.SendMessage(m); err != nil {
-				logger.Fatalf("error publishing request: %v", err)
-			}
-			outCh <- 1
 		}
 	}
 }
