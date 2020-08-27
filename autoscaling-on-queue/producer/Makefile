@@ -72,17 +72,22 @@ kafka-sub: kafka-client ## Subscribes to the Kafka topic
 kafka-topic-count: kafka-client ## Counts number of messages on the topic
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-run-class.sh kafka.tools.GetOffsetShell \
 		--broker-list kafka:9092 \
-		--topic prime-requests \
-		--time -1
+		--topic prime-requests
 
 .PHONY: kafka-topic-retention
-kafka-topic-retentiont: kafka-client ## Counts number of messages on the topic to 1 min 
+kafka-topic-retention: kafka-client ## Counts number of messages on the topic to 1 min OR 1GB
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-configs.sh \
 		--zookeeper kafka-zookeeper:2181 \
 		--alter \
 		--entity-type topics \
 		--entity-name prime-requests \
 		--add-config retention.ms=60000
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-configs.sh \
+		--zookeeper kafka-zookeeper:2181 \
+		--alter \
+		--entity-type topics \
+		--entity-name prime-requests \
+		--add-config retention.bytes=1073741824
 
 .PHONY: kafka-topic
 kafka-topic: kafka-client ## Creates primes topic used for autoscaling demo 
