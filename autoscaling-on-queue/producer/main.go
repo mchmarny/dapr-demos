@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"log"
 	"math/rand"
@@ -17,9 +16,8 @@ import (
 )
 
 const (
-	notSet = "NOT_SET"
-	min    = 1
-	max    = 9999
+	min = 1
+	max = 9999
 )
 
 var (
@@ -27,8 +25,6 @@ var (
 
 	brokerAddress = getEnvVar("KAFKA_BROKER", "localhost:9092")
 	topicName     = getEnvVar("KAFKA_TOPIC", "primes")
-	kafkaUser     = getEnvVar("KAFKA_USERNAME", notSet)
-	kafkaPass     = getEnvVar("KAFKA_PASSWORD", notSet)
 
 	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "3")
 )
@@ -53,18 +49,7 @@ func main() {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 5
 	config.Producer.Return.Successes = true
-
-	if kafkaUser != notSet {
-		config.Net.SASL.Enable = true
-		config.Net.SASL.User = kafkaUser
-		config.Net.SASL.Password = kafkaPass
-		config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
-		config.Net.TLS.Enable = true
-		config.Net.TLS.Config = &tls.Config{
-			InsecureSkipVerify: true,
-			ClientAuth:         0,
-		}
-	}
+	config.Version = sarama.V1_0_0_0
 
 	p, err := sarama.NewSyncProducer(strings.Split(brokerAddress, ","), config)
 	if err != nil {

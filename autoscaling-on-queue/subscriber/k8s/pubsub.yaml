@@ -9,3 +9,5 @@ spec:
       value: kafka.data.svc.cluster.local:9092
     - name: authRequired
       value: "false"
+    - name: consumerGroup
+      value: "group1"

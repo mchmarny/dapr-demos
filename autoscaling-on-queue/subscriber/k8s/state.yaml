@@ -11,5 +11,3 @@ spec:
     secretKeyRef:
       name: redis-secret
       key: password
-scopes:
-- autoscaling-on-queue

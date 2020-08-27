@@ -23,7 +23,7 @@ run: tidy ## Runs uncompiled code in Dapr
 
 .PHONY: local-event
 local-event: ## Publishes sample messages in JSON formats to Dapr pubsub API 
-	curl -v -d '{ "id": "$(shell uuidgen)", "max": 99999, "Time": $(shell date +%s) }' \
+	curl -v -d '{ "id": "$(shell uuidgen)", "max": 999999, "Time": $(shell date +%s) }' \
      -H "Content-type: application/json" \
      "http://localhost:3500/v1.0/publish/autoscaling-kafka-queue/primes"
 

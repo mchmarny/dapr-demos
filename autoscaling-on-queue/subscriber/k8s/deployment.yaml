@@ -18,6 +18,7 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/id: "autoscaling-on-queue"
         dapr.io/port: "8089"
+        dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
