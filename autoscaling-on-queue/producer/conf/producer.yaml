@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: autoscaling-producer
+spec:
+  containers:
+  - name: producer
+    image: mchmarny/autoscaling-producer:v0.10.3
+    env:
+    - name: KAFKA_BROKER
+      value: "kafka:9092"
+    - name: KAFKA_TOPIC
+      value: "primes"
+    - name: NUMBER_OF_THREADS
+      value: "2"

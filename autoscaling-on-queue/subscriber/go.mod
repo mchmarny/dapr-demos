@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-demos/autoscaling-on-queue
+module github.com/mchmarny/dapr-demos/autoscaling-on-queue/subscriber
 
 go 1.15
 

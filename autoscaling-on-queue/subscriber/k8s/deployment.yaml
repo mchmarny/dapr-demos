@@ -18,13 +18,10 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/id: "autoscaling-on-queue"
         dapr.io/port: "8089"
-        dapr.io/config: "tracing"
-        dapr.io/log-as-json: "true"
-        dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/autoscaling-on-queue:v0.10.2
+        image: mchmarny/autoscaling-on-queue:v0.10.3
         ports:
         - containerPort: 8089
         env:
