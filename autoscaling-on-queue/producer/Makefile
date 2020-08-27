@@ -38,9 +38,31 @@ tag: ## Creates release tag
 	git tag $(RELEASE_VERSION)
 	git push origin $(RELEASE_VERSION)
 
-.PHONY: kafka 
-kafka: ## Creates local Kafka server 
+.PHONY: kafka-up
+kafka-up: ## Creates local Kafka server 
 	docker-compose -f ./conf/local-kafka.yaml up -d
+
+.PHONY: kafka-down
+kafka-down: ## Creates local Kafka server 
+	docker-compose -f ./conf/local-kafka.yaml down
+
+.PHONY: kafka-port
+kafka-port: ## Forwards cluster Kafka port locally
+	kubectl port-forward svc/kafka -n data 9092 &
+	@echo use 'pkill kubectl -9' to stop 
+
+.PHONY: kafka-portless
+kafka-portless: ## Stops forwarding cluster Kafka port locally
+	@echo use 'pkill kubectl -9' to stop 
+
+.PHONY: kafka-connect
+kafka-connect: ## Connects to Kafka client port
+	kubectl apply -n data -f conf/kafka-client.yaml
+	kubectl wait -n data --for=condition=ready pod kafka-client --timeout=120s
+	kubectl -n data exec -ti kafka-client -- ./bin/kafka-console-consumer.sh \
+		--topic primes \
+		--from-beginning \
+		--bootstrap-server kafka:9092
 
 .PHONY: clean
 clean: ## Cleans up generated files 
