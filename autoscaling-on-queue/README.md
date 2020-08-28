@@ -4,6 +4,10 @@ The autoscaling demo requires Keda which runs in Kubernates. To deploy demo, fir
 
 > Note, if you didn't use the included [setup](../setup) to configure your Kubernates cluster you may have to make changes in both components. Otherwise the defaults are fine. 
 
+## Subscriber (processing service)
+
+To deploy the consumer service:
+
 ```shell
 kubectl apply -f subscriber/k8s/pubsub.yaml
 kubectl apply -f subscriber/k8s/state.yaml
@@ -25,40 +29,29 @@ Check Dapr logs to make sure there is no errors
 kubectl logs -l demo=autoscaling-demo -c daprd
 ```
 
-Now export API token:
+## Producer (generating load on the Kafka topic)
+
+First create the `primes` topic 
 
 ```shell
-export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
+make kafka-topic
 ```
 
-And publish a single request to make sure everything is up:
-
-> To give the autoscaling demo something to scale on, the scaled service will calculate highest prime number up to the provided `max` number. 
+Then deploy the load generator 
 
 ```shell
-curl -v -d '{"id":"id1","max":100,"Time":1598480443}' \
-     -H "Content-type: application/json" \
-     -H "dapr-api-token: ${API_TOKEN}" \
-     "https://api.cloudylabs.dev/v1.0/publish/autoscaling-kafka-queue/primes"
+kubectl apply -n data -f producer/config/producer.yaml
+kubectl rollout -n data status deployment/prime-calculator-request-producer
+kubectl logs -n data -l demo=autoscaling-producer -f
 ```
 
-And check the service logs:
+Note, this will generate about 1,000 messages per second per "thread". To increase the volume, increase the "NUMBER_OF_THREADS" variable in deployment. Depending on the setup you can probably get this to about 10K events from a single deployment. To increase the volume further: 
 
 ```shell
-kubectl logs -l demo=autoscaling-demo -c service -f
+kubectl scale -n data deployment/prime-calculator-request-producer --replicas=10 
 ```
 
-If everything goes well you should see 
-
-```shell
-Request - PubSub:autoscaling-kafka-queue, Topic:primes, ID:39465d38-0a6e-4ef0-9011-6c978b18eb15
-Highest prime for 100 is 97
-Previous high: 97, New: 97
-```
-
-## Autoscaling Demo  
-
-> TODO: Run some load on the Dapr binding 
+> Careful, you can overflow your Kafka deployment. The topic we created does have a short TTL (10 min) but if you generate a lot of volume it will crash. 
 
 
 ## Disclaimer
