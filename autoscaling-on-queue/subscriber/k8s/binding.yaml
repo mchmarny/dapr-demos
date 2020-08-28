@@ -8,7 +8,7 @@ spec:
   - name: brokers
     value: kafka.data.svc.cluster.local:9092
   - name: topics
-    value: prime-requests
+    value: primes
   - name: consumerGroup
     value: autoscaling
   - name: authRequired

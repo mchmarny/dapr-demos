@@ -23,7 +23,7 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 
 	brokerAddress   = getEnvVar("KAFKA_BROKER", "localhost:9092")
-	topicName       = getEnvVar("KAFKA_TOPIC", "prime-requests")
+	topicName       = getEnvVar("KAFKA_TOPIC", "prime")
 	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "1")
 )
 

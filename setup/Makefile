@@ -45,7 +45,7 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo add elastic https://helm.elastic.co
-	helm repo add kedacore https://kedacore.github.io/charts
+	helm repo add keda https://kedacore.github.io/charts
 	helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
 	helm repo update
 	# Installing Dapr...
@@ -61,7 +61,7 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm install kibana elastic/kibana -n dapr-monitoring
 	# Installing KEDA
 	kubectl create namespace keda
-	helm install keda kedacore/keda -n keda
+	helm install keda kedacore/keda -n keda --set logLevel=debug
 	# While observabiliity and KADA is insrtalling, deploying ingress...
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"

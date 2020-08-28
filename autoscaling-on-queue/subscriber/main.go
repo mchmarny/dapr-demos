@@ -27,7 +27,7 @@ var (
 
 	address     = getEnvVar("ADDRESS", ":60022")
 	bindingName = getEnvVar("BINDING_NAME", "autoscaling-kafka-queue")
-	storeName   = getEnvVar("STORE_NAME", "prime-store")
+	storeName   = getEnvVar("STORE_NAME", "primes")
 )
 
 func main() {

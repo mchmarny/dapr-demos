@@ -7,14 +7,14 @@ metadata:
 spec:
   scaleTargetRef:
     deploymentName: queue-prime-calculator
-  pollingInterval: 10
+  pollingInterval: 5
   cooldownPeriod:  60
-  minReplicaCount: 0
+  minReplicaCount: 1
   maxReplicaCount: 10
   triggers:
   - type: kafka
     metadata:
       bootstrapServers: kafka.data.svc.cluster.local:9092
       consumerGroup: autoscaling
-      topic: prime-requests
-      lagThreshold: "3"
+      topic: primes
+      lagThreshold: "10"

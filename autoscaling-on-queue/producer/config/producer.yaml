@@ -22,6 +22,6 @@ spec:
         - name: KAFKA_BROKER
           value: kafka.data.svc.cluster.local:9092
         - name: KAFKA_TOPIC
-          value: prime-requests
+          value: primes
         - name: NUMBER_OF_THREADS
-          value: "10"
+          value: "1"

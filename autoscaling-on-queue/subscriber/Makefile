@@ -37,6 +37,11 @@ deploy: ## Deploys prebuild image to k8s using currently selected context
 autoscale: ## Applies Keda to the deployed service 
 	kubectl apply -f k8s/keda.yaml
 
+.PHONY: scale
+scale: ## Scales the subscriber manually 
+	# kubectl autoscale deployment queue-prime-calculator --min=1 --max=10  
+	kubectl scale deployment/queue-prime-calculator --replicas=10
+
 .PHONY: kafka-port
 kafka-port: ## Forwards cluster Kafka port locally
 	kubectl port-forward svc/kafka -n data 9092 &

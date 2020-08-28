@@ -67,21 +67,15 @@ kafka-client: ## Deploys Kafka client pod
 .PHONY: kafka-topic-sub
 kafka-topic-sub: kafka-client ## Subscribes to the Kafka topic 
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-console-consumer.sh \
-		--topic prime-requests \
+		--topic primes \
 		--from-beginning \
 		--bootstrap-server kafka:9092
-
-.PHONY: kafka-topic-count
-kafka-topic-count: kafka-client ## Counts number of messages on the topic
-	kubectl -n data exec -ti kafka-client -- ./bin/kafka-run-class.sh kafka.tools.GetOffsetShell \
-		--broker-list kafka:9092 \
-		--topic prime-requests
 
 .PHONY: kafka-topic
 kafka-topic: kafka-client ## Creates primes topic used for autoscaling demo 
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
 		--zookeeper kafka-zookeeper:2181 \
-		--topic prime-requests \
+		--topic primes \
 		--create \
 		--partitions 1 \
 		--replication-factor 1
@@ -89,21 +83,15 @@ kafka-topic: kafka-client ## Creates primes topic used for autoscaling demo
 		--zookeeper kafka-zookeeper:2181 \
 		--alter \
 		--entity-type topics \
-		--entity-name prime-requests \
+		--entity-name primes \
 		--add-config retention.ms=60000
-	kubectl -n data exec -ti kafka-client -- ./bin/kafka-configs.sh \
-		--zookeeper kafka-zookeeper:2181 \
-		--alter \
-		--entity-type topics \
-		--entity-name prime-requests \
-		--add-config retention.bytes=1073741824
 
-.PHONY: kafka-topic-describe
-kafka-topic-describe: kafka-client ## Describes primes topic used for autoscaling demo 
-	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
-		--zookeeper kafka-zookeeper:2181 \
-		--describe \
-		--topic prime-requests
+.PHONY: kafka-topic-info
+kafka-topic-info: kafka-client ## Describes primes topic used for autoscaling demo 
+	kubectl -n data exec -ti kafka-client -- ./bin/./kafka-run-class.sh kafka.tools.ConsumerOffsetChecker \
+		--topic primes \
+		--group autoscaling \
+		--zookeeper kafka-zookeeper:2181
 
 .PHONY: kafka-topic-list
 kafka-topic-list: kafka-client ## Lists Kafka topics
@@ -111,10 +99,10 @@ kafka-topic-list: kafka-client ## Lists Kafka topics
 		--zookeeper kafka-zookeeper:2181 \
 		--list
 
-.PHONY: kafka-load
-kafka-load: kafka-client ## Kafka load from the server  
+.PHONY: kafka-topic-load
+kafka-topic-load: kafka-client ## Kafka load from the server  
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-producer-perf-test.sh \
-		--topic prime-requests \
+		--topic primes \
 		--payload-file ./test.json \
 		--throughput 100000 \
 		--num-records 1000000000 \
