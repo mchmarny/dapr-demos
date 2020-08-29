@@ -65,18 +65,37 @@ kubectl logs -l demo=autoscaling-demo -c daprd
 
 ## Producer (generating load on the Kafka topic)
 
-First create the `messages` topic 
+First, deploy a Kafka client:
 
 ```shell
-make kafka-topic
+kubectl apply -n data -f config/kafka-client.yaml
+kubectl wait -n data --for=condition=ready pod kafka-client --timeout=120s
 ```
 
-Then deploy the load generator 
+Then, create the `messages` topic: 
+
+```shell
+kubectl -n data exec -it kafka-client -- kafka-topics \
+		--zookeeper kafka-cp-zookeeper-headless:2181 \
+		--topic messages \
+		--create \
+		--partitions 5 \
+		--replication-factor 1 \
+		--if-not-exists
+```
+
+Then deploy the load `producer`:
 
 ```shell
 kubectl apply -n data -f producer/config/producer.yaml
 kubectl rollout -n data status deployment/queue-outoscaling-producer
 kubectl logs -n data -l demo=autoscaling-producer -f
+```
+
+To stop the `producer`
+
+```shell
+kubectl delete -n data -f config/producer.yaml
 ```
 
 To increase or decrease the number of messages the producer publishes to the topic you can edit the following env vars on the producer deployment: 
@@ -108,7 +127,22 @@ kubectl scale -n data deployment/queue-outoscaling-producer --replicas=10
 
 ## Demo 
 
-Watch Keda scaling operator log for the depth of queue
+Watch the number of `subscriber` pods being adjusted based on the depth of the queue:
+
+```shell
+watch kubectl get pods -l app=queue-outoscaling-subscriber
+```
+
+```shell
+Every 2.0s: kubectl get pods -l app=queue-outoscaling-subscriber
+
+NAME                                            READY   STATUS    RESTARTS   AGE
+queue-outoscaling-subscriber-674c7dc7b4-cjp48   2/2     Running   0          14m
+queue-outoscaling-subscriber-674c7dc7b4-fkg7m   2/2     Running   0          14m
+queue-outoscaling-subscriber-674c7dc7b4-sdj9z   2/2     Running   0          14m
+```
+
+Watch Keda scaling operator log for the depth of queue signal:
 
 ```shell
 kubectl logs -l app=keda-operator -n keda -f
@@ -120,7 +154,7 @@ kubectl logs -l app=keda-operator -n keda -f
 {"level":"debug","ts":1598716685.5025718,"logger":"scalehandler","msg":"ScaledObject's Status was properly updated","ScaledObject.Namespace":"default","ScaledObject.Name":"queue-outoscaling-scaler","ScaledObject.ScaleType":"deployment"}
 ```
 
-Follow subscriber logs for the processing throughput 
+Follow subscriber logs for the processing throughput:
 
 ```shell
 kubectl logs -l demo=autoscaling-demo -c service -f 
@@ -132,11 +166,7 @@ received:        773,   0 errors - avg   4/sec
 received:        794,   0 errors - avg   4/sec
 ```
 
-Watch the number of `subscriber` pods being adjusted based on the depth of the queue 
-
-```shell
-watch kubectl get pods -l app=queue-outoscaling-subscriber
-```
+You can play with the volume of data published by the `producer`, the speed of processing by the `subscriber`, and the Keda parameters to show different scenarios
 
 ## Disclaimer
 
