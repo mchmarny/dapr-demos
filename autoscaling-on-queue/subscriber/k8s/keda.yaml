@@ -3,12 +3,12 @@ kind: ScaledObject
 metadata:
   name: prime-calculator-scaler
   labels:
-    deploymentName: queue-prime-calculator
+    deploymentName: queue-outoscaling-subscriber
 spec:
   scaleTargetRef:
-    deploymentName: queue-prime-calculator
-  pollingInterval: 5
-  cooldownPeriod:  60
+    deploymentName: queue-outoscaling-subscriber
+  pollingInterval: 3
+  cooldownPeriod:  20
   minReplicaCount: 1
   maxReplicaCount: 10
   triggers:
@@ -16,5 +16,5 @@ spec:
     metadata:
       bootstrapServers: kafka.data.svc.cluster.local:9092
       consumerGroup: autoscaling
-      topic: primes
-      lagThreshold: "10"
+      topic: messages
+      lagThreshold: "3"

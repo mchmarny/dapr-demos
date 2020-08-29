@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: queue-prime-calculator
+  name: queue-outoscaling-subscriber
   labels:
-    app: queue-prime-calculator
+    app: queue-outoscaling-subscriber
     demo: autoscaling-demo
 spec:
   selector:
     matchLabels:
-      app: queue-prime-calculator
+      app: queue-outoscaling-subscriber
   template:
     metadata:
       labels:
-        app: queue-prime-calculator
+        app: queue-outoscaling-subscriber
         demo: autoscaling-demo
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "queue-prime-calculator"
+        dapr.io/id: "queue-outoscaling-subscriber"
         dapr.io/app-protocol: "grpc"
         dapr.io/app-port: "60022"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/queue-prime-calculator:v0.10.0
+        image: mchmarny/queue-outoscaling-subscriber:v0.10.1
         ports:
         - containerPort: 60022
         env:
@@ -31,5 +31,5 @@ spec:
           value: ":60022"
         - name: BINDING_NAME
           value: "autoscaling-kafka-queue"
-        - name: STORE_NAME
-          value: "prime-store"
+        - name: PROCESS_DURATION
+          value: "300ms"

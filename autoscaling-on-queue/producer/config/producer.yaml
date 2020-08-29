@@ -1,27 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prime-calculator-request-producer
+  name: queue-outoscaling-producer
   labels:
-    app: prime-calculator-request-producer
+    app: queue-outoscaling-producer
     demo: autoscaling-producer
 spec:
   selector:
     matchLabels:
-      app: prime-calculator-request-producer
+      app: queue-outoscaling-producer
   template:
     metadata:
       labels:
-        app: prime-calculator-request-producer
+        app: queue-outoscaling-producer
         demo: autoscaling-producer
     spec:
       containers:
       - name: producer
-        image: mchmarny/prime-calculator-request-producer:v0.10.1
+        image: mchmarny/queue-outoscaling-producer:v0.10.1
         env:
         - name: KAFKA_BROKER
           value: kafka.data.svc.cluster.local:9092
         - name: KAFKA_TOPIC
-          value: primes
+          value: messages
         - name: NUMBER_OF_THREADS
           value: "1"
+        - name: THREAD_PUB_FREQ
+          value: "10ms"

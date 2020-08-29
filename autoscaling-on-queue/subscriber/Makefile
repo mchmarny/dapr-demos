@@ -1,5 +1,5 @@
-RELEASE_VERSION  =v0.10.0
-SERVICE_NAME    ?=queue-prime-calculator
+RELEASE_VERSION  =v0.10.1
+SERVICE_NAME    ?=queue-outoscaling-subscriber
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: all
@@ -28,7 +28,6 @@ image: tidy ## Builds and publishes docker image
 .PHONY: deploy
 deploy: ## Deploys prebuild image to k8s using currently selected context 
 	kubectl apply -f k8s/binding.yaml
-	kubectl apply -f k8s/state.yaml
 	kubectl apply -f k8s/deployment.yaml
 	kubectl rollout restart deployment/$(SERVICE_NAME)
 	kubectl rollout status deployment/$(SERVICE_NAME)
@@ -39,8 +38,8 @@ autoscale: ## Applies Keda to the deployed service
 
 .PHONY: scale
 scale: ## Scales the subscriber manually 
-	# kubectl autoscale deployment queue-prime-calculator --min=1 --max=10  
-	kubectl scale deployment/queue-prime-calculator --replicas=10
+	# kubectl autoscale deployment queue-outoscaling-subscriber --min=1 --max=10  
+	kubectl scale deployment/$(SERVICE_NAME) --replicas=10
 
 .PHONY: kafka-port
 kafka-port: ## Forwards cluster Kafka port locally

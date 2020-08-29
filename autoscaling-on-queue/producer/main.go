@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"log"
 	"math/rand"
@@ -12,26 +13,26 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/google/uuid"
 )
 
 const (
-	min = 1
-	max = 9999
+	min   = 3
+	max   = 9999
+	chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 var (
 	logger = log.New(os.Stdout, "", 0)
 
-	brokerAddress   = getEnvVar("KAFKA_BROKER", "localhost:9092")
-	topicName       = getEnvVar("KAFKA_TOPIC", "prime")
-	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "1")
-)
+	seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-type calcRequest struct {
-	ID   string `json:"id"`
-	Max  int    `json:"max"`
-	Time int64  `json:"time"`
-}
+	brokerAddress   = getEnvVar("KAFKA_BROKER", "localhost:9092")
+	topicName       = getEnvVar("KAFKA_TOPIC", "messages")
+	numOfThreadsStr = getEnvVar("NUMBER_OF_THREADS", "1")
+	threadFreqStr   = getEnvVar("THREAD_PUB_FREQ", "10ms")
+	threadFreq      time.Duration
+)
 
 func main() {
 	numOfThreads, err := strconv.Atoi(numOfThreadsStr)
@@ -43,7 +44,18 @@ func main() {
 	}
 	logger.Printf("number of thread: %d", numOfThreads)
 
+	freq, err := time.ParseDuration(threadFreqStr)
+	if err != nil {
+		logger.Fatalf(
+			"invalid thread frequency (THREAD_PUB_FREQ) must be a duration): %s - %v",
+			threadFreqStr, err,
+		)
+	}
+	threadFreq = freq
+	logger.Printf("thread frequency: %v", threadFreq)
+
 	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
 
@@ -54,11 +66,11 @@ func main() {
 	defer p.AsyncClose()
 
 	stopCh := make(chan struct{})
-	outCh := make(chan int64, numOfThreads)
+	resultCh := make(chan bool, 100)
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	go processResponse(p, outCh)
+	go processResponse(p, resultCh)
 
 	go func() {
 		<-c
@@ -70,54 +82,91 @@ func main() {
 	}
 
 	var mux sync.Mutex
-	var counter int64 = 1
+	var successCounter int64 = 0
+	var errorCounter int64 = 0
 	startTime := time.Now()
+
 	tickerCh := time.NewTicker(3 * time.Second).C
 	for {
 		select {
-		case <-outCh:
+		case r := <-resultCh:
 			mux.Lock()
-			counter++
+			if r {
+				successCounter++
+			} else {
+				errorCounter++
+			}
 			mux.Unlock()
 		case <-tickerCh:
-			logger.Printf("%10d - %.0f/sec",
-				counter, float64(counter)/time.Since(startTime).Seconds())
+			var avg float64 = 0
+			if successCounter > 0 {
+				avg = float64(successCounter) / time.Since(startTime).Seconds()
+			}
+			logger.Printf("published: %10d, errors: %3d - %3.0f/sec ", successCounter, errorCounter, avg)
 		case <-stopCh:
 			os.Exit(0)
 		}
 	}
 }
 
-func processResponse(p sarama.AsyncProducer, outCh chan<- int64) {
+func processResponse(p sarama.AsyncProducer, outCh chan<- bool) {
 	for {
 		select {
 		case <-p.Successes():
-			outCh <- 1
+			outCh <- true
 		case err := <-p.Errors():
 			logger.Printf("error publishing: %v", err)
+			outCh <- false
 		}
 	}
 }
 
 func publish(p sarama.AsyncProducer, stopCh <-chan struct{}) {
+	tickerCh := time.NewTicker(threadFreq).C
 	for {
 		select {
 		case <-stopCh:
 			return
-		default:
-			b, err := json.Marshal(calcRequest{
-				Max:  rand.Intn(max-min) + min,
-				Time: time.Now().UTC().Unix(),
-			})
-			if err != nil {
-				logger.Fatalf("error generating request: %v", err)
-			}
-			p.Input() <- &sarama.ProducerMessage{
-				Topic: topicName,
-				Value: sarama.ByteEncoder(b),
-			}
+		case <-tickerCh:
+			publishOne(p)
 		}
 	}
+}
+
+type validationRequest struct {
+	ID   string `json:"id"`
+	Data []byte `json:"data"`
+	Sha  string `json:"sha"`
+	Time int64  `json:"time"`
+}
+
+func publishOne(p sarama.AsyncProducer) {
+	r := validationRequest{
+		ID:   uuid.New().String(),
+		Data: []byte(getData(256)),
+		Time: time.Now().UTC().Unix(),
+	}
+
+	// hash the entire message
+	inSha := sha256.Sum256(r.Data)
+	r.Sha = string(inSha[:])
+
+	b, err := json.Marshal(r)
+	if err != nil {
+		logger.Fatalf("error generating request: %v", err)
+	}
+	p.Input() <- &sarama.ProducerMessage{
+		Topic: topicName,
+		Value: sarama.ByteEncoder(b),
+	}
+}
+
+func getData(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = chars[seededRand.Intn(len(chars))]
+	}
+	return string(b)
 }
 
 func getEnvVar(key, fallbackValue string) string {

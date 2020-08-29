@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"math"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"net/http"
 	"os"
 	"strings"
 
-	dapr "github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
 	daprd "github.com/dapr/go-sdk/service/grpc"
 	"github.com/pkg/errors"
@@ -22,120 +22,88 @@ const (
 )
 
 var (
-	logger = log.New(os.Stdout, "", 0)
-	client dapr.Client
+	logger     = log.New(os.Stdout, "", 0)
+	reqProcDur time.Duration
 
-	address     = getEnvVar("ADDRESS", ":60022")
-	bindingName = getEnvVar("BINDING_NAME", "autoscaling-kafka-queue")
-	storeName   = getEnvVar("STORE_NAME", "primes")
+	address         = getEnvVar("ADDRESS", ":60022")
+	bindingName     = getEnvVar("BINDING_NAME", "autoscaling-kafka-queue")
+	processDuration = getEnvVar("PROCESS_DURATION", "1s")
 )
 
 func main() {
-	// Dapr client
-	c, err := dapr.NewClient()
-	if err != nil {
-		log.Fatalf("error creating Dapr client: %v", err)
-	}
-	client = c
-	defer client.Close()
-
 	// Dapr service
 	s, err := daprd.NewService(address)
 	if err != nil {
 		logger.Fatalf("failed to start the service: %v", err)
 	}
 
+	d, err := time.ParseDuration(processDuration)
+	if err != nil {
+		logger.Fatalf("invalid parameter (PROCESS_DURATION) must be a duration): %s - %v", processDuration, err)
+	}
+	reqProcDur = d
+
+	var mux sync.Mutex
+	var successCount int64 = 1
+	var errorCount int64 = 0
+
+	resultCh := make(chan bool)
+	startTime := time.Now()
+
+	go func() {
+		tickerCh := time.NewTicker(5 * time.Second).C
+		for {
+			select {
+			case r := <-resultCh:
+				mux.Lock()
+				if r {
+					successCount++
+				} else {
+					errorCount++
+				}
+				mux.Unlock()
+			case <-tickerCh:
+				var avg float64 = 0
+				if successCount > 0 {
+					avg = float64(successCount) / time.Since(startTime).Seconds()
+				}
+				logger.Printf("received: %10d, %3d errors - avg %3.0f/sec", successCount, errorCount, avg)
+			}
+		}
+	}()
+
 	// Add binding
-	if err := s.AddBindingInvocationHandler(bindingName, eventHandler); err != nil {
+	if err := s.AddBindingInvocationHandler(bindingName, func(ctx context.Context, e *common.BindingEvent) (out []byte, err error) {
+		if err := processRequest(ctx, e.Data); err != nil {
+			logger.Printf("error processing request: %v", err)
+			return nil, errors.Wrap(err, "error processing request")
+		}
+		resultCh <- true
+		return nil, nil
+	}); err != nil {
+		resultCh <- false
 		logger.Fatalf("error adding topic subscription: %v", err)
 	}
 
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
 	// Start
-	if err := s.Start(); err != nil && err != http.ErrServerClosed {
-		logger.Fatalf("error starting service: %v", err)
-	}
+	go func() {
+		if err := s.Start(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalf("error starting service: %v", err)
+		}
+	}()
+
+	// Finish
+	<-done
 }
 
-type calcRequest struct {
-	ID    string `json:"id"`
-	Max   int    `json:"max"`
-	Prime int    `json:"prime"`
-	Time  int64  `json:"time"`
-}
-
-func eventHandler(ctx context.Context, e *common.BindingEvent) (out []byte, err error) {
-	if err := processRequest(ctx, e.Data); err != nil {
-		logger.Printf("error processing request: %v", err)
-		return nil, errors.Wrap(err, "error processing request")
-	}
-	return nil, nil
-}
-
+// does some computing to keep the process busy organically
 func processRequest(ctx context.Context, in []byte) error {
-	var r calcRequest
-	if err := json.Unmarshal(in, &r); err != nil {
-		return errors.Wrap(err, "error serializing input data")
-	}
-
-	r.Prime = calcHighestPrime(&r)
-
-	sr, err := getHighestPrime(ctx)
-	if err != nil {
-		return errors.Wrap(err, "error getting highest prime")
-	}
-
-	logger.Printf("Highest prime for this request (max: %d): %d, all: %d.", r.Max, r.Prime, sr.Prime)
-	if r.Prime > sr.Prime {
-		bb, err := json.Marshal(r)
-		if err != nil {
-			return errors.Wrap(err, "error serializing request")
-		}
-		if err := client.SaveState(ctx, storeName, primeStateKey, bb); err != nil {
-			return errors.Errorf("error saving prime content: %v", err)
-		}
-	}
-
+	tickerCh := time.NewTicker(reqProcDur).C
+	<-tickerCh
 	return nil
-}
-
-func getHighestPrime(ctx context.Context) (r *calcRequest, err error) {
-	item, err := client.GetState(ctx, storeName, primeStateKey)
-	if err != nil {
-		logger.Printf("error quering store: %v", err)
-		return nil, errors.Wrapf(err, "error quering state store: %s for key: %s", storeName, primeStateKey)
-	}
-	if item == nil || item.Value == nil {
-		return &calcRequest{
-			Prime: 0,
-			ID:    "id0",
-			Max:   0,
-			Time:  time.Now().UTC().Unix(),
-		}, nil
-	}
-	var sr calcRequest
-	if err := json.Unmarshal(item.Value, &sr); err != nil {
-		return nil, errors.Wrap(err, "error parsing saved request content")
-	}
-	return &sr, nil
-}
-
-func calcHighestPrime(r *calcRequest) int {
-	h := 0
-	for i := 2; i <= r.Max; i++ {
-		if isPrime(i) {
-			h = i
-		}
-	}
-	return h
-}
-
-func isPrime(value int) bool {
-	for i := 2; i <= int(math.Floor(float64(value)/2)); i++ {
-		if value%i == 0 {
-			return false
-		}
-	}
-	return value > 1
 }
 
 func getEnvVar(key, fallbackValue string) string {

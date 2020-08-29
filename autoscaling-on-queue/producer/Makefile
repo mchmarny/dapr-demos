@@ -1,5 +1,5 @@
 RELEASE_VERSION  =v0.10.1
-SERVICE_NAME    ?=prime-calculator-request-producer
+SERVICE_NAME    ?=queue-outoscaling-producer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: all
@@ -67,29 +67,32 @@ kafka-client: ## Deploys Kafka client pod
 .PHONY: kafka-topic-sub
 kafka-topic-sub: kafka-client ## Subscribes to the Kafka topic 
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-console-consumer.sh \
-		--topic primes \
+		--topic messages \
 		--from-beginning \
 		--bootstrap-server kafka:9092
 
 .PHONY: kafka-topic
-kafka-topic: kafka-client ## Creates primes topic used for autoscaling demo 
+kafka-topic: kafka-client ## Creates messages topic used for autoscaling demo 
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
 		--zookeeper kafka-zookeeper:2181 \
-		--topic primes \
+		--topic messages \
 		--create \
 		--partitions 1 \
 		--replication-factor 1
+
+.PHONY: kafka-topic-ttl
+kafka-topic-ttl: kafka-client ## Changes the topic TTL
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-configs.sh \
 		--zookeeper kafka-zookeeper:2181 \
 		--alter \
 		--entity-type topics \
-		--entity-name primes \
+		--entity-name messages \
 		--add-config retention.ms=60000
 
 .PHONY: kafka-topic-info
-kafka-topic-info: kafka-client ## Describes primes topic used for autoscaling demo 
+kafka-topic-info: kafka-client ## Describes messages topic used for autoscaling demo 
 	kubectl -n data exec -ti kafka-client -- ./bin/./kafka-run-class.sh kafka.tools.ConsumerOffsetChecker \
-		--topic primes \
+		--topic messages \
 		--group autoscaling \
 		--zookeeper kafka-zookeeper:2181
 
@@ -98,15 +101,6 @@ kafka-topic-list: kafka-client ## Lists Kafka topics
 	kubectl -n data exec -ti kafka-client -- ./bin/kafka-topics.sh \
 		--zookeeper kafka-zookeeper:2181 \
 		--list
-
-.PHONY: kafka-topic-load
-kafka-topic-load: kafka-client ## Kafka load from the server  
-	kubectl -n data exec -ti kafka-client -- ./bin/kafka-producer-perf-test.sh \
-		--topic primes \
-		--payload-file ./test.json \
-		--throughput 100000 \
-		--num-records 1000000000 \
-		--producer-ops bootstrap.servers=kafka:9092
 		
 .PHONY: clean
 clean: ## Cleans up generated files 
