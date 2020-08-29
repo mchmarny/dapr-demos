@@ -20,12 +20,16 @@ helm install keda kedacore/keda -n keda --set logLevel=debug
 To deploy in cluster version of Kafka
 
 ```shell
-helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
 helm repo update
 kubectl create ns data
-helm install kafka incubator/kafka -n data \
-    --set persistence.size=16Gi \
-    --set zookeeper.storage=8Gi
+helm install kafka confluentinc/cp-helm-charts -n data \
+		--set cp-schema-registry.enabled=false \
+		--set cp-kafka-rest.enabled=false \
+		--set cp-kafka-connect.enabled=false \
+		--set dataLogDirStorageClass=default \
+		--set dataDirStorageClass=default \
+		--set storageClass=default
 ```
 
 ## Subscriber (processing service)
@@ -104,30 +108,35 @@ kubectl scale -n data deployment/queue-outoscaling-producer --replicas=10
 
 ## Demo 
 
-Watch Keda scaling operator log 
+Watch Keda scaling operator log for the depth of queue
 
 ```shell
 kubectl logs -l app=keda-operator -n keda -f
 ```
 
-Follow subscriber logs 
+```json
+{"level":"debug","ts":1598716685.4928422,"logger":"kafka_scaler","msg":"Group autoscaling has a lag of 2 for topic messages and partition 0\n"}
+{"level":"debug","ts":1598716685.4929283,"logger":"scalehandler","msg":"Scaler for scaledObject is active","ScaledObject.Namespace":"default","ScaledObject.Name":"queue-outoscaling-scaler","ScaledObject.ScaleType":"deployment","Scaler":{}}
+{"level":"debug","ts":1598716685.5025718,"logger":"scalehandler","msg":"ScaledObject's Status was properly updated","ScaledObject.Namespace":"default","ScaledObject.Name":"queue-outoscaling-scaler","ScaledObject.ScaleType":"deployment"}
+```
+
+Follow subscriber logs for the processing throughput 
 
 ```shell
 kubectl logs -l demo=autoscaling-demo -c service -f 
 ```
 
-> WIP: replicas of `queue-outoscaling-subscriber` do not scale up based on the depth of the queue. With `lagThreshold` of `3` and Keda seeing queue lag of `7K+`, there number of replicas remains 1. Interestingly, with `minReplicaCount` is set to `0`, the pod will be scale to 0 when the producer is not sending messages, despite the fact that the queue still has thousands of unack'd messages 
+```shell
+received:        746,   0 errors - avg   4/sec
+received:        773,   0 errors - avg   4/sec
+received:        794,   0 errors - avg   4/sec
+```
 
-```json
-{"level":"debug","ts":1598713533.3401804,"logger":"scalehandler","msg":"Scaler for scaledObject is active","ScaledObject.Namespace":"default","ScaledObject.Name":"prime-calculator-scaler","ScaledObject.ScaleType":"deployment","Scaler":{}}
-{"level":"debug","ts":1598713533.3656452,"logger":"scalehandler","msg":"ScaledObject's Status was properly updated","ScaledObject.Namespace":"default","ScaledObject.Name":"prime-calculator-scaler","ScaledObject.ScaleType":"deployment"}
-{"level":"debug","ts":1598713536.3939075,"logger":"kafka_scaler","msg":"Group autoscaling has a lag of 70867 for topic messages and partition 0\n"}
-{"level":"debug","ts":1598713536.3939333,"logger":"scalehandler","msg":"Scaler for scaledObject is active","ScaledObject.Namespace":"default","ScaledObject.Name":"prime-calculator-scaler","ScaledObject.ScaleType":"deployment","Scaler":{}}
-{"level":"debug","ts":1598713536.403159,"logger":"scalehandler","msg":"ScaledObject's Status was properly updated","ScaledObject.Namespace":"default","ScaledObject.Name":"prime-calculator-scaler","ScaledObject.ScaleType":"deployment"}
-{"level":"debug","ts":1598713539.4521942,"logger":"kafka_scaler","msg":"Group autoscaling has a lag of 70864 for topic messages and partition 0\n"}
-{"level":"debug","ts":1598713539.452236,"logger":"scalehandler","msg":"Scaler for scaledObject is active","ScaledObject.Namespace":"default","ScaledObject.Name":"prime-calculator-scaler","ScaledObject.ScaleType":"deployment","Scaler":{}}
-{"level":"debug","ts":1598713539.4604158,"logger":"scalehandler","msg":"ScaledObject's Status was properly updated","ScaledObject.Namespace":"default","ScaledObject.Name":"prime-calculator-scaler","ScaledObject.ScaleType":"deployment"}
-````
+Watch the number of `subscriber` pods being adjusted based on the depth of the queue 
+
+```shell
+watch kubectl get pods -l app=queue-outoscaling-subscriber
+```
 
 ## Disclaimer
 

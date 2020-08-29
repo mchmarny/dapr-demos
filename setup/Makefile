@@ -47,6 +47,7 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	helm repo add elastic https://helm.elastic.co
 	helm repo add keda https://kedacore.github.io/charts
 	helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+	helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
 	helm repo update
 	# Installing Dapr...
 	kubectl create ns dapr-system
@@ -197,9 +198,14 @@ data: ## Install redis cluster
 	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data state-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
 	# kafka 
-	helm install kafka incubator/kafka -n data \
-		--set persistence.size=16Gi \
-		--set zookeeper.storage=8Gi
+	helm install kafka confluentinc/cp-helm-charts -n data \
+		--set cp-schema-registry.enabled=false \
+		--set cp-kafka-rest.enabled=false \
+		--set cp-kafka-connect.enabled=false \
+		--set dataLogDirStorageClass=default \
+		--set dataDirStorageClass=default \
+		--set storageClass=default
+		
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

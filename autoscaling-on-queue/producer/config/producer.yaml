@@ -20,10 +20,10 @@ spec:
         image: mchmarny/queue-outoscaling-producer:v0.10.1
         env:
         - name: KAFKA_BROKER
-          value: kafka.data.svc.cluster.local:9092
+          value: kafka-cp-kafka-headless.data.svc.cluster.local:9092
         - name: KAFKA_TOPIC
           value: messages
         - name: NUMBER_OF_THREADS
           value: "1"
         - name: THREAD_PUB_FREQ
-          value: "10ms"
+          value: "100ms"

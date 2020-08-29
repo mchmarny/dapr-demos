@@ -1,20 +1,24 @@
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
 metadata:
-  name: prime-calculator-scaler
+  name: queue-outoscaling-scaler
   labels:
     deploymentName: queue-outoscaling-subscriber
 spec:
   scaleTargetRef:
     deploymentName: queue-outoscaling-subscriber
-  pollingInterval: 3
+  pollingInterval: 5
   cooldownPeriod:  20
-  minReplicaCount: 1
+  minReplicaCount: 0
   maxReplicaCount: 10
   triggers:
   - type: kafka
     metadata:
-      bootstrapServers: kafka.data.svc.cluster.local:9092
-      consumerGroup: autoscaling
+      type: kafkaTrigger
+      direction: in
+      name: event
       topic: messages
-      lagThreshold: "3"
+      bootstrapServers: kafka-cp-kafka-headless.data.svc.cluster.local:9092
+      consumerGroup: autoscaling
+      dataType: binary
+      lagThreshold: "5"

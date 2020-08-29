@@ -6,7 +6,7 @@ spec:
   type: bindings.kafka
   metadata:
   - name: brokers
-    value: kafka.data.svc.cluster.local:9092
+    value: kafka-cp-kafka-headless.data.svc.cluster.local:9092
   - name: topics
     value: messages
   - name: consumerGroup
