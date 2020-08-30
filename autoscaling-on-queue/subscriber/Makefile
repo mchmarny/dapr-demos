@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.1
+RELEASE_VERSION  =v0.10.2
 SERVICE_NAME    ?=queue-outoscaling-subscriber
 DOCKER_USERNAME ?=$(DOCKER_USER)
 

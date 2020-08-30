@@ -76,15 +76,16 @@ func main() {
 	if err := s.AddBindingInvocationHandler(bindingName, func(ctx context.Context, e *common.BindingEvent) (out []byte, err error) {
 		if err := processRequest(ctx, e.Data); err != nil {
 			logger.Printf("error processing request: %v", err)
+			resultCh <- false
 			return nil, errors.Wrap(err, "error processing request")
 		}
 		resultCh <- true
 		return nil, nil
 	}); err != nil {
-		resultCh <- false
 		logger.Fatalf("error adding topic subscription: %v", err)
 	}
 
+	// handle signals
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 

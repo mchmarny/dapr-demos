@@ -64,15 +64,17 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	kubectl create namespace keda
 	helm install keda kedacore/keda -n keda --set logLevel=debug
 	# While observabiliity and KADA is insrtalling, deploying ingress...
+	helm install nginx ingress-nginx/ingress-nginx \
+		--set controller.replicaCount=3 \
+    	--set controller.metrics.enabled=true \
+		-f ./config/annotations.yaml
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
-	helm install nginx ingress-nginx/ingress-nginx -f ./config/annotations.yaml
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
 	# Waiting for ingress to be ready (max 2 min)... 
 	kubectl wait --for=condition=ready pod --all --timeout=120s
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
-	kubectl scale --replicas=3 deployment/nginx-ingress-nginx-controller
 
 .PHONY: dns
 dns: ## Check DNS resolution for cluster IP
