@@ -22,7 +22,7 @@ var (
 
 	serviceAddress    = getEnvVar("ADDRESS", ":60010")
 	sourceBindingName = getEnvVar("SOURCE_BINDING", "fanout-queue-source-event-binding")
-	targetPubSubName  = getEnvVar("TARGET_PUBSUB_NAME", "fanout-queue-target-event-binding")
+	targetPubSubName  = getEnvVar("TARGET_PUBSUB_NAME", "fanout-queue-redis-target")
 	targetTopicName   = getEnvVar("TARGET_TOPIC_NAME", "events")
 	targetTopicFormat = getEnvVar("TARGET_TOPIC_FORMAT", "json")
 )

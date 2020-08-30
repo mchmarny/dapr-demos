@@ -1,16 +1,17 @@
 # fan-out demo 
 
-`Fan-out` is a messaging pattern where single message source is "broadcasted" to multiple targets. The common use-case for this may be situation where events from a single event source need to published to multiple subscribers.
+`Fan-out` is a messaging pattern where single message source is "broadcasted" to multiple targets. The common use-case for this may be situation where multiple teams or systems need to receive the events from the same source. This sometimes made more complicated by the differences in expected formats and protocols by each one of these target systems. 
 
-This demo illustrates to how to `fan-out` events in posted to Azure Event Hubs in JSON format using Dapr plugable component mechanism to:
+This demo illustrates how to `fan-out` events from Azure Event Hubs using Dapr plugable component mechanism to:
 
 * Redis queue in XML format 
-* REST endpoint as a HTTP POST content in JSON format 
-* gRPC service in original binary format 
+* Kafka topic in CSV format 
+* REST endpoint in JSON format 
+* gRPC service in binary format 
 
 ![](./img/fan-out-in-dapr.png)
 
-For more information about pub/sub see the [Dapr docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
+For more information about Dapr's pub/sub see these [docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
 
 ## Setup 
 
@@ -21,6 +22,12 @@ To run these demos you will have first create a secret file (`secrets.json`) in 
     "eventhubConnStr": "***",
     "storageAccountKey": "***"
 }
+```
+
+In addition, you will need access to Redis and Kafka services. Dapr installed Redis container during setup so you can use that. For Kafka, you can use the included Docker Compose file:
+
+```shell
+docker-compose -f ./queue-format-converter/config/kafka.yaml up -d
 ```
 
 ## Events 
@@ -48,16 +55,17 @@ sending: {"id":"ef658e1f-a16d-4cc7-99a9-6e17d5542fb8","temperature":66.459359721
 
 With events on the Azure Event Hubs, you can now run each one of the fan-out distributors.
 
-### Event Hubs to Pub/Sub topic in XML
+### Event Hubs to Pub/Sub
 
-This step will subscribe to the Event Hub source using Dapr binding, convert the incoming events into XML, and publish them to the pre-configured Pub/Sub target. The specific Pub/Sub is defined by the Dapr component found in the `./config` directory. Dapr has a wide array of [Pub/Sub components](https://github.com/dapr/components-contrib/tree/master/pubsub#pub-sub) (e.g. Redis, NATS, Kafka, RabbitMQ...), for this example we will use Redis. 
+This step will subscribe to the Event Hub source using Dapr binding, convert into specified format, and publish them to the pre-configured Pub/Sub target. The specific Pub/Sub is defined by the Dapr component found in the `./config` directory. Dapr has a wide array of [Pub/Sub components](https://github.com/dapr/components-contrib/tree/master/pubsub#pub-sub) (e.g. Redis, NATS, Kafka, RabbitMQ...), for this example we will use Redis. 
 
-> To change the target, simply update the [queue-format-converter/config/source-binding.yaml](./queue-format-converter/config/source-binding.yaml) file with the desired Pub/Sub.
+To start, navigate to the directory (`cd ./queue-format-converter`)
 
-To start, navigate to the directory (`cd ./queue-format-converter`) and export the desired format:
+#### XML 
 
 ```shell
 export TARGET_TOPIC_FORMAT="xml" 
+export TARGET_PUBSUB_NAME="fanout-queue-redis-target"
 ```
 
 Now run the service using Dapr:
@@ -70,6 +78,27 @@ dapr run \
     --components-path ./config \
     go run main.go
 ```
+
+#### CSV
+
+```shell
+export TARGET_TOPIC_FORMAT="csv" 
+export TARGET_PUBSUB_NAME="fanout-queue-kafka-target"
+export ADDRESS=":60020"
+```
+
+Now run the service using Dapr:
+
+```shell
+dapr run \
+    --app-id kafka-csv-publisher \
+    --app-port 60020 \
+    --app-protocol grpc \
+    --components-path ./config \
+    go run main.go
+```
+
+#### Output
 
 The terminal output should include the received event and the event that was published to the target
 

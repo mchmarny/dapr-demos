@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: fanout-queue-target-event-binding
+  name: fanout-queue-redis-target
 spec:
   type: pubsub.redis
   metadata:
