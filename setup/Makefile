@@ -6,6 +6,13 @@ NODE_TYPE    ?=Standard_D4_v2
 .PHONY: all
 all: help
 
+.PHONY: ip
+ip: ## Creates a static IP using LB
+	az network public-ip create \
+		--name $(CLUSTER_NAME)ip \
+		--sku Standard \
+		--allocation-method static
+
 .PHONY: clusterlist
 clusterlist: ## List all your AKS clusters in the default resource group
 	az aks list -o table
@@ -64,9 +71,12 @@ dapr: ## Install and configures Dapr along with all its dependencies
 	kubectl create namespace keda
 	helm install keda kedacore/keda -n keda --set logLevel=debug
 	# While observabiliity and KADA is insrtalling, deploying ingress...
+	$(eval PUBLIC_IP=$(shell az network public-ip show --name demoip --query 'ipAddress' -o tsv))
 	helm install nginx ingress-nginx/ingress-nginx \
 		--set controller.replicaCount=3 \
     	--set controller.metrics.enabled=true \
+    	--set controller.service.loadBalancerIP="$(PUBLIC_IP)" \
+    	--set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"="$(DOMAIN)" \
 		-f ./config/annotations.yaml
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
