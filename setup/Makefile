@@ -208,7 +208,6 @@ data: ## Install redis cluster
 		--set dataDirStorageClass=default \
 		--set storageClass=default
 		
-
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
 	pkill kubectl -9	

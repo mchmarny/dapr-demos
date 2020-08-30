@@ -7,5 +7,3 @@ controller:
     dapr.io/api-token-secret: "dapr-api-token"
     dapr.io/config: "tracing"
     dapr.io/log-as-json: "true"
-    prometheus.io/scrape: true"
-    prometheus.io/port: "10254"
