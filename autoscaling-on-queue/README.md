@@ -168,4 +168,4 @@ This is my personal project and it does not represent my employer. I take no res
 
 ## License
 
-This software is released under the [MIT](./LICENSE)
+This software is released under the [MIT](../LICENSE)
