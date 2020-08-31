@@ -44,7 +44,7 @@ The `subscriber` doesn't really do anything so to resemble real-life processing 
 To deploy the `subscriber` service:
 
 ```shell
-kubectl apply -f subscriber/k8s/pubsub.yaml
+kubectl apply -f subscriber/k8s/binding.yaml
 kubectl apply -f subscriber/k8s/deployment.yaml
 kubectl apply -f subscriber/k8s/keda.yaml
 ```
@@ -52,15 +52,9 @@ kubectl apply -f subscriber/k8s/keda.yaml
 If you have changed an existing Kafka component, make sure to reload the deployment and wait until the new version is ready
 
 ```shell
-kubectl rollout restart deployment/autoscaling-on-queue
+kubectl rollout restart deployment/queue-outoscaling-subscriber
 kubectl rollout restart deployment/nginx-ingress-nginx-controller
 kubectl rollout status deployment/nginx-ingress-nginx-controller
-```
-
-Check Dapr logs to make sure there is no errors 
-
-```shell
-kubectl logs -l demo=autoscaling-demo -c daprd
 ```
 
 ## Producer (generating load on the Kafka topic)
@@ -68,7 +62,7 @@ kubectl logs -l demo=autoscaling-demo -c daprd
 First, deploy a Kafka client:
 
 ```shell
-kubectl apply -n data -f config/kafka-client.yaml
+kubectl apply -n data -f producer/config/kafka-client.yaml
 kubectl wait -n data --for=condition=ready pod kafka-client --timeout=120s
 ```
 
@@ -95,7 +89,7 @@ kubectl logs -n data -l demo=autoscaling-producer -f
 To stop the `producer`
 
 ```shell
-kubectl delete -n data -f config/producer.yaml
+kubectl delete -n data -f producer/config/producer.yaml
 ```
 
 To increase or decrease the number of messages the producer publishes to the topic you can edit the following env vars on the producer deployment: 
