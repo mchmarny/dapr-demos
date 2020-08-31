@@ -11,7 +11,7 @@ clusterlist: ## List all your AKS clusters in the default resource group
 	az aks list -o table
 
 .PHONY: cluster
-cluster: ## Create AKS cluster (make cluster CLUSTER_NAME=demo)
+cluster: ## Create AKS cluster (make cluster
 	az aks create \
 		--name $(CLUSTER_NAME) \
 		--node-count $(NODE_COUNT) \
@@ -21,13 +21,14 @@ cluster: ## Create AKS cluster (make cluster CLUSTER_NAME=demo)
 	az aks get-credentials --name $(CLUSTER_NAME)
 
 .PHONY: nodepool
-nodepool: ## Adds new node pool to the existing cluster (make cluster CLUSTER_NAME=demo)
+nodepool: ## Add new node pool to the existing cluster
 	$(eval NODE_SUFIX=$(shell date +"%d%m"))
 	az aks nodepool add \
 		--cluster-name $(CLUSTER_NAME) \
 		--name nodepool$(NODE_SUFIX) \
 		--node-count $(NODE_COUNT) \
 		--node-vm-size $(NODE_TYPE) \
+		--mode System \
 		--no-wait
 
 .PHONY: certs
@@ -38,41 +39,98 @@ certs: ## Create wildcard TLS certificates using letsencrypt
 	sudo chmod 644 *.pem
 
 .PHONY: dapr
-dapr: ## Install and configures Dapr along with all its dependencies 
+dapr: ## Install and configures Dapr
 	# Updating Help repos...
 	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
-	helm repo add bitnami https://charts.bitnami.com/bitnami
-	helm repo add stable https://kubernetes-charts.storage.googleapis.com
-	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-	helm repo add elastic https://helm.elastic.co
-	helm repo add keda https://kedacore.github.io/charts
-	helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
-	helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
 	helm repo update
 	# Installing Dapr...
 	kubectl create ns dapr-system
 	helm install dapr dapr/dapr -n dapr-system --set global.logAsJson=true
+	# Wait for everything to finish installing 
+	kubectl rollout status deployment/dapr-operator -n dapr-system
+	kubectl rollout status deployment/dapr-dashboard -n dapr-system
+	kubectl rollout status deployment/dapr-placement -n dapr-system
+	kubectl rollout status deployment/dapr-sentry -n dapr-system
+	kubectl rollout status deployment/dapr-sidecar-injector -n dapr-system
+
+.PHONY: keda
+keda: ## Install and configures Keda
+	# Updating Help repos...
+	helm repo add keda https://kedacore.github.io/charts
+	helm repo update
+	# Installing Keda
+	kubectl create ns keda-system
+	helm install keda kedacore/keda -n keda-system --set logLevel=debug
+	# Wait for everything to finish installing 
+	kubectl rollout status deployment/keda-operator -n keda-system
+	kubectl rollout status deployment/keda-operator-metrics-apiserver -n keda-system
+
+.PHONY: observe
+observe: ## Install and configure observability stack
+	# Updating Help repos...
+	helm repo add stable https://kubernetes-charts.storage.googleapis.com
+	helm repo add elastic https://helm.elastic.co
+	helm repo update
 	# Installing observabiliity...
-	kubectl create namespace dapr-monitoring
+	kubectl create ns dapr-monitoring
 	kubectl apply -f ./config/fluentd-config.yaml -f ./config/fluentd.yaml
 	kubectl apply -f ./config/zipkin-config.yaml -f ./config/zipkin.yaml
 	helm install elasticsearch elastic/elasticsearch -n dapr-monitoring
 	helm install dapr-prom stable/prometheus -n dapr-monitoring
 	helm install grafana stable/grafana -n dapr-monitoring
 	helm install kibana elastic/kibana -n dapr-monitoring
-	# Installing KEDA
-	kubectl create namespace keda
-	helm install keda kedacore/keda -n keda --set logLevel=debug
+	# Wait for everything to finish installing 
+	kubectl rollout status deployment/dapr-prom-kube-state-metrics -n dapr-monitoring
+	kubectl rollout status deployment/dapr-prom-prometheus-alertmanager -n dapr-monitoring
+	kubectl rollout status deployment/dapr-prom-prometheus-pushgateway -n dapr-monitoring
+	kubectl rollout status deployment/dapr-prom-prometheus-server -n dapr-monitoring
+	kubectl rollout status deployment/grafana -n dapr-monitoring
+	kubectl rollout status deployment/kibana-kibana -n dapr-monitoring
+	# Forward ports 
+	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
+	kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
+	# Configure kibana and grafana
+	$(eval GRAFANA_PASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
+		 -H "Content-Type: application/json" \
+		 -d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
+	     http://localhost:8888/api/datasources
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
+		 -H "Content-Type: application/json" \
+		 -d @config/system-services-dashboard.json \
+	     http://localhost:8888/api/dashboards/db
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
+		 -H "Content-Type: application/json" \
+		 -d @config/sidecar-dashboard.json \
+	     http://localhost:8888/api/dashboards/db
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
+		 -H "Content-Type: application/json" \
+		 -d @config/actor-dashboard.json \
+	     http://localhost:8888/api/dashboards/db
+	curl -X POST -H "kbn-xsrf: true" \
+		 -H "Content-Type: application/json" \
+		 -d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
+		 "http://localhost:5601/api/saved_objects/index-pattern/dapr"
+	curl -X POST -H "kbn-xsrf: true" \
+		 -H "Content-Type: application/json" \
+		 -d '{"value":"dapr"}' \
+		 "http://localhost:5601/api/kibana/settings/defaultIndex"
+
+.PHONY: ingress
+ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
+	# Updating Help repos...
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	helm repo update
 	# While observabiliity and KADA is insrtalling, deploying ingress...
 	helm install nginx ingress-nginx/ingress-nginx \
 		--set controller.replicaCount=3 \
-    	--set controller.metrics.enabled=true \
+		--set controller.metrics.enabled=true \
 		-f ./config/annotations.yaml
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
 	# Waiting for ingress to be ready (max 2 min)... 
-	kubectl wait --for=condition=ready pod --all --timeout=120s
+	kubectl wait --for=condition=ready pod --all --timeout=300s
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	kubectl apply -f ./config/ingress.yaml
 
@@ -145,50 +203,31 @@ ports: ## Forward observability ports
 	@echo "To stop forwarding run 'make portstop'"
 	@echo
 	
-
-.PHONY: observe
-observe: ports ## Create Prometheus data source, Elastic log index, import Dapr dashboards
-	$(eval GPASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
-	curl -X POST -s -k -u "admin:$(GPASS)" \
-		 -H "Content-Type: application/json" \
-		 -d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
-	     http://localhost:8888/api/datasources
-	curl -X POST -s -k -u "admin:$(GPASS)" \
-		 -H "Content-Type: application/json" \
-		 -d @config/system-services-dashboard.json \
-	     http://localhost:8888/api/dashboards/db
-	curl -X POST -s -k -u "admin:$(GPASS)" \
-		 -H "Content-Type: application/json" \
-		 -d @config/sidecar-dashboard.json \
-	     http://localhost:8888/api/dashboards/db
-	curl -X POST -s -k -u "admin:$(GPASS)" \
-		 -H "Content-Type: application/json" \
-		 -d @config/actor-dashboard.json \
-	     http://localhost:8888/api/dashboards/db
-	curl -X POST -H "kbn-xsrf: true" \
-		 -H "Content-Type: application/json" \
-		 -d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
-		 "http://localhost:5601/api/saved_objects/index-pattern/dapr"
-	curl -X POST -H "kbn-xsrf: true" \
-		 -H "Content-Type: application/json" \
-		 -d '{"value":"dapr"}' \
-		 "http://localhost:5601/api/kibana/settings/defaultIndex"
-
 .PHONY: reload
 reload: ## Reloads API to pickup new components 
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 
-.PHONY: data
-data: ## Install redis cluster
+.PHONY: redis
+redis: ## Install Redis into the cluster
+	# Updating Help repos...
+	helm repo add bitnami https://charts.bitnami.com/bitnami
+	helm repo update
+	# data ns 
 	kubectl create ns data
 	# redis 
 	helm install redis bitnami/redis -n data 
-	kubectl wait -n data --for=condition=ready pod --all --timeout=120s
+	kubectl wait -n data --for=condition=ready pod --all --timeout=300s
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)"
+	
+.PHONY: mongo
+mongo: ## Install Mongo into the cluster
+	# Updating Help repos...
+	helm repo add bitnami https://charts.bitnami.com/bitnami
+	helm repo update
 	# mongo 
-	helm install state \
+	helm install mongo \
 		--set architecture=replicaset \
 		--set auth.username=dapr \
 		--set auth.database=dapr \
@@ -196,9 +235,15 @@ data: ## Install redis cluster
 		--set replicaCount=3 \
 		bitnami/mongodb \
 		-n data
-	kubectl wait -n data --for=condition=ready pod --all --timeout=120s
-	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data state-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
+	kubectl wait -n data --for=condition=ready pod --all --timeout=300s
+	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
+	
+.PHONY: kafka
+kafka: ## Install Kafka into the cluster
+	# Updating Help repos...
+	helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/	
+	helm repo update
 	# kafka 
 	helm install kafka confluentinc/cp-helm-charts -n data \
 		--set cp-schema-registry.enabled=false \
@@ -207,7 +252,9 @@ data: ## Install redis cluster
 		--set dataLogDirStorageClass=default \
 		--set dataDirStorageClass=default \
 		--set storageClass=default
-		
+	# wait for the deployment 
+	kubectl wait -n data --for=condition=ready pod --all --timeout=300s
+
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
 	pkill kubectl -9	

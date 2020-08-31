@@ -26,16 +26,19 @@ An opinionated Kubernetes clusters Dapr deployment:
 
 ## Deployment 
 
-* Update `DOMAIN` in [Makefile](./Makefile)
+* Update [Makefile](./Makefile) variables
 * Run:
-  * `make certs` to create TLS certs
+  * `make cluster` (optional, otherwise use one selected in your kubectol context)
+  * `make certs` (optional, to create TLS certs if you don't have them)
   * `make dapr` to install Dapr
+  * `make keda` (optional, to install Keda for autoscaling)
+  * `make observe` to install observability stack (logging, metric, tracing)
   * `make dns` to configure DNS
-  * `make ports` to forward observability ports
-  * `make observe` to configure observability components
   * `make test` to test deployment 
-
-> See [Create Cluster](#create-cluster) if you do not have a Kubernetes cluster 
+  * `make ports` (optional) to forward observability dashboards ports
+  * `make redis` (optional) to install Redis into the cluster 
+  * `make mongo` (optional) to install Mongo into the cluster 
+  * `make kafka` (optional) to install Kafka into the cluster 
 
 ## Observability
 
@@ -79,18 +82,22 @@ az configure --defaults location=<preferred location> group=<preferred resource 
 ```shell
 $ make help
 clusterlist                    List all your AKS clusters in the default resource group
-cluster                        Create AKS cluster (make cluster CLUSTER_NAME=demo)
-nodepool                       Adds new node pool to the existing cluster (make cluster CLUSTER_NAME=demo)
+cluster                        Create AKS cluster (make cluster
+nodepool                       Add new node pool to the existing cluster
 certs                          Create wildcard TLS certificates using letsencrypt
-dapr                           Install and configures Dapr along with all its dependencies
+dapr                           Install and configures Dapr
+keda                           Install and configures Keda
+observe                        Install and configure observability stack
+ingress                        Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
 dns                            Check DNS resolution for cluster IP
 test                           Test deployment and execute Dapr API health checks
 token                          Print Dapr API token
 pass                           Print Grafana admin password
 ports                          Forward observability ports
-observe                        Create Prometheus data source, Elastic log index, import Dapr dashboards
 reload                         Reloads API to pickup new components
-data                           Install redis cluster
+redis                          Install Redis into the cluster
+mongo                          Install Mongo into the cluster
+kafka                          Install Kafka into the cluster
 portstop                       Stop previously forwarded observability ports
 cleanup                        Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
 help                           Display available commands
