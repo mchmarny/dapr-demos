@@ -39,12 +39,12 @@ Deploy and wait for the pod to be ready
 ```shell
 kubectl apply -f k8s/component.yaml
 kubectl apply -f k8s/deployment.yaml
+kubectl rollout status deployment/grpc-event-subscriber
 ```
 
 If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
 
 ```shell
-kubectl rollout restart deployment/grpc-event-subscriber
 kubectl rollout restart deployment/nginx-ingress-nginx-controller
 kubectl rollout status deployment/nginx-ingress-nginx-controller
 ```
@@ -52,7 +52,7 @@ kubectl rollout status deployment/nginx-ingress-nginx-controller
 Follow logs
 
 ```shell
-kubectl logs -l demo=grpc-event -c service -f
+kubectl logs -l app=grpc-event-subscriber -c service -f
 ```
 
 In a separate terminal session export API token
@@ -70,6 +70,11 @@ curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
      "https://api.cloudylabs.dev/v1.0/publish/grpc-events/messages"
 ```
 
+In the logs, you should see now an entry similar to this. Feel free to edit the message and try again.
+
+```shell
+event - PubsubName:http-events, Topic:messages, ID:6b6cc665-684d-456c-8880-56e20cdf0519, Data: map[from:John message:hi to:Lary]
+```
 
 ## Disclaimer
 
