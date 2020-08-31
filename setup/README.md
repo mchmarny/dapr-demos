@@ -119,7 +119,10 @@ To delete any of the previously created clusters run
 make cleanup CLUSTER_NAME=name
 ```
 
-
 ## Disclaimer
 
 This is my personal project and it does not represent my employer. I take no responsibility for issues caused by this code. I do my best to ensure that everything works, but if something goes wrong, my apologies is all you will get.
+
+## License
+
+This software is released under the [MIT](../LICENSE)
