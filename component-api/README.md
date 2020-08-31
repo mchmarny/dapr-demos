@@ -116,7 +116,7 @@ curl -d @./sample/twitter.json \
 
 And if you have the command-line JSON processor [jq](https://shapeshed.com/jq-json/),  you can format the API results. For example, this will display only the ID, Author, and Text of each tweet as a new JSON object:
 
-```
+```shell
 curl -d @./sample/twitter.json \
      -H "Content-Type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
