@@ -36,6 +36,7 @@ Deploy and wait for the pod to be ready
 ```shell
 kubectl apply -f k8s/component.yaml
 kubectl apply -f k8s/deployment.yaml
+kubectl rollout status deployment/cron-binding-demo
 ```
 
 If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
@@ -48,7 +49,22 @@ kubectl rollout status deployment/cron-binding-demo
 Follow logs to view schedule firing 
 
 ```shell
-kubectl logs -l demo=cron -c daprd -f
+kubectl logs -l app=cron-binding-demo -c daprd -f
+```
+
+Depending on the frequency you used there may not be an entry right away but you should see something similar to this
+
+```json
+{
+  "app_id":"cron-binding-demo",
+  "instance":"cron-binding-demo-6c88dbb467-j54br",
+  "level":"debug",
+  "msg":"next run: 59m59.629538771s",
+  "scope":"dapr.contrib",
+  "time":"2020-08-31T13:08:34.37049343Z",
+  "type":"log",
+  "ver":"0.10.0"
+}
 ```
 
 ## Disclaimer
