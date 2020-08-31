@@ -13,22 +13,6 @@ This demo illustrates how to `fan-out` events from Azure Event Hubs using Dapr p
 
 For more information about Dapr's pub/sub see these [docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
 
-## Setup 
-
-To run these demos you will have first create a secret file (`secrets.json`) in this directory with your Azure Event Hubs secrets
-
-```json
-{
-    "eventhubConnStr": "***",
-    "storageAccountKey": "***"
-}
-```
-
-In addition, you will need access to Redis and Kafka services. Dapr installed Redis container during setup so you can use that. For Kafka, you can use the included Docker Compose file:
-
-```shell
-docker-compose -f ./queue-format-converter/config/kafka.yaml up -d
-```
 
 ## Events 
 
@@ -49,19 +33,36 @@ sending: {"id":"775ccb8f-8039-4c97-9849-15fdf6a26a1e","temperature":60.469982195
 sending: {"id":"ef658e1f-a16d-4cc7-99a9-6e17d5542fb8","temperature":66.45935972131686,"humidity":43.77704157682614,"time":1598373740}
 ```
 
+## Standalone Mode Setup 
+
+To run these demos you will have first create a secret file (`secrets.json`) in this directory with your Azure Event Hubs secrets
+
+```json
+{
+    "eventhubConnStr": "***",
+    "storageAccountKey": "***"
+}
+```
+
+In addition, you will need access to Redis and Kafka services. Dapr installed Redis container during setup so you can use that. For Kafka, you can use the included Docker Compose file:
+
+```shell
+docker-compose -f ./queue-format-converter/config/kafka.yaml up -d
+```
+
 > You can leave this running during the demo, just remember to stop it on the end to avoid getting charge for the mocked up events. 
 
-## Run 
+### Run 
 
 With events on the Azure Event Hubs, you can now run each one of the fan-out distributors.
 
-### Event Hubs to Pub/Sub
+#### Event Hubs to Pub/Sub
 
 This step will subscribe to the Event Hub source using Dapr binding, convert into specified format, and publish them to the pre-configured Pub/Sub target. The specific Pub/Sub is defined by the Dapr component found in the `./config` directory. Dapr has a wide array of [Pub/Sub components](https://github.com/dapr/components-contrib/tree/master/pubsub#pub-sub) (e.g. Redis, NATS, Kafka, RabbitMQ...), for this example we will use Redis. 
 
 To start, navigate to the directory (`cd ./queue-format-converter`)
 
-#### XML 
+##### XML 
 
 ```shell
 export TARGET_TOPIC_FORMAT="xml" 
@@ -79,7 +80,7 @@ dapr run \
     go run main.go
 ```
 
-#### CSV
+##### CSV
 
 ```shell
 export TARGET_TOPIC_FORMAT="csv" 
@@ -98,7 +99,7 @@ dapr run \
     go run main.go
 ```
 
-#### Output
+##### Output
 
 The terminal output should include the received event and the event that was published to the target
 
@@ -107,7 +108,7 @@ The terminal output should include the received event and the event that was pub
 == APP == Target: <SourceEvent><ID>8453c94e-1ff0-47d1-b0f9-7936c5be3d98</ID><Temperature>51.52611072392151</Temperature><Humidity>81.36585969939978</Humidity><Time>1598361172</Time></SourceEvent>
 ```
 
-### Event Hubs to REST endpoint in JSON format
+#### Event Hubs to REST endpoint in JSON format
 
 This step will subscribe to the Event Hub source using Dapr binding, convert the incoming events into JSON, and publish them to the pre-configured REST endpoint using Dapr HTTP binding. The specific endpoint as well as method (`POST` vs `GET` for example) is defined by the Dapr component found in the `./config` directory. Dapr has a wide array of [output bindings](https://github.com/dapr/docs/tree/master/concepts/bindings#supported-bindings-and-specs) (e.g. Twilio, SendGrid, MQTT...), for this example we will use HTTP. 
 
@@ -136,7 +137,7 @@ The terminal output should include the received event and the event that was pub
 == APP == Target: {"id":"ef658e1f-a16d-4cc7-99a9-6e17d5542fb8","temperature":66.45935972131686,"humidity":43.77704157682614,"time":1598373740}
 ```
 
-### Event Hubs to gRPC service in binary format 
+#### Event Hubs to gRPC service in binary format 
 
 This step will subscribe to the Event Hub source using Dapr binding, convert the incoming events into target service expecting format, and publish them to the Dapr service identified by name. The discovery of the target service as well as the mTLS encryption and protocol translation (if necessary in case HTTP to gPRC or gPRC to HTTP invocation) are handled automatically by Dapr. You can learn more about the service to service invocation in Dapr [here](https://github.com/dapr/docs/blob/master/concepts/service-invocation/README.md#service-invocation)
 
@@ -167,10 +168,14 @@ The terminal output should include the received event and the event that was pub
 == APP == Target: &{Data:[123 34 105 100 34 58 34 98 99 50 101 57 54 99 100 45 97 51 102 48] ContentType:application/json}
 ```
 
+## Kubernetes Deployment 
+
+> WIP: this section is currently being worked on, come back soon.
+
 ## Disclaimer
 
 This is my personal project and it does not represent my employer. I take no responsibility for issues caused by this code. I do my best to ensure that everything works, but if something goes wrong, my apologies is all you will get.
 
 ## License
 
-This software is released under the [MIT](./LICENSE)
+This software is released under the [MIT](../LICENSE)
