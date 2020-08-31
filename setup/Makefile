@@ -208,6 +208,9 @@ reload: ## Reloads API to pickup new components
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 
+.PHONY: data-services
+data-services: redis mongo kafka ## Install all data services 
+
 .PHONY: redis
 redis: ## Install Redis into the cluster
 	# Updating Help repos...
@@ -217,7 +220,9 @@ redis: ## Install Redis into the cluster
 	kubectl create ns data
 	# redis 
 	helm install redis bitnami/redis -n data 
-	kubectl wait -n data --for=condition=ready pod --all --timeout=300s
+	# Waiting for ingress to be ready...
+	kubectl rollout status statefulset.apps/redis-master -n data
+	kubectl rollout status statefulset.apps/redis-slave -n data
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)"
 	
@@ -235,7 +240,9 @@ mongo: ## Install Mongo into the cluster
 		--set replicaCount=3 \
 		bitnami/mongodb \
 		-n data
-	kubectl wait -n data --for=condition=ready pod --all --timeout=300s
+	# Waiting for ingress to be ready...
+	kubectl rollout status statefulset.apps/mongo-mongodb -n data
+	kubectl rollout status statefulset.apps/mongo-mongodb-arbiter -n data
 	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
 	
@@ -253,7 +260,10 @@ kafka: ## Install Kafka into the cluster
 		--set dataDirStorageClass=default \
 		--set storageClass=default
 	# wait for the deployment 
-	kubectl wait -n data --for=condition=ready pod --all --timeout=300s
+	kubectl rollout status deployment.apps/kafka-cp-control-center -n data
+	kubectl rollout status deployment.apps/kafka-cp-ksql-server -n data
+	kubectl rollout status statefulset.apps/kafka-cp-kafka -n data
+	kubectl rollout status statefulset.apps/kafka-cp-zookeeper -n data
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
