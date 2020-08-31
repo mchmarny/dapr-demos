@@ -66,7 +66,7 @@ keda: ## Install and configures Keda
 	kubectl rollout status deployment/keda-operator-metrics-apiserver -n keda
 
 .PHONY: observe
-observe: ## Install and configure observability stack
+observe: ## Install observability stack
 	# Updating Help repos...
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com
 	helm repo add elastic https://helm.elastic.co
@@ -82,6 +82,9 @@ observe: ## Install and configure observability stack
 		--set persistence.accessModes={ReadWriteOnce} \
 		--set persistence.size=8Gi
 	helm install kibana elastic/kibana -n dapr-monitoring
+	
+.PHONY: observe-config
+observe-config: ## Configure observability stack
 	# Wait for everything to finish installing 
 	kubectl rollout status deployment/dapr-prom-kube-state-metrics -n dapr-monitoring
 	kubectl rollout status deployment/dapr-prom-prometheus-alertmanager -n dapr-monitoring

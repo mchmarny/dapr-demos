@@ -87,7 +87,8 @@ nodepool                       Add new node pool to the existing cluster
 certs                          Create wildcard TLS certificates using letsencrypt
 dapr                           Install and configures Dapr
 keda                           Install and configures Keda
-observe                        Install and configure observability stack
+observe                        Install observability stack
+observe-config                 Configure observability stack
 ingress                        Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
 dns                            Check DNS resolution for cluster IP
 test                           Test deployment and execute Dapr API health checks

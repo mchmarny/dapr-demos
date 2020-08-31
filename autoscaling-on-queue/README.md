@@ -8,6 +8,17 @@ The autoscaling demo requires Keda which runs in Kubernates. To deploy demo, fir
 
 To install [Keda](https://github.com/kedacore/keda) into the cluster 
 
+> Note, right now you will have to deploy Keda from the head. 
+
+```shell
+git clone git@github.com:mchmarny/keda.git && cd keda 
+git fetch --all
+git checkout v2
+make deploy
+```
+
+To deploy using Helm:
+
 ```shell
 helm repo add keda https://kedacore.github.io/charts
 helm repo update

@@ -24,6 +24,6 @@ spec:
         - name: KAFKA_TOPIC
           value: messages
         - name: NUMBER_OF_THREADS
-          value: "1"
+          value: "4"
         - name: THREAD_PUB_FREQ
-          value: "100ms"
+          value: "10ms"

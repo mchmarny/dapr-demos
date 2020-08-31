@@ -32,4 +32,4 @@ spec:
         - name: BINDING_NAME
           value: "autoscaling-kafka-queue"
         - name: PROCESS_DURATION
-          value: "300ms"
+          value: "500ms"
