@@ -3,13 +3,19 @@ kind: Component
 metadata:
   name: tweet-store
 spec:
-  type: state.redis
+  type: state.mongodb
   metadata:
-  - name: redisHost
-    value: redis-master.data.svc.cluster.local:6379
-  - name: redisPassword
+  - name: host
+    value: mongo-mongodb-0.mongo-mongodb-headless.data.svc.cluster.local:27017
+  - name: username
+    value: dapr
+  - name: password
     secretKeyRef:
-      name: redis-secret
-      key: password
+      name: mongo-secret
+      key: mongodb-password
+  - name: databaseName
+    value: dapr
+  - name: collectionName
+    value: audit
 scopes:
 - tweet-provider

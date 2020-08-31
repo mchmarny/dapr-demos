@@ -22,6 +22,6 @@ spec:
       name: twitter-secret
       key: accessSecret
   - name: query
-    value: "dapr" # use more common term for demo
+    value: "serverless" # use more common term for demo
 scopes:
 - tweet-provider
