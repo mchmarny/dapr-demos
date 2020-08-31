@@ -59,11 +59,11 @@ keda: ## Install and configures Keda
 	helm repo add keda https://kedacore.github.io/charts
 	helm repo update
 	# Installing Keda
-	kubectl create ns keda-system
-	helm install keda kedacore/keda -n keda-system --set logLevel=debug
+	kubectl create ns keda
+	helm install keda kedacore/keda -n keda --set logLevel=debug
 	# Wait for everything to finish installing 
-	kubectl rollout status deployment/keda-operator -n keda-system
-	kubectl rollout status deployment/keda-operator-metrics-apiserver -n keda-system
+	kubectl rollout status deployment/keda-operator -n keda
+	kubectl rollout status deployment/keda-operator-metrics-apiserver -n keda
 
 .PHONY: observe
 observe: ## Install and configure observability stack

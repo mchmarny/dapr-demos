@@ -11,8 +11,8 @@ To install [Keda](https://github.com/kedacore/keda) into the cluster
 ```shell
 helm repo add keda https://kedacore.github.io/charts
 helm repo update
-kubectl create namespace keda-system
-helm install keda kedacore/keda -n keda-system --set logLevel=debug
+kubectl create namespace keda
+helm install keda kedacore/keda -n keda --set logLevel=debug
 ```
 
 ## Kafka 
@@ -139,7 +139,7 @@ queue-outoscaling-subscriber-674c7dc7b4-sdj9z   2/2     Running   0          14m
 Watch Keda scaling operator log for the depth of queue signal:
 
 ```shell
-kubectl logs -l app=keda-operator -n keda-system -f
+kubectl logs -l app=keda-operator -n keda -f
 ```
 
 ```json
