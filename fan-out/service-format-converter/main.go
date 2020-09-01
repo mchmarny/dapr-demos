@@ -100,8 +100,6 @@ func eventHandler(ctx context.Context, e *common.TopicEvent) error {
 	logger.Printf("Target (%s): %s", targetFormat, b)
 
 	content := &dapr.DataContent{Data: b, ContentType: ct}
-	logger.Printf("Target: %+v", content)
-
 	out, err := client.InvokeServiceWithContent(ctx, targetServiceID, targetMethodName, content)
 	if err != nil {
 		return errors.Wrap(err, "error invoking target binding")
