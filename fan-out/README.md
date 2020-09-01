@@ -12,6 +12,8 @@ This demo will illustrate how to use Dapr's plugable component mechanism to `fan
 
 This allows for incremental modifications with ability to customize each stream according to its unique configuration needs (e.g. throughout, authentication, format, retry strategy, or even error tolerance). For more information about Dapr's pub/sub see these [docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
 
+This demo requires Dapr `v0.10` as well as go `1.14+` and docker-compose `v1.26+`
+
 ## App 2: Pub/Sub to Pub/Sub Publisher
 
 To run these demos you will need access to Redis and Kafka servers. For Redis, you can use the one installed during local Dapr setup. For Kafka, you can use the included Docker Compose file. First, navigate to the `queue-format-converter` and start Kafka:
