@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,17 +23,11 @@ var (
 	targetPubSubName = getEnvVar("TARGET_PUBSUB_NAME", "fanout-source-pubsub")
 	targetTopicName  = getEnvVar("TARGET_TOPIC_NAME", "events")
 
-	threadCount = getEnvVar("NUMBER_OF_THREADS", "1")
-	threadFreq  = getEnvVar("THREAD_PUB_FREQ", "3s")
+	threadFreq = getEnvVar("THREAD_PUB_FREQ", "3s")
 )
 
 func main() {
-	// parse vars
-	tc, err := strconv.Atoi(threadCount)
-	if err != nil || tc < 1 {
-		logger.Fatalf("invalid number of threads, expected positive int: %s - %v", threadCount, err)
-	}
-	logger.Printf("thread count: %d", tc)
+	ctx := context.Background()
 
 	tf, err := time.ParseDuration(threadFreq)
 	if err != nil {
@@ -45,16 +38,25 @@ func main() {
 	// create Dapr service
 	s, err := daprd.NewService(serviceAddress)
 	if err != nil {
-		log.Fatalf("failed to start the server: %v", err)
+		logger.Fatalf("failed to start the server: %v", err)
 	}
 	defer s.Stop()
 
+	// dapr client
+	c, err := dapr.NewClient()
+	if err != nil {
+		logger.Fatalf("failed to create Dapr client: %v", err)
+	}
+	defer c.Close()
+
+	// timer
+	timer := time.NewTicker(tf)
+	defer timer.Stop()
+
 	// produce
 	go func() {
-		for i := 1; i <= tc; i++ {
-			if err := produce(i, tc, tf); err != nil {
-				logger.Fatalf("error: %v", err)
-			}
+		if err := produce(ctx, c, timer); err != nil {
+			logger.Fatalf("error: %v", err)
 		}
 	}()
 
@@ -64,34 +66,20 @@ func main() {
 	}
 }
 
-func produce(ti, tc int, tf time.Duration) error {
-	ctx := context.Background()
-	// dapr client
-	client, err := dapr.NewClient()
-	if err != nil {
-		return errors.Wrap(err, "failed to create Dapr client")
-	}
-	defer client.Close()
-
-	tickerCh := time.NewTicker(tf).C
+func produce(ctx context.Context, c dapr.Client, t *time.Ticker) error {
 	for {
 		select {
-		case <-tickerCh:
-			publishEvent(ctx, ti, client)
+		case <-t.C:
+			b, err := json.Marshal(getRoomReading())
+			if err != nil {
+				return errors.Wrap(err, "error serializing reading")
+			}
+			if err := c.PublishEvent(ctx, targetPubSubName, targetTopicName, b); err != nil {
+				return errors.Wrap(err, "error publishing content")
+			}
+			logger.Printf("published: %s", b)
 		}
 	}
-}
-
-func publishEvent(ctx context.Context, ti int, client dapr.Client) error {
-	b, err := json.Marshal(getRoomReading())
-	if err != nil {
-		return errors.Wrap(err, "error serializing reading")
-	}
-	if err := client.PublishEvent(ctx, targetPubSubName, targetTopicName, b); err != nil {
-		return errors.Wrap(err, "error publishing content")
-	}
-	logger.Printf("published: %s", b)
-	return nil
 }
 
 type roomReading struct {
