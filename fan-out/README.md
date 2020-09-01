@@ -14,6 +14,8 @@ This allows for incremental modifications with ability to customize each stream 
 
 This demo requires Dapr `v0.10` as well as go `1.14+` and docker-compose `v1.26+`
 
+> Note, the version of the demo with Event Hub binding has been moved to [this branch](https://github.com/mchmarny/dapr-demos/tree/fanout-eventhubs/fan-out)
+
 ## App 2: Pub/Sub to Pub/Sub Publisher
 
 To run these demos you will need access to Redis and Kafka servers. For Redis, you can use the one installed during local Dapr setup. For Kafka, you can use the included Docker Compose file. First, navigate to the `queue-format-converter` and start Kafka:
