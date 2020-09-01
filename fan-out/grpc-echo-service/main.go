@@ -12,7 +12,7 @@ import (
 
 var (
 	logger         = log.New(os.Stdout, "", 0)
-	serviceAddress = getEnvVar("ADDRESS", ":60002")
+	serviceAddress = getEnvVar("ADDRESS", ":60015")
 )
 
 func main() {

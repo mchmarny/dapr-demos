@@ -10,7 +10,7 @@ This demo will illustrate how to use Dapr's plugable component mechanism to `fan
 
 ![](./img/fan-out-in-dapr.png)
 
-For more information about Dapr's pub/sub see these [docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
+This allows for incremental modifications with ability to customize each stream according to its unique configuration needs (e.g. throughout, authentication, format, retry strategy, or even error tolerance). For more information about Dapr's pub/sub see these [docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
 
 ## App 2 (Pub/Sub to Pub/Sub Publisher) 
 
@@ -80,118 +80,61 @@ dapr run \
     go run main.go
 ```
 
+In this case, in stead of another Pub/Sub component, the `App 3` is configured with an HTTP binding that defines the target and verb of the HTTP invocation outside of the user code and handles retries. 
 
-
-
-
-
-
-##### CSV
-
-```shell
-export TARGET_TOPIC_FORMAT="csv" 
-export TARGET_PUBSUB_NAME="fanout-queue-kafka-target"
-export ADDRESS=":60020"
+```yaml
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: fanout-http-target-post-binding
+spec:
+  type: bindings.http
+  metadata:
+  - name: url
+    value: https://postman-echo.com/post
+  - name: method
+    value: POST
 ```
 
-Now run the service using Dapr:
+If the `App 1` is still running, you should see entries in the console similar to this:
+
+```shell
+== APP == Event - PubsubName:fanout-source-pubsub, Topic:events, ID:d5bbcc9e-f0d3-46df-8d8e-f7dadb3f304c
+== APP == Target (json): {"temperature":20.326656,"humidity":36.093533,"time":1598961599,"id":"b2fa85cf-1be6-4489-9aec-613cf969675e"}
+```
+
+## App 4 (Pub/Sub to another Dapr Service Invocation)
+
+To add the final publisher which will convert the events into XML format and publish them to another Dapr service over gRPC, first navigate to the `grpc-echo-service` directory and start target service. For demo purposes we will use a simple echo service which simply returns whatever message it receives. 
 
 ```shell
 dapr run \
-    --app-id kafka-csv-publisher \
-    --app-port 60020 \
+    --app-id grpc-echo-service \
+    --app-port 60015 \
     --app-protocol grpc \
-    --components-path ./config \
     go run main.go
 ```
 
-##### Output
-
-The terminal output should include the received event and the event that was published to the target
-
-```shell
-== APP == Source: {"id":"8453c94e-1ff0-47d1-b0f9-7936c5be3d98","temperature":51.52611072392151,"humidity":81.36585969939978,"time":1598361172}
-== APP == Target: <SourceEvent><ID>8453c94e-1ff0-47d1-b0f9-7936c5be3d98</ID><Temperature>51.52611072392151</Temperature><Humidity>81.36585969939978</Humidity><Time>1598361172</Time></SourceEvent>
-```
-
-#### Event Hubs to REST endpoint in JSON format
-
-This step will subscribe to the Event Hub source using Dapr binding, convert the incoming events into JSON, and publish them to the pre-configured REST endpoint using Dapr HTTP binding. The specific endpoint as well as method (`POST` vs `GET` for example) is defined by the Dapr component found in the `./config` directory. Dapr has a wide array of [output bindings](https://github.com/dapr/docs/tree/master/concepts/bindings#supported-bindings-and-specs) (e.g. Twilio, SendGrid, MQTT...), for this example we will use HTTP. 
-
-> To change the target, simply update the [http-format-converter/config/target-binding.yaml](./http-format-converter/config/target-binding.yaml) file with the desired output binding.
-
-To start, navigate to the directory (`cd ./http-format-converter`) and export the desired format:
-
-```shell
-export TARGET_TOPIC_FORMAT="json" 
-```
-
-Now run the service using Dapr:
+Then, in yet another terminal session, navigate to the `service-format-converter` directory and start the `App 4` that will invoke the `grpc-echo-service`:
 
 ```shell
 dapr run \
-    --app-id http-json-publisher \
-    --app-port 60011 \
-    --app-protocol grpc \
-    --components-path ./config \
-    go run main.go
-```
-
-The terminal output should include the received event and the event that was published to the target
-
-```shell
-== APP == Target: {"id":"ef658e1f-a16d-4cc7-99a9-6e17d5542fb8","temperature":66.45935972131686,"humidity":43.77704157682614,"time":1598373740}
-```
-
-#### Event Hubs to gRPC service in binary format 
-
-This step will subscribe to the Event Hub source using Dapr binding, convert the incoming events into target service expecting format, and publish them to the Dapr service identified by name. The discovery of the target service as well as the mTLS encryption and protocol translation (if necessary in case HTTP to gPRC or gPRC to HTTP invocation) are handled automatically by Dapr. You can learn more about the service to service invocation in Dapr [here](https://github.com/dapr/docs/blob/master/concepts/service-invocation/README.md#service-invocation)
-
-> For purposes of this demo, we are going to use the [grpc-echo-service](../grpc-echo-service). You will need to start that service before this one. You can find instructions [here](../grpc-echo-service)
-
-To start, navigate to the directory (`cd ./service-format-converter`) and export the desired format:
-
-```shell
-export TARGET_SERVICE="grpc-echo-service"
-export TARGET_METHOD="echo"
-```
-
-Now run the service using Dapr:
-
-```shell
-dapr run \
-    --app-id grpc-service-publisher \
+    --app-id app4 \
     --app-port 60012 \
     --app-protocol grpc \
     --components-path ./config \
     go run main.go
 ```
 
-The terminal output should include the received event and the event that was published to the target
+If everything went well, you should see something similar in the `App 4` logs: 
 
 ```shell
-== APP == Source: {"id":"bc2e96cd-a3f0-4a49-bcdf-cda5d077449f","temperature":67.91167674526243,"humidity":21.8631197287505,"time":1598376230}
-== APP == Target: &{Data:[123 34 105 100 34 58 34 98 99 50 101 57 54 99 100 45 97 51 102 48] ContentType:application/json}
+== APP == Target: &{Data:[60 84 111 112 105 99 69 118...] ContentType:application/xml}
+== APP == Response: <TopicEvent><ID>df450605-4927-407e-a2b2-61233939ee58</ID><SpecVersion>1.0</SpecVersion><Type>com.dapr.event.sent</Type><Source>app1</Source><DataContentType>application/json</DataContentType><Data>{&#34;time&#34;:1598962950,&#34;id&#34;:&#34;745e3ebe-990b-4292-9347-f84ff81f41e6&#34;,&#34;temperature&#34;:31.812637,&#34;humidity&#34;:46.894296}</Data><Subject></Subject><Topic>events</Topic><PubsubName>fanout-source-pubsub</PubsubName></TopicEvent>
 ```
 
-## Events 
+> If you left all the apps running, you can go to each terminal session and see the different formats which are generated and published by each application.
 
-For this demo we will need an event source. Start by, create your Event Hubs (if you don't already have one) using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-create). Then capture the connection string using [these instructions](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string). 
-
-To mock up events we will use the included `./eventmaker` utility which will generate random `temperature` and `humidity` events and publish them to the Event Hub. Navigate to the `./eventmaker` directory and run:
-
-```shell
-go run *.go --conn "your-eventhubs-connection-string"
-```
-
-> Make sure to replace the `your-eventhubs-connection-string` string with your Event Hubs connection string
-
-The output should look something like this:
-
-```shell
-sending: {"id":"775ccb8f-8039-4c97-9849-15fdf6a26a1e","temperature":60.46998219508215,"humidity":94.05150371362079,"time":1598373738}
-sending: {"id":"ef658e1f-a16d-4cc7-99a9-6e17d5542fb8","temperature":66.45935972131686,"humidity":43.77704157682614,"time":1598373740}
-```
 
 ## Disclaimer
 
