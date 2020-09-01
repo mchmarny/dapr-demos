@@ -1,0 +1,13 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: fanout-queue-kafka-target
+spec:
+  type: pubsub.kafka
+  metadata:
+    - name: brokers
+      value: "localhost:9092"
+    - name: authRequired
+      value: "false"
+scopes:
+- xml-converter
