@@ -20,8 +20,11 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 	client dapr.Client
 
-	serviceAddress    = getEnvVar("ADDRESS", ":60011")
-	sourceBindingName = getEnvVar("SOURCE_BINDING", "fanout-http-source-event-binding")
+	serviceAddress = getEnvVar("ADDRESS", ":60011")
+
+	sourcePubSubName = getEnvVar("SOURCE_PUBSUB_NAME", "fanout-source-pubsub")
+	sourceTopicName  = getEnvVar("SOURCE_TOPIC_NAME", "events")
+
 	targetBindingName = getEnvVar("TARGET_BINDING", "fanout-http-target-post-binding")
 	targetFormat      = getEnvVar("TARGET_FORMAT", "json")
 )
@@ -40,7 +43,9 @@ func main() {
 	client = c
 	defer client.Close()
 
-	s.AddBindingInvocationHandler(sourceBindingName, eventHandler)
+	// add handler to the service
+	sub := &common.Subscription{PubsubName: sourcePubSubName, Topic: sourceTopicName}
+	s.AddTopicEventHandler(sub, eventHandler)
 
 	// start the server to handle incoming events
 	if err := s.Start(); err != nil {
@@ -56,12 +61,17 @@ type SourceEvent struct {
 	Time        int64   `json:"time"`
 }
 
-func eventHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err error) {
-	logger.Printf("Source: %s", in.Data)
+func eventHandler(ctx context.Context, e *common.TopicEvent) error {
+	logger.Printf("Event - PubsubName:%s, Topic:%s, ID:%s", e.PubsubName, e.Topic, e.ID)
 
-	var e SourceEvent
-	if err := json.Unmarshal(in.Data, &e); err != nil {
-		return nil, errors.Errorf("error parsing input content: %v", err)
+	d, ok := e.Data.([]byte)
+	if !ok {
+		return errors.Errorf("invalid event data type: %T", e.Data)
+	}
+
+	var se SourceEvent
+	if err := json.Unmarshal(d, &se); err != nil {
+		return errors.Errorf("error parsing input content: %v", err)
 	}
 
 	var (
@@ -71,18 +81,18 @@ func eventHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err
 
 	switch strings.ToLower(targetFormat) {
 	case "json":
-		b = in.Data
+		b = d
 	case "xml":
 		if b, me = xml.Marshal(&e); me != nil {
-			return nil, errors.Errorf("error while converting content: %v", me)
+			return errors.Errorf("error while converting content: %v", me)
 		}
 	case "csv":
 		b = []byte(fmt.Sprintf(`"%s",%f,%f,"%s"`,
-			e.ID, e.Temperature, e.Humidity, time.Unix(e.Time, 0).Format(time.RFC3339)))
+			se.ID, se.Temperature, se.Humidity, time.Unix(se.Time, 0).Format(time.RFC3339)))
 	default:
-		return nil, errors.Errorf("invalid target format: %s", targetFormat)
+		return errors.Errorf("invalid target format: %s", targetFormat)
 	}
-	logger.Printf("Target: %s", b)
+	logger.Printf("Target (%s): %s", targetFormat, b)
 
 	content := &dapr.BindingInvocation{
 		Data: b,
@@ -95,10 +105,10 @@ func eventHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err
 	}
 
 	if err := client.InvokeOutputBinding(ctx, content); err != nil {
-		return nil, errors.Wrap(err, "error invoking target binding")
+		return errors.Wrap(err, "error invoking target binding")
 	}
 
-	return nil, nil
+	return nil
 }
 
 func getEnvVar(key, fallbackValue string) string {
