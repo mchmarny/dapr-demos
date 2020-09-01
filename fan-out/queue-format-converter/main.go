@@ -22,12 +22,12 @@ var (
 
 	serviceAddress = getEnvVar("ADDRESS", ":60010")
 
-	sourcePubSubName = getEnvVar("SOURCE_PUBSUB_NAME", "fanout-redis-pubsub")
+	sourcePubSubName = getEnvVar("SOURCE_PUBSUB_NAME", "fanout-source-pubsub")
 	sourceTopicName  = getEnvVar("SOURCE_TOPIC_NAME", "events")
 
-	targetPubSubName  = getEnvVar("TARGET_PUBSUB_NAME", "fanout-kafka-pubsub")
+	targetPubSubName  = getEnvVar("TARGET_PUBSUB_NAME", "fanout-target-pubsub")
 	targetTopicName   = getEnvVar("TARGET_TOPIC_NAME", "events")
-	targetTopicFormat = getEnvVar("TARGET_TOPIC_FORMAT", "json")
+	targetTopicFormat = getEnvVar("TARGET_TOPIC_FORMAT", "csv")
 )
 
 func main() {
@@ -63,7 +63,7 @@ type SourceEvent struct {
 }
 
 func eventHandler(ctx context.Context, e *common.TopicEvent) error {
-	logger.Printf("event - PubsubName:%s, Topic:%s, ID:%s", e.PubsubName, e.Topic, e.ID)
+	logger.Printf("Event - PubsubName:%s, Topic:%s, ID:%s", e.PubsubName, e.Topic, e.ID)
 
 	d, ok := e.Data.([]byte)
 	if !ok {
@@ -93,7 +93,7 @@ func eventHandler(ctx context.Context, e *common.TopicEvent) error {
 	default:
 		return errors.Errorf("invalid target format: %s", targetTopicFormat)
 	}
-	logger.Printf("Target: %s", b)
+	logger.Printf("Target (%s): %s", targetTopicFormat, b)
 
 	if err := client.PublishEvent(ctx, targetPubSubName, targetTopicName, b); err != nil {
 		return errors.Wrap(err, "error publishing converted content")

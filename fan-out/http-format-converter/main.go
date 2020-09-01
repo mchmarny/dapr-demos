@@ -20,8 +20,11 @@ var (
 	logger = log.New(os.Stdout, "", 0)
 	client dapr.Client
 
-	serviceAddress    = getEnvVar("ADDRESS", ":60011")
-	sourceBindingName = getEnvVar("SOURCE_BINDING", "fanout-http-source-event-binding")
+	serviceAddress = getEnvVar("ADDRESS", ":60011")
+
+	sourcePubSubName = getEnvVar("SOURCE_PUBSUB_NAME", "fanout-source-pubsub")
+	sourceTopicName  = getEnvVar("SOURCE_TOPIC_NAME", "events")
+
 	targetBindingName = getEnvVar("TARGET_BINDING", "fanout-http-target-post-binding")
 	targetFormat      = getEnvVar("TARGET_FORMAT", "json")
 )
@@ -40,7 +43,9 @@ func main() {
 	client = c
 	defer client.Close()
 
-	s.AddBindingInvocationHandler(sourceBindingName, eventHandler)
+	// add handler to the service
+	sub := &common.Subscription{PubsubName: sourcePubSubName, Topic: sourceTopicName}
+	s.AddTopicEventHandler(sub, eventHandler)
 
 	// start the server to handle incoming events
 	if err := s.Start(); err != nil {

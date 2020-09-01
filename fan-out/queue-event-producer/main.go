@@ -6,10 +6,8 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"os/signal"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	dapr "github.com/dapr/go-sdk/client"
@@ -27,7 +25,7 @@ var (
 	targetTopicName  = getEnvVar("TARGET_TOPIC_NAME", "events")
 
 	threadCount = getEnvVar("NUMBER_OF_THREADS", "1")
-	threadFreq  = getEnvVar("THREAD_PUB_FREQ", "1s")
+	threadFreq  = getEnvVar("THREAD_PUB_FREQ", "3s")
 )
 
 func main() {
@@ -49,15 +47,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to start the server: %v", err)
 	}
-
-	// handle signals
-	doneCh := make(chan os.Signal, 1)
-	signal.Notify(doneCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer s.Stop()
 
 	// produce
 	go func() {
 		for i := 1; i <= tc; i++ {
-			if err := produce(i, tc, tf, doneCh); err != nil {
+			if err := produce(i, tc, tf); err != nil {
 				logger.Fatalf("error: %v", err)
 			}
 		}
@@ -69,7 +64,7 @@ func main() {
 	}
 }
 
-func produce(ti, tc int, tf time.Duration, doneCh <-chan os.Signal) error {
+func produce(ti, tc int, tf time.Duration) error {
 	ctx := context.Background()
 	// dapr client
 	client, err := dapr.NewClient()
@@ -83,8 +78,6 @@ func produce(ti, tc int, tf time.Duration, doneCh <-chan os.Signal) error {
 		select {
 		case <-tickerCh:
 			publishEvent(ctx, ti, client)
-		case <-doneCh:
-			return nil
 		}
 	}
 }
