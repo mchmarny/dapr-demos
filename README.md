@@ -22,6 +22,11 @@ Collection of personal [Dapr](https://dapr.io) demos.
   * [Order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Pipeline](./pipeline) - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
   * [Fan-out](./fan-out) - Single message source "broadcasted" to multiple, configurable targets (e.g. Redis PubSub, HTTP, gRPC)
+* Templates
+  * [Dapr gRPC Service](https://github.com/dapr/dapr-grpc-service-template) - gRPC service template
+  * [Dapr HTTP Event Subscriber](https://github.com/dapr/dapr-http-event-subscriber-template) - Event subscriber HTTP service template
+  * [Dapr gRPC Event Subscriber](https://github.com/dapr/dapr-grpc-event-subscriber-template) - Event subscriber gRPC service template 
+  * [dapr-http-cron-handler](https://github.com/dapr/dapr-http-cron-handler-template) - Scheduled service development template
 
 ## Disclaimer
 
