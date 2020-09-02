@@ -7,14 +7,14 @@ Collection of personal [Dapr](https://dapr.io) demos.
 
 * Bindings
   * [Scheduling using cron](./cron-binding) - Using scheduler to execute service 
-  * [Tweet stream](./tweet-provider) - Subscribing to a Twitter even stream and publishing to a pub/sub topic
+  * [Tweet stream](./pipeline/tweet-provider) - Subscribing to a Twitter even stream and publishing to a pub/sub topic
   * [State change handler](./state-change-handler) - RethinkDB state changes streamed into topic
 * Eventing
   * [gRPC event subscriber](./grpc-event-subscriber) - Subscribing to topic and processing its events using gRPC service
   * [HTTP event subscriber](./http-event-subscriber) - Subscribing to topic and processing its events using HTTP service
 * Services 
   * [gRPC service](./grpc-service) - gRPC service invocation example
-  * [Sentiment Scorer](./sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
+  * [Sentiment Scorer](./pipeline/sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
 * Integrations
   * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
   * [Dapr as component API](./component-api) - Zero-app Dapr instance used as a component API server 
