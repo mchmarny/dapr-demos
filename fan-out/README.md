@@ -43,7 +43,7 @@ dapr run \
     go run main.go
 ```
 
-> The source and targets Pub/Sub components are defined in the [./config](./config) directory in their respected files so the use code is free of SDK and libraries which allows for easy re-configuration at run-time. 
+> The source and targets Pub/Sub components are defined in the [./config](./queue-format-converter/config) directory in their respected files so the use code is free of SDK and libraries which allows for easy re-configuration at run-time. 
 
 Leave the application running, we will come back to it after configuring `App 1`
 
