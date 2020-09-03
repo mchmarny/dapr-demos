@@ -84,7 +84,8 @@ observe: ## Install observability stack
 	helm install kibana elastic/kibana -n dapr-monitoring
 	
 .PHONY: observe-config
-observe-config: ## Configure observability stack
+observe-config: ports ## Configure observability stack
+	$(eval GRAFANA_PASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
 	# Wait for everything to finish installing 
 	kubectl rollout status deployment/dapr-prom-kube-state-metrics -n dapr-monitoring
 	kubectl rollout status deployment/dapr-prom-prometheus-alertmanager -n dapr-monitoring
@@ -92,23 +93,20 @@ observe-config: ## Configure observability stack
 	kubectl rollout status deployment/dapr-prom-prometheus-server -n dapr-monitoring
 	kubectl rollout status deployment/grafana -n dapr-monitoring
 	kubectl rollout status deployment/kibana-kibana -n dapr-monitoring
-	# Forward ports
-	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
-	kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
 	# Configure kibana and grafana
-	curl -X POST -s -k -u "admin:$(kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode)" \
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
 		 -H "Content-Type: application/json" \
 		 -d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
 	     http://localhost:8888/api/datasources
-	curl -X POST -s -k -u "admin:$(kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode)" \
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
 		 -H "Content-Type: application/json" \
 		 -d @config/system-services-dashboard.json \
 	     http://localhost:8888/api/dashboards/db
-	curl -X POST -s -k -u "admin:$(kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode)" \
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
 		 -H "Content-Type: application/json" \
 		 -d @config/sidecar-dashboard.json \
 	     http://localhost:8888/api/dashboards/db
-	curl -X POST -s -k -u "admin:$(kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode)" \
+	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
 		 -H "Content-Type: application/json" \
 		 -d @config/actor-dashboard.json \
 	     http://localhost:8888/api/dashboards/db
