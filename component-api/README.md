@@ -7,6 +7,20 @@ This demo users Dapr instance with API token authentication to show the use of D
 
 ## Setup 
 
+### State Component 
+
+Create a `mongo-secret`
+
+```shell
+kubectl create secret generic redis-secret --from-literal=password=""
+```
+
+Deploy component and [restart gateway](#ingress-gateway)
+
+```shell
+kubectl apply -f config/state.yaml
+```
+
 ### Email Component 
 
 Create a `email-secret`
@@ -15,7 +29,7 @@ Create a `email-secret`
 kubectl create secret generic email-secret --from-literal=apiKey=""
 ```
 
-Deploy component and ensure the gateway instances are aware of it
+Deploy component and [restart gateway](#ingress-gateway)
 
 ```shell
 kubectl apply -f config/email.yaml
@@ -33,7 +47,7 @@ kubectl create secret generic twitter-secret \
   --from-literal=accessSecret=""
 ```
 
-Deploy component and ensure the gateway instances are aware of it
+Deploy component and [restart gateway](#ingress-gateway)
 
 ```shell
 kubectl apply -f config/twitter.yaml
@@ -41,7 +55,7 @@ kubectl apply -f config/twitter.yaml
 
 ### Ingress Gateway
 
-Ensure all the gateway instances are aware of these new components
+Ensure all the gateway instances are aware of new components
 
 ```shell
 kubectl rollout restart deployment/nginx-ingress-nginx-controller
@@ -50,11 +64,44 @@ kubectl rollout status deployment/nginx-ingress-nginx-controller
 
 ## Usage
 
-To use any of the components you will need the Dapr API toke: 
+To use any of the components you will need the Dapr API token: 
 
 ```shell
 export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
 ```
+
+### State 
+
+And POST it to the Dapr API to save your note:
+
+```shell
+curl -X POST \
+     -d '[{ "key": "1", "value": "This is my first note" }]' \
+     -H "Content-Type: application/json" \
+     -H "dapr-api-token: ${API_TOKEN}" \
+     https://api.cloudylabs.dev/v1.0/state/note-store
+```
+
+Retrieve the saved note:
+
+```shell
+curl -X GET \
+     -H "Content-Type: application/json" \
+     -H "dapr-api-token: ${API_TOKEN}" \
+     https://api.cloudylabs.dev/v1.0/state/note-store/1
+```
+
+And now delete the note:
+
+```shell
+curl -X DELETE \
+     -H "Content-Type: application/json" \
+     -H "dapr-api-token: ${API_TOKEN}" \
+     https://api.cloudylabs.dev/v1.0/state/note-store/1
+```
+
+> For brevity of the example this demo shows only the save, get, delete commands but the Dapr API also includes transactional operations for save and bulk operations for get as well. 
+
 
 ### Email 
 
