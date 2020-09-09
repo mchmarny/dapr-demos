@@ -2,6 +2,7 @@
 
 This demo users Dapr instance with API token authentication to show the use of Dapr as a API server for any of its 70+ components. To illustrate, this demo will show two use-cases:
 
+* Simple note management using Redis state store
 * Sending email using Sendgrid output binding
 * Querying tweets using Twitter bi-directional binding
 
