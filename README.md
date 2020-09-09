@@ -13,7 +13,8 @@ Collection of personal [Dapr](https://dapr.io) demos.
   * [gRPC event subscriber](./grpc-event-subscriber) - Subscribing to topic and processing its events using gRPC service
   * [HTTP event subscriber](./http-event-subscriber) - Subscribing to topic and processing its events using HTTP service
 * Services 
-  * [gRPC service](./grpc-echo-service) - gRPC service invocation example
+  * [gRPC echo service](./grpc-echo-service) - gRPC service invocation example
+  * [HTTP echo service](./http-echo-service) - HTTP service invocation example
   * [Sentiment Scorer](./pipeline/sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
 * Integrations
   * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
