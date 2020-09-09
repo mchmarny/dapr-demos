@@ -33,6 +33,7 @@ An opinionated Kubernetes clusters Dapr deployment:
   * `make dapr` to install Dapr
   * `make keda` (optional, to install Keda for autoscaling)
   * `make observe` to install observability stack (logging, metric, tracing)
+  * `make observe-config` to configure Dapr Grafana dashboards and Kibana indexes
   * `make dns` to configure DNS
   * `make test` to test deployment 
   * `make ports` (optional) to forward observability dashboards ports
