@@ -19,6 +19,7 @@ Collection of personal [Dapr](https://dapr.io) demos.
 * Integrations
   * [Dapr API in ACI](./dapr-aci) - Dapr components as microservices 
   * [Dapr as component API](./component-api) - Zero-app Dapr instance used as a component API server 
+  * [Dapr with APIM](./apim-gateway) - Dapr API using Azure API Management self-hosted gateway
 * Solutions
   * [Order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Pipeline](./pipeline) - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
