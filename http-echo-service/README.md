@@ -9,8 +9,8 @@ To run this demo in Dapr, run:
 ```shell
 dapr run \
     --app-id grpc-service-demo \
-    --app-port 50001 \
-    --app-protocol grpc \
+    --app-port 8080 \
+    --app-protocol http \
     --dapr-http-port 3500 \
     --components-path ./config \
     go run main.go
@@ -22,7 +22,7 @@ Deploy and wait for the pod to be ready
 
 ```shell
 kubectl apply -f deployment.yaml
-kubectl rollout status deployment/grpc-echo-service
+kubectl rollout status deployment/http-echo-service
 ```
 
 If you have changed an existing component, make sure to reload the ingress and wait until the new version is ready
@@ -35,7 +35,7 @@ kubectl rollout status deployment/nginx-ingress-nginx-controller
 Follow logs
 
 ```shell
-kubectl logs -l app=grpc-echo-service -c service -f
+kubectl logs -l app=http-echo-service -c service -f
 ```
 
 In a separate terminal session export API token
@@ -50,7 +50,7 @@ And invoke the service
 curl -d '{ "message": "ping" }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     "https://api.cloudylabs.dev/v1.0/invoke/grpc-echo-service/method/echo"
+     "https://api.cloudylabs.dev/v1.0/invoke/http-echo-service/method/echo"
 ```
 
 The response should include the sent message 
