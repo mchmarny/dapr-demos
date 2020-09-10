@@ -1,4 +1,4 @@
-# grpc-service
+# http-service
 
 For more information about service invocation see the [Dapr docs](https://github.com/dapr/docs/tree/master/concepts/service-invocation)
 
@@ -8,7 +8,7 @@ To run this demo in Dapr, run:
 
 ```shell
 dapr run \
-    --app-id grpc-service-demo \
+    --app-id http-service-demo \
     --app-port 8080 \
     --app-protocol http \
     --dapr-http-port 3500 \
