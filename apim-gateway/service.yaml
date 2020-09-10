@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-service
+  labels:
+    app: echo-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-service
+  template:
+    metadata:
+      labels:
+        app: echo-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "echo-service"
+        dapr.io/app-protocol: "http"
+        dapr.io/app-port: "8080"
+        dapr.io/config: "tracing"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/http-echo-service:v0.10.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ADDRESS
+          value: ":8080"
