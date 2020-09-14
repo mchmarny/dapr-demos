@@ -1,5 +1,5 @@
-RELEASE_VERSION  =v0.10.2
-SERVICE_NAME    ?=queue-outoscaling-subscriber
+RELEASE_VERSION  =v0.10.4
+SERVICE_NAME    ?=autoscaling-subscriber
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: all
@@ -38,12 +38,12 @@ autoscale: ## Applies Keda to the deployed service
 
 .PHONY: scale
 scale: ## Scales the subscriber manually 
-	# kubectl autoscale deployment queue-outoscaling-subscriber --min=1 --max=10  
+	# kubectl autoscale deployment autoscaling-subscriber --min=1 --max=10  
 	kubectl scale deployment/$(SERVICE_NAME) --replicas=10
 
 .PHONY: kafka-port
 kafka-port: ## Forwards cluster Kafka port locally
-	kubectl port-forward svc/kafka -n data 9092 &
+	kubectl port-forward svc/kafka -n kafka 9092 &
 	@echo use 'pkill kubectl -9' to stop 
 
 .PHONY: kafka-portless

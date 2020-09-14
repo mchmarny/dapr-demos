@@ -211,22 +211,18 @@ reload: ## Reloads API to pickup new components
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 
-.PHONY: data-services
-data-services: redis mongo kafka ## Install all data services 
-
 .PHONY: redis
 redis: ## Install Redis into the cluster
 	# Updating Help repos...
 	helm repo add bitnami https://charts.bitnami.com/bitnami
 	helm repo update
-	# data ns 
-	kubectl create ns data
+	kubectl create ns redis
 	# redis 
-	helm install redis bitnami/redis -n data 
+	helm install redis bitnami/redis -n redis 
 	# Waiting for ingress to be ready...
-	kubectl rollout status statefulset.apps/redis-master -n data
-	kubectl rollout status statefulset.apps/redis-slave -n data
-	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n data redis -o jsonpath="{.data.redis-password}" | base64 --decode))
+	kubectl rollout status statefulset.apps/redis-master -n redis
+	kubectl rollout status statefulset.apps/redis-slave -n redis
+	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)"
 	
 .PHONY: mongo
@@ -234,6 +230,7 @@ mongo: ## Install Mongo into the cluster
 	# Updating Help repos...
 	helm repo add bitnami https://charts.bitnami.com/bitnami
 	helm repo update
+	kubectl create ns mongo
 	# mongo 
 	helm install mongo \
 		--set architecture=replicaset \
@@ -242,11 +239,11 @@ mongo: ## Install Mongo into the cluster
 		--set replicaSetName=staters0 \
 		--set replicaCount=3 \
 		bitnami/mongodb \
-		-n data
+		-n mongo
 	# Waiting for ingress to be ready...
-	kubectl rollout status statefulset.apps/mongo-mongodb -n data
-	kubectl rollout status statefulset.apps/mongo-mongodb-arbiter -n data
-	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n data mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
+	kubectl rollout status statefulset.apps/mongo-mongodb -n mongo
+	kubectl rollout status statefulset.apps/mongo-mongodb-arbiter -n mongo
+	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)"
 	
 .PHONY: kafka
@@ -254,8 +251,9 @@ kafka: ## Install Kafka into the cluster
 	# Updating Help repos...
 	helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/	
 	helm repo update
+	kubectl create ns kafka
 	# kafka 
-	helm install kafka confluentinc/cp-helm-charts -n data \
+	helm install kafka confluentinc/cp-helm-charts -n kafka \
 		--set cp-schema-registry.enabled=false \
 		--set cp-kafka-rest.enabled=false \
 		--set cp-kafka-connect.enabled=false \
@@ -263,10 +261,10 @@ kafka: ## Install Kafka into the cluster
 		--set dataDirStorageClass=default \
 		--set storageClass=default
 	# wait for the deployment 
-	kubectl rollout status deployment.apps/kafka-cp-control-center -n data
-	kubectl rollout status deployment.apps/kafka-cp-ksql-server -n data
-	kubectl rollout status statefulset.apps/kafka-cp-kafka -n data
-	kubectl rollout status statefulset.apps/kafka-cp-zookeeper -n data
+	kubectl rollout status deployment.apps/kafka-cp-control-center -n kafka
+	kubectl rollout status deployment.apps/kafka-cp-ksql-server -n kafka
+	kubectl rollout status statefulset.apps/kafka-cp-kafka -n kafka
+	kubectl rollout status statefulset.apps/kafka-cp-zookeeper -n kafka
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscaling-subscriber
+  labels:
+    app: autoscaling-subscriber
+spec:
+  selector:
+    matchLabels:
+      app: autoscaling-subscriber
+  template:
+    metadata:
+      labels:
+        app: autoscaling-subscriber
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/id: "autoscaling-subscriber"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60033"
+        dapr.io/log-level: "debug"
+        dapr.io/log-as-json: "true"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/autoscaling-subscriber:v0.10.4
+        ports:
+        - containerPort: 60033
+        env:
+        - name: PUBSUB_NAME
+          value: autoscaling-pubsub
+        - name: TOPIC_NAME
+          value: metrics
+        - name: PROCESS_DURATION
+          value: "500ms"

@@ -1,19 +1,18 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: queue-outoscaling-scaler
-  namespace: default
+  name: queue-depth-scaler
 spec:
   scaleTargetRef:
-    name: queue-outoscaling-subscriber
+    name: autoscaling-subscriber
   pollingInterval: 5
   cooldownPeriod: 10
   minReplicaCount: 1
-  maxReplicaCount: 4
+  maxReplicaCount: 10
   triggers:
   - type: kafka
     metadata:
       topic: messages
-      bootstrapServers: kafka-cp-kafka-headless.data.svc.cluster.local:9092
-      consumerGroup: autoscaling
+      bootstrapServers: kafka-cp-kafka-headless.kafka.svc.cluster.local:9092
+      consumerGroup: autoscaling-subscriber
       lagThreshold: "5"

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscaling-producer
+  labels:
+    app: autoscaling-producer
+spec:
+  selector:
+    matchLabels:
+      app: autoscaling-producer
+  template:
+    metadata:
+      labels:
+        app: autoscaling-producer
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/id: "autoscaling-producer"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60034"
+        dapr.io/log-level: "debug"
+        dapr.io/log-as-json: "true"
+    spec:
+      containers:
+      - name: service
+        image: mchmarny/autoscaling-producer:v0.10.4
+        ports:
+        - containerPort: 60034
+        env:
+        - name: PUBSUB_NAME
+          value: autoscaling-pubsub
+        - name: TOPIC_NAME
+          value: metrics
+        - name: NUMBER_OF_PUBLISHERS
+          value: "4"
+        - name: PUBLISHERS_FREQ
+          value: "100ms"
+        - name: PUBLISHERS_DELAY
+          value: "10s"
+        - name: LOG_FREQ
+          value: "3s"

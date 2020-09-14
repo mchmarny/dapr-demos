@@ -6,7 +6,7 @@ spec:
   type: state.redis
   metadata:
   - name: redisHost
-    value: redis-master.data.svc.cluster.local:6379
+    value: redis-master.redis.svc.cluster.local:6379
   - name: redisPassword
     secretKeyRef:
       name: redis-secret

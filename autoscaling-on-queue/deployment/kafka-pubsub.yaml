@@ -1,0 +1,13 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: autoscaling-pubsub
+spec:
+  type: pubsub.kafka
+  metadata:
+    - name: brokers
+      value: "kafka-cp-kafka-headless.kafka.svc.cluster.local:9092"
+    - name: authRequired
+      value: "false"
+    - name: allowedTopics
+      value: "metrics"

@@ -25,9 +25,10 @@ var (
 	logger     = log.New(os.Stdout, "", 0)
 	reqProcDur time.Duration
 
-	address         = getEnvVar("ADDRESS", ":60022")
-	bindingName     = getEnvVar("BINDING_NAME", "autoscaling-kafka-queue")
-	processDuration = getEnvVar("PROCESS_DURATION", "1s")
+	address         = getEnvVar("ADDRESS", ":60033")
+	processDuration = getEnvVar("PROCESS_DURATION", "500ms")
+	pubSubName      = getEnvVar("PUBSUB_NAME", "autoscaling-pubsub")
+	topicName       = getEnvVar("TOPIC_NAME", "metrics")
 )
 
 func main() {
@@ -72,15 +73,21 @@ func main() {
 		}
 	}()
 
-	// Add binding
-	if err := s.AddBindingInvocationHandler(bindingName, func(ctx context.Context, e *common.BindingEvent) (out []byte, err error) {
+	// define subscription
+	subscription := &common.Subscription{
+		PubsubName: pubSubName,
+		Topic:      topicName,
+	}
+
+	// subscribe
+	if err := s.AddTopicEventHandler(subscription, func(ctx context.Context, e *common.TopicEvent) error {
 		if err := processRequest(ctx, e.Data); err != nil {
 			logger.Printf("error processing request: %v", err)
 			resultCh <- false
-			return nil, errors.Wrap(err, "error processing request")
+			return errors.Wrap(err, "error processing request")
 		}
 		resultCh <- true
-		return nil, nil
+		return nil
 	}); err != nil {
 		logger.Fatalf("error adding topic subscription: %v", err)
 	}
@@ -101,7 +108,7 @@ func main() {
 }
 
 // does some computing to keep the process busy organically
-func processRequest(ctx context.Context, in []byte) error {
+func processRequest(ctx context.Context, in interface{}) error {
 	tickerCh := time.NewTicker(reqProcDur).C
 	<-tickerCh
 	return nil
