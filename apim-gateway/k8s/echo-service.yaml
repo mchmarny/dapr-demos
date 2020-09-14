@@ -4,6 +4,7 @@ metadata:
   name: echo-service
   labels:
     app: echo-service
+    demo: dapr-apim
 spec:
   replicas: 1
   selector:
@@ -13,21 +14,22 @@ spec:
     metadata:
       labels:
         app: echo-service
+        demo: dapr-apim
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "echo-service"
-        dapr.io/app-protocol: "http"
-        dapr.io/app-port: "8080"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "60002"
         dapr.io/config: "tracing"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/http-echo-service:v0.10.0
+        image: mchmarny/grpc-echo-service:v0.10.0
         imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - containerPort: 60002
         env:
         - name: ADDRESS
-          value: ":8080"
+          value: ":60002"
