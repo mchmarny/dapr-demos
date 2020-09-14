@@ -1,8 +1,8 @@
 # Autoscaling Dapr service based on queue depth 
 
-Dapr, with its building blocks and 10+ Pub/Sub components makes it super easy to write message processing applications. But, since Dapr can run in a VM, on bare-metal, in the Cloud, or on the Edge... it leaves the autoscaling to hosting later. 
+Dapr, with its modular building-block approach, along with the 10+ different Pub/Sub components, makes it easy to write message processing microservices. Since Dapr runs in VM, on bare-metal, in the Cloud, or even on the Edge... the autoscaling Dapr services is left to the hosting later. 
 
-In case of Kubernetes, Dapr integrates with [Keda](https://github.com/kedacore/keda), an event driven autoscaler for Kubernetes. In this demo I'm going to walk through the setup and configuration of Dapr microservice for scaling based on the depth of [Kafka](https://kafka.apache.org) queue. 
+In case of Kubernetes, Dapr integrates with [Keda](https://github.com/kedacore/keda), an event driven autoscaler for Kubernetes. In this demo I'll walk through the configuration of Dapr microservice to scale along with the back pressure on [Kafka](https://kafka.apache.org) queue that service processes. 
 
 ![](image/diagram.png)
 
@@ -19,9 +19,9 @@ kubectl apply -f deployment/keda-2.0.0-beta.yaml
 kubectl rollout status deployment.apps/keda-operator -n keda
 ```
 
-### Kafka 
+### Kafka (optional)
 
-Next, install Kafka into the cluster:
+Next, if you don't have an access to Kafka you can use these instructions to install Kafka into the cluster:
 
 ```shell
 helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
@@ -63,11 +63,11 @@ kubectl -n kafka exec -it kafka-client -- kafka-topics \
 
 ## Deployment
 
-To configure the autoscaling demo we will deploy two deployments: `subscriber` which will be processing messages of the `metric` queue in Kafka, and the `producer` which will be publishing messages onto the Kafka queue using Dapr APIs. 
+To configure the autoscaling demo we will deploy two deployments: `subscriber` which will be used to process messages of the `metric` queue in Kafka, and the `producer`, which will be publishing messages. To make the `producer` compatible with any one of the Pub/Sub components supported by Dapr we will publish the events onto the Kafka queue using Dapr APIs. 
 
 ### Subscriber
 
-The `subscriber` doesn't really do anything with the messages, so to resemble real-life processing it allows for explicit processing time setting. The default value is `300ms`. We will go over how to modify that later. 
+The `subscriber` service doesn't really do anything with the messages. To resemble real-life processing which may take some time to process messages, the `subscriber` allows for explicit processing time setting. The default value is `300ms`. We will go over how to modify that later. 
 
 To deploy the `subscriber` service, apply the [Kafka Dapr component](deployment/kafka-pubsub.yaml), the [message subscriber service](deployment/subscriber.yaml), and the [subscriber service Keda scaler](subscriber-scaler.yaml):
 
@@ -83,7 +83,7 @@ When done, start watching for the number of replicas of the deployed `subscriber
 watch kubectl get pods -l app=autoscaling-subscriber
 ```
 
-> Note, by default the subscriber service Keda scaler is set to scale to 0, so you will not see anything pods yet. We will address that with the producer by creating some lag on the `metric` queue. 
+> Note, by default the subscriber service Keda scaler is set to scale to 0, so you will not see any pods yet. We will publish data on the `metric` topic with the `producer`.
 
 ### Producer
 
@@ -96,7 +96,7 @@ kubectl rollout status deployment/autoscaling-producer
 
 ## Demo 
 
-Back in the initial terminal now, in 20-30 seconds after the `producer` starts, we should see the number of `subscriber` pods being adjusted by Keda based on the depth of the `metric` queue:
+Back in the initial terminal now, some 20-30 seconds after the `producer` starts, you should see the number of `subscriber` pods being adjusted by Keda based on the number of the `metric` topic:
 
 ```shell
 NAME                                      READY   STATUS    RESTARTS   AGE
