@@ -1,22 +1,25 @@
 # Autoscaling Dapr service based on queue depth 
 
-The autoscaling demo requires Keda which runs in Kubernetes. To deploy demo, first apply the `Kafka` and `Keda` components to your Dapr deployment:
+Dapr, with its building blocks and 10+ Pub/Sub components makes it super easy to write message processing applications. But, since Dapr can run in a VM, on bare-metal, in the Cloud, or on the Edge... it leaves the autoscaling to hosting later. 
 
-> Note, if you didn't use the included [setup](../setup) to configure your Kubernetes cluster you may have to make changes in both components. Otherwise the defaults are fine. 
+In case of Kubernetes, Dapr integrates with [Keda](https://github.com/kedacore/keda), an event driven autoscaler for Kubernetes. In this demo we are going through the setup and configuration of Dapr microservice for scaling based on the depth of [Kafka](https://kafka.apache.org) queue. 
 
-## Keda 
+## Setup 
 
-To install [Keda](https://github.com/kedacore/keda) into the cluster using Help
+The autoscaling demo requires [Dapr](https://dapr.io). If you don't already have a Kubernetes cluster with Dapr installed you can use the included [setup](../setup) to configure all the dependencies. 
 
-> The `helm install keda kedacore/keda -n keda --version 2.0.0-beta --set logLevel=debug` results in an error right now (debugging). The included yaml is exact replica of the Keda 2.0.0-beta release with `--zap-log-level` flag set to `debug`
+### Keda 
+
+Start by install [Keda](https://github.com/kedacore/keda) into the cluster and wait for it become ready:
 
 ```shell
 kubectl apply -f deployment/keda-2.0.0-beta.yaml
+kubectl rollout status deployment.apps/keda-operator -n keda
 ```
 
-## Kafka 
+### Kafka 
 
-To deploy in cluster version of Kafka
+Next, install Kafka into the cluster:
 
 ```shell
 helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
@@ -35,37 +38,36 @@ kubectl rollout status statefulset.apps/kafka-cp-kafka -n kafka
 kubectl rollout status statefulset.apps/kafka-cp-zookeeper -n kafka
 ```
 
-When done, deploy Kafka client and wait until it's ready:
+When done, also deploy Kafka client and wait until it's ready:
 
 ```shell
 kubectl apply -n kafka -f deployment/kafka-client.yaml
 kubectl wait -n kafka --for=condition=ready pod kafka-client --timeout=120s
 ```
 
-When done, create the `metrics` topic: 
+Next, create the `metric` topic which we will use in this demo:
 
-> These are just mocked events so no need to partition or replicate
+> The number of `partitions` is connected to the maximum number of replicas Keda will create. 
 
 ```shell
 kubectl -n kafka exec -it kafka-client -- kafka-topics \
 		--zookeeper kafka-cp-zookeeper-headless:2181 \
-		--topic metrics \
+		--topic metric \
 		--create \
-		--partitions 1 \
-		--replication-factor 1 \
+		--partitions 10 \
+		--replication-factor 3 \
 		--if-not-exists
 ```
 
-## Subscriber (processing service)
+## Deployment
 
-The `subscriber` doesn't really do anything so to resemble real-life processing it allows for explicit processing time setting. The default value is `500ms` but you can override it with an env vars:
+To configure the autoscaling demo we will deploy two deployments: `subscriber` which will be processing messages of the `metric` queue in Kafka, and the `producer` which will be publishing messages onto the Kafka queue using Dapr APIs. 
 
-```yaml
-- name: PROCESS_DURATION
-  value: "500ms"
-```
+### Subscriber
 
-To deploy the `subscriber` service:
+The `subscriber` doesn't really do anything with the messages, so to resemble real-life processing it allows for explicit processing time setting. The default value is `300ms`. We will go over how to modify that later. 
+
+To deploy the `subscriber` service, apply the [Kafka Dapr component](deployment/kafka-pubsub.yaml), the [message subscriber service](deployment/subscriber.yaml), and the [subscriber service Keda scaler](subscriber-scaler.yaml):
 
 ```shell
 kubectl apply -f deployment/kafka-pubsub.yaml
@@ -73,94 +75,71 @@ kubectl apply -f deployment/subscriber.yaml
 kubectl apply -f deployment/subscriber-scaler.yaml
 ```
 
-When done, start watching for the number of replicas of the deployed `subscriber` service 
+When done, start watching for the number of replicas of the deployed `subscriber` service: 
 
 ```shell
 watch kubectl get pods -l app=autoscaling-subscriber
 ```
 
-To see the logs from `subscriber` service 
+> Note, by default the subscriber service Keda scaler is set to scale to 0, so you will not see anything pods yet. We will address that with the producer by creating some lag on the `metric` queue. 
 
-```shell
-kubectl logs -l app=autoscaling-subscriber -c service -f
-```
+### Producer
 
-## Producer (generating load on the Kafka topic)
-
-In a second terminal session now, deploy the `producer` and wait for it to be ready:
+In a second terminal session, deploy the [producer service](deployment/producer.yaml) and wait for it to be ready:
 
 ```shell
 kubectl apply -f deployment/producer.yaml
 kubectl rollout status deployment/autoscaling-producer
 ```
 
-When done, start following the produces service logs 
-
-```shell
-kubectl logs -l app=autoscaling-producer -c service -f
-```
-
-If you need to stop the `producer`:
-
-```shell
-kubectl delete -f deployment/producer.yaml
-```
-
 ## Demo 
 
-Back in the initial terminal now, watch the number of `subscriber` pods being adjusted based on the depth of the queue:
+Back in the initial terminal now, in 20-30 seconds after the `producer` starts, we should see the number of `subscriber` pods being adjusted by Keda based on the depth of the `metric` queue:
 
 ```shell
 NAME                                      READY   STATUS    RESTARTS   AGE
-autoscaling-subscriber-674c7dc7b4-cjp48   2/2     Running   0          14m
-autoscaling-subscriber-674c7dc7b4-fkg7m   2/2     Running   0          14m
-autoscaling-subscriber-674c7dc7b4-sdj9z   2/2     Running   0          14m
+autoscaling-subscriber-696ffb5c7b-64zqq   2/2     Running   0          31s
+autoscaling-subscriber-696ffb5c7b-67f74   2/2     Running   0          15s
+autoscaling-subscriber-696ffb5c7b-gpc2d   2/2     Running   0          7m42s
 ```
 
-To watch Keda scaling operator log for the depth of queue signal:
+By default the `subscriber-scaler` is set to scale-to-zero and has the polling frequency of `15s`. You can adjust these values in [deployment/subscriber-scaler.yaml](deployment/subscriber-scaler.yaml):
 
-```shell
-kubectl logs -l app=keda-operator -n keda -f
+```yaml
+pollingInterval: 15
+minReplicaCount: 0
+maxReplicaCount: 10
+cooldownPeriod: 30
 ```
 
-```json
-{"level":"debug","ts":1598716685.4928422,"logger":"kafka_scaler","msg":"Group autoscaling has a lag of 2 for topic messages and partition 0\n"}
-{"level":"debug","ts":1598716685.4929283,"logger":"scalehandler","msg":"Scaler for scaledObject is active","ScaledObject.Namespace":"default","ScaledObject.Name":"queue-outoscaling-scaler","ScaledObject.ScaleType":"deployment","Scaler":{}}
-{"level":"debug","ts":1598716685.5025718,"logger":"scalehandler","msg":"ScaledObject's Status was properly updated","ScaledObject.Namespace":"default","ScaledObject.Name":"queue-outoscaling-scaler","ScaledObject.ScaleType":"deployment"}
+To modify how long should the `subscriber` take to process each message adjust `PROCESS_DURATION` in [deployment/subscriber.yaml](deployment/subscriber.yaml) and re-apply it to the cluster:
+
+```yaml
+- name: PROCESS_DURATION
+  value: "300ms"
 ```
 
-You can also follow subscriber logs for the processing throughput:
+Finally, to adjust the number of messages published by the producer change the `producer` in [deployment/producer.yaml](./deployment/producer.yaml) and re-apply it to the cluster:
 
-```shell
-kubectl logs -l app=autoscaling-subscriber -c service -f 
+
+```yaml
+- name: NUMBER_OF_PUBLISHERS
+  value: "1"
+- name: PUBLISHERS_FREQ
+  value: "100ms"
 ```
 
-```shell
-received:        746,   0 errors - avg   4/sec
-received:        773,   0 errors - avg   4/sec
-received:        794,   0 errors - avg   4/sec
-```
+The `NUMBER_OF_PUBLISHERS` setting is number of channels that are used to publish events (default: 1). And the `PUBLISHERS_FREQ` is the frequency with which each channel publishes events (default: 1s). 
 
-
-If the `subscriber` is not being scaled, you may have to adjust the [deployment/keda.yaml](deployment/keda.yaml) parameters. The default minimum number of replicas is `0` and maximum is `10`. The `lagThreshold` (the number of topic messages the subscriber can be behind) is `5`.
-
-You can also adjust the `producer` variables defined in the [deployment/producer.yaml](./deployment/producer.yaml) file to increase the number of events it publishes: 
-
-* `NUMBER_OF_PUBLISHERS` - number of channels that are used to publish events (default: 1)
-* `PUBLISHERS_FREQ` - frequency with which each channel publishes events (default: 1s) 
-* `LOG_FREQ` - frequency with which the publisher prints out the processing throughout (default: 3s)
-
-Depending on your network infrastructure (which may on some clouds be related to the size of the node VM), you can should get about 2,400 events by setting `NUMBER_OF_PUBLISHERS` to `4` and `PUBLISHERS_FREQ` to `100ms`. YMMV.
-
-You can also scale the number of `autoscaling-producer` replicas:
+> There is a limit to the amount of messages a single container can produce. If you need to scale beyond that number, increase the number of `autoscaling-producer` replicas
 
 ```shell
 kubectl scale -n kafka deployment/autoscaling-producer --replicas=10 
 ```
 
-## Updating Components 
+### Updating Components 
 
-If you have changed an existing component, make sure to reload the deployments and wait until the new versions is ready
+If you have changed already deployed Dapr component, make sure to reload the `subscriber` and `producer` deployments:
 
 ```shell
 kubectl rollout restart deployment/autoscaling-subscriber
@@ -169,18 +148,9 @@ kubectl rollout restart deployment/autoscaling-producer
 kubectl rollout status deployment/autoscaling-producer
 ```
 
-## Kafka Helpers 
+### Kafka Helpers 
 
-Describe `metrics` topic
-
-```shell
-kubectl -n kafka exec -it kafka-client -- kafka-topics \
-	--zookeeper kafka-cp-zookeeper:2181 \
-	--topic metrics \
-	--describe
-```
-
-Get the subscriber offsets for `metrics`
+Get `metric` topic offsets for `autoscaling-subscriber` consumer group:
 
 ```shell
 kubectl -n kafka exec -it kafka-client -- kafka-consumer-groups \
@@ -189,32 +159,32 @@ kubectl -n kafka exec -it kafka-client -- kafka-consumer-groups \
 	--group autoscaling-subscriber
 ```
 
-Purge the `metrics` topic
+Purge the `metric` topic:
 
 ```shell
 kubectl -n kafka exec -it kafka-client -- kafka-topics \
 	--zookeeper kafka-cp-zookeeper:2181 \
 	--alter \
-	--topic metrics \
+	--topic metric \
 	--config retention.ms=1000
 sleep 15
 kubectl -n kafka exec -it kafka-client -- kafka-topics \
 	--zookeeper kafka-cp-zookeeper:2181 \
 	--alter \
-	--topic metrics \
+	--topic metric \
 	--delete-config retention.ms
 ```
 
-Delete `metrics` topic
+Delete `metric` topic
 
 ```shell
 kubectl -n kafka exec -it kafka-client -- kafka-topics \
 	--zookeeper kafka-cp-zookeeper:2181 \
 	--delete \
-	--topic metrics
+	--topic metric
 ```
 
-## CLeanup 
+## Cleanup 
 
 ```shell
 kubectl delete -f deployment/producer.yaml

@@ -12,7 +12,7 @@ spec:
   triggers:
   - type: kafka
     metadata:
-      topic: metrics
+      topic: metric
       bootstrapServers: kafka-cp-kafka.kafka.svc.cluster.local:9092
       consumerGroup: autoscaling-subscriber
       lagThreshold: "3"

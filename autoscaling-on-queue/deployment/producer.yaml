@@ -29,11 +29,11 @@ spec:
         - name: PUBSUB_NAME
           value: autoscaling-pubsub
         - name: TOPIC_NAME
-          value: metrics
+          value: metric
         - name: NUMBER_OF_PUBLISHERS
-          value: "1"
+          value: "2"
         - name: PUBLISHERS_FREQ
-          value: "200ms"
+          value: "100ms"
         - name: PUBLISHERS_DELAY
           value: "10s"
         - name: LOG_FREQ

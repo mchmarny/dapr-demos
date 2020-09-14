@@ -7022,7 +7022,7 @@ spec:
         - /usr/local/bin/keda-adapter
         - --secure-port=6443
         - --logtostderr=true
-        - --v=0
+        - --v=4
         env:
         - name: WATCH_NAMESPACE
           value: ""

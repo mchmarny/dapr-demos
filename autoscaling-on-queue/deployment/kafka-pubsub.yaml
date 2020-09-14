@@ -10,6 +10,6 @@ spec:
     - name: authRequired
       value: "false"
     - name: allowedTopics
-      value: metrics
+      value: metric
     - name: consumerID
       value: autoscaling-subscriber

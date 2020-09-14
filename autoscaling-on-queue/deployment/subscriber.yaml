@@ -29,6 +29,6 @@ spec:
         - name: PUBSUB_NAME
           value: autoscaling-pubsub
         - name: TOPIC_NAME
-          value: metrics
+          value: metric
         - name: PROCESS_DURATION
           value: "300ms"
