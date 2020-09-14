@@ -21,7 +21,7 @@ kubectl rollout status deployment.apps/keda-operator -n keda
 
 ### Kafka (optional)
 
-Next, if you don't have an access to Kafka you can use these instructions to install Kafka into the cluster:
+Next, if you don't have access to Kafka you can use these instructions to install Kafka into the cluster:
 
 ```shell
 helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
