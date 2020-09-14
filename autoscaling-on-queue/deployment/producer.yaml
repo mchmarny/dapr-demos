@@ -33,7 +33,7 @@ spec:
         - name: NUMBER_OF_PUBLISHERS
           value: "1"
         - name: PUBLISHERS_FREQ
-          value: "1s"
+          value: "200ms"
         - name: PUBLISHERS_DELAY
           value: "10s"
         - name: LOG_FREQ

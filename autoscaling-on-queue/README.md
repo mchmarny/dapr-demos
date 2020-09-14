@@ -8,9 +8,10 @@ The autoscaling demo requires Keda which runs in Kubernetes. To deploy demo, fir
 
 To install [Keda](https://github.com/kedacore/keda) into the cluster using Help
 
+> The `helm install keda kedacore/keda -n keda --version 2.0.0-beta --set logLevel=debug` results in an error right now (debugging). The included yaml is exact replica of the Keda 2.0.0-beta release with `--zap-log-level` flag set to `debug`
+
 ```shell
-kubectl create ns keda
-kubectl apply -f https://github.com/kedacore/keda/releases/download/v2.0.0-beta/keda-2.0.0-beta.yaml
+kubectl apply -f deployment/keda-2.0.0-beta.yaml
 ```
 
 ## Kafka 
@@ -69,7 +70,7 @@ To deploy the `subscriber` service:
 ```shell
 kubectl apply -f deployment/kafka-pubsub.yaml
 kubectl apply -f deployment/subscriber.yaml
-kubectl apply -f deployment/keda-scaler.yaml
+kubectl apply -f deployment/subscriber-scaler.yaml
 ```
 
 When done, start watching for the number of replicas of the deployed `subscriber` service 
@@ -211,6 +212,16 @@ kubectl -n kafka exec -it kafka-client -- kafka-topics \
 	--zookeeper kafka-cp-zookeeper:2181 \
 	--delete \
 	--topic metrics
+```
+
+## CLeanup 
+
+```shell
+kubectl delete -f deployment/producer.yaml
+kubectl delete -f deployment/kafka-pubsub.yaml
+kubectl delete -f deployment/subscriber.yaml
+kubectl delete -f deployment/subscriber-scaler.yaml
+kubectl delete -f deployment/keda-2.0.0-beta.yaml
 ```
 
 ## Disclaimer
