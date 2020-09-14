@@ -2,7 +2,9 @@
 
 Dapr, with its building blocks and 10+ Pub/Sub components makes it super easy to write message processing applications. But, since Dapr can run in a VM, on bare-metal, in the Cloud, or on the Edge... it leaves the autoscaling to hosting later. 
 
-In case of Kubernetes, Dapr integrates with [Keda](https://github.com/kedacore/keda), an event driven autoscaler for Kubernetes. In this demo we are going through the setup and configuration of Dapr microservice for scaling based on the depth of [Kafka](https://kafka.apache.org) queue. 
+In case of Kubernetes, Dapr integrates with [Keda](https://github.com/kedacore/keda), an event driven autoscaler for Kubernetes. In this demo I'm going to walk through the setup and configuration of Dapr microservice for scaling based on the depth of [Kafka](https://kafka.apache.org) queue. 
+
+![](image/diagram.png)
 
 ## Setup 
 
