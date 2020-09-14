@@ -6,8 +6,10 @@ spec:
   type: pubsub.kafka
   metadata:
     - name: brokers
-      value: "kafka-cp-kafka-headless.kafka.svc.cluster.local:9092"
+      value: kafka-cp-kafka.kafka.svc.cluster.local:9092
     - name: authRequired
       value: "false"
     - name: allowedTopics
-      value: "metrics"
+      value: metrics
+    - name: consumerID
+      value: autoscaling-subscriber

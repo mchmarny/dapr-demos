@@ -69,13 +69,19 @@ To deploy the `subscriber` service:
 ```shell
 kubectl apply -f deployment/kafka-pubsub.yaml
 kubectl apply -f deployment/subscriber.yaml
-kubectl apply -f deployment/keda.yaml
+kubectl apply -f deployment/keda-scaler.yaml
 ```
 
 When done, start watching for the number of replicas of the deployed `subscriber` service 
 
 ```shell
-watch kubectl get pods app=autoscaling-subscriber
+watch kubectl get pods -l app=autoscaling-subscriber
+```
+
+To see the logs from `subscriber` service 
+
+```shell
+kubectl logs -l app=autoscaling-subscriber -c service -f
 ```
 
 ## Producer (generating load on the Kafka topic)
@@ -90,7 +96,7 @@ kubectl rollout status deployment/autoscaling-producer
 When done, start following the produces service logs 
 
 ```shell
-kubectl logs app=autoscaling-producer-c service -f
+kubectl logs -l app=autoscaling-producer -c service -f
 ```
 
 If you need to stop the `producer`:
@@ -160,6 +166,51 @@ kubectl rollout restart deployment/autoscaling-subscriber
 kubectl rollout status deployment/autoscaling-subscriber
 kubectl rollout restart deployment/autoscaling-producer
 kubectl rollout status deployment/autoscaling-producer
+```
+
+## Kafka Helpers 
+
+Describe `metrics` topic
+
+```shell
+kubectl -n kafka exec -it kafka-client -- kafka-topics \
+	--zookeeper kafka-cp-zookeeper:2181 \
+	--topic metrics \
+	--describe
+```
+
+Get the subscriber offsets for `metrics`
+
+```shell
+kubectl -n kafka exec -it kafka-client -- kafka-consumer-groups \
+	--bootstrap-server kafka-cp-kafka:9092 \
+	--describe \
+	--group autoscaling-subscriber
+```
+
+Purge the `metrics` topic
+
+```shell
+kubectl -n kafka exec -it kafka-client -- kafka-topics \
+	--zookeeper kafka-cp-zookeeper:2181 \
+	--alter \
+	--topic metrics \
+	--config retention.ms=1000
+sleep 15
+kubectl -n kafka exec -it kafka-client -- kafka-topics \
+	--zookeeper kafka-cp-zookeeper:2181 \
+	--alter \
+	--topic metrics \
+	--delete-config retention.ms
+```
+
+Delete `metrics` topic
+
+```shell
+kubectl -n kafka exec -it kafka-client -- kafka-topics \
+	--zookeeper kafka-cp-zookeeper:2181 \
+	--delete \
+	--topic metrics
 ```
 
 ## Disclaimer

@@ -31,9 +31,9 @@ spec:
         - name: TOPIC_NAME
           value: metrics
         - name: NUMBER_OF_PUBLISHERS
-          value: "4"
+          value: "1"
         - name: PUBLISHERS_FREQ
-          value: "100ms"
+          value: "1s"
         - name: PUBLISHERS_DELAY
           value: "10s"
         - name: LOG_FREQ

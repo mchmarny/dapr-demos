@@ -5,14 +5,13 @@ metadata:
 spec:
   scaleTargetRef:
     name: autoscaling-subscriber
-  pollingInterval: 5
-  cooldownPeriod: 10
-  minReplicaCount: 1
+  pollingInterval: 10
+  minReplicaCount: 0
   maxReplicaCount: 10
   triggers:
   - type: kafka
     metadata:
-      topic: messages
-      bootstrapServers: kafka-cp-kafka-headless.kafka.svc.cluster.local:9092
+      topic: metrics
+      bootstrapServers: kafka-cp-kafka.kafka.svc.cluster.local:9092
       consumerGroup: autoscaling-subscriber
-      lagThreshold: "5"
+      lagThreshold: "3"

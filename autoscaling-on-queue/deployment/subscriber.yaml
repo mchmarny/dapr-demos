@@ -31,4 +31,4 @@ spec:
         - name: TOPIC_NAME
           value: metrics
         - name: PROCESS_DURATION
-          value: "500ms"
+          value: "300ms"
