@@ -32,18 +32,19 @@ paths:
       responses:
         '200':
           description: ''
-  /query:
+  /save:
     post:
-      summary: Query Binding
-      description: Query output binding using Dapr API
-      operationId: query
+      summary: DB Binding
+      description: DB binding using Dapr API
+      operationId: save
       requestBody:
         content:
           application/json:
             example:
-              query: serverless
-              lang: en
-              result: recent
+              city: PDX,
+              time: 1600171062
+              metric: aqi
+              value: 457
       responses:
         '200':
           description: ''

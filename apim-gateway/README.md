@@ -218,7 +218,7 @@ curl -i -X PUT \
 
 If everything goes well, the management API will return the created policy. Additional information about Dapr Pub/Sub support in APIM are available [here](https://aka.ms/apim/dapr/pubsub).
 
-#### Query Binding Policy 
+#### Save Binding Policy 
 
 In our final case, we are going to overview exposing the Dapr binding API.
 
@@ -226,7 +226,7 @@ In our final case, we are going to overview exposing the Dapr binding API.
 POST/PUT /v1.0/bindings/<name>
 ```
 
-In contrast to the previous policies, rather than just forwarding the original request content, we are going to create a brand new request based on the content of the original request. This capability comes handy when your API needs to stay the same while the backing service evolves API evolves over time. Consider the payload expected by Dapr binding API: 
+In contrast to the previous policies, rather than just forwarding the original request content, we are going to create a brand new request based on the content of the original request and mapping it to the format expected by Dapr API. This capability comes handy when your API needs to stay the same while the backing service evolves API evolves over time. Consider the payload expected by Dapr binding API: 
 
 ```json
 {
@@ -239,45 +239,46 @@ In contrast to the previous policies, rather than just forwarding the original r
 }
 ```
 
-To accommodate that format, out policy will also use templating engine called [liquid](https://docs.microsoft.com/en-us/azure/api-management/api-management-transformation-policies#using-liquid-templates-with-set-body).
+The policy will first define a `key` variable that will be generated using system guid. Once defined, that variable can be used later on in the policy. To accommodate the binding format expected by Dapr, the policy will then set `operation` attribute in APIM `invoke-dapr-binding` policy, and set `metadata` items to:
 
-* The `operation` will be set by the `operation` attribute in APIM `invoke-dapr-binding` policy. 
-* For the `metadata` expected by DAPR, we will create a `source` element with a static `APIM` value. And for the `client-id` element the policy will select the original client request header attribute `Client-Id`.
-* Finally, for `data`, we simply use the original content of the client request.
+* `source` which will be a static value indicating the record came from `APIM`
+* `client-ip` which will be set to the client request IP
+* `key` which will be set to the value of the variable defined above
+
+Finally, for `data`, we simply use the original content of the client request.
 
 ```xml
 <policies>
     <inbound>
-          <base />
-          <invoke-dapr-binding 
-               name="demo-binding" 
-               operation="create" 
-               template="liquid"
-               response-variable-name="binding-response">
-               <metadata>
-                    <item key="source">APIM</item>
-                    <item key="client-id">{{context.Request.Headers.Client-Id}}</item>
-               </metadata>
-               <data>
-                    {{context.Request.Body}}
-               </data>
-          </invoke-dapr-binding>
-          <return-response 
-               response-variable-name="binding-response" />
+        <base />
+        <set-variable name="key" 
+                      value="@{ return Guid.NewGuid().ToString(); }" />
+        <invoke-dapr-binding 
+                      name="demo-binding" 
+                      operation="create" 
+                      response-variable-name="binding-response">
+            <metadata>
+                <item key="source">APIM</item>
+                <item key="client-ip">@( context.Request.IpAddress )</item>
+                <item key="key">@( (string)context.Variables["key"] )</item>
+            </metadata>
+            <data>@( context.Request.Body.As<string>() )</data>
+        </invoke-dapr-binding>
+        <return-response response-variable-name="binding-response" />
     </inbound>
      ...
 </policies>
 ```
 
-To apply [this policy](apim/policy-query.json) to the `query` operation on our API, submit it to the Azure management API:
+To apply [this policy](apim/policy-save.json) to the `save` operation on our API, submit it to the Azure management API:
 
 ```shell
 curl -i -X PUT \
-     -d @apim/policy-query.json \
+     -d @apim/policy-save.json \
      -H "Content-Type: application/json" \
      -H "If-Match: *" \
      -H "Authorization: Bearer ${AZ_API_TOKEN}" \
-     "https://management.azure.com/subscriptions/${AZ_SUBSCRIPTION_ID}/resourceGroups/${AZ_RESOURCE_GROUP}/providers/Microsoft.ApiManagement/service/${APIM_SERVICE_NAME}/apis/dapr/operations/query/policies/policy?api-version=2019-12-01"
+     "https://management.azure.com/subscriptions/${AZ_SUBSCRIPTION_ID}/resourceGroups/${AZ_RESOURCE_GROUP}/providers/Microsoft.ApiManagement/service/${APIM_SERVICE_NAME}/apis/dapr/operations/save/policies/policy?api-version=2019-12-01"
 ```
 
 > Note, the support in APIM for bindings is still rolling out across Azure regions. You can safely skip this section and just demo service invocation and topic publishing if you receive an error that `invoke-dapr-binding` is not recognize.
@@ -337,7 +338,7 @@ kubectl rollout status statefulset.apps/redis-slave
 
 ### Dapr Components 
 
-Dapr's modular design means that we can easily extend its functionality using [components](https://github.com/dapr/docs/tree/master/concepts#components). The specific implementation for these components which can be any number of the readily available Dapr building blocks is done in configuration which means that it's also easy to swap them at runtime without the need to modify your code. 
+Dapr's modular design means that we can easily extend its functionality using [components](https://github.com/dapr/docs/tree/master/concepts#components). The specific implementation for these components which can be any number of the readily available Dapr building blocks is done in configuration. That means that it's also easy to swap or reconfigure them at runtime without the need to modify your code. 
 
 ![](img/dapr-building-blocks.png)
 
@@ -507,7 +508,6 @@ The response will include both the primary and secondary keys. Copy one of them 
 export AZ_API_SUB_KEY="your-api-subscription-key"
 ```
 
-
 ### Service Invocation 
 
 To invoke the backing gRPC service over Dapr API exposed by APIM run:
@@ -561,26 +561,22 @@ event - PubsubName:demo-events, Topic:messages, ID:24f0e6f0-ab29-4cd6-8617-6c6c3
 
 ### Binding Invocation
 
-To query the Dapr binding API exposed by APIM run:
+To save a record into database using the Dapr binding API exposed by APIM run:
 
 ```shell
-curl -X POST -d '{ "query": "serverless", "lang": "en", "result": "recent" }' \
+curl -i -X POST \
+     -d '{"city":"PDX","time":"1600171062","metric":"aqi","value": 457}' \
      -H "Content-Type: application/json" \
      -H "Ocp-Apim-Subscription-Key: ${AZ_API_SUB_KEY}" \
      -H "Ocp-Apim-Trace: true" \
-     -H "Client-Id: id-123456789" \
-     "http://${GATEWAY_IP}/query"
+     "http://${GATEWAY_IP}/save"
 ```
 
-If everything is configured correctly, you will see `200` status code in the header indicating the binding was successfully triggered on the Dapr API.
-
-## Summary 
-
-This demo illustrates how to setup the APIM service and deploy your self-hosted gateway. Using this gateway can mange access to any number of your Dapr services hosted on Kubernetes. You can find out more about all the features of APIM (e.g. Discovery, Caching, Logging etc.) [here](https://azure.microsoft.com/en-us/services/api-management/).
+If everything is configured correctly, you will see `200` status code in the header indicating the binding was successfully triggered on the Dapr API and our record successfully saved into the DB. 
 
 ### Debugging 
 
-Notice in each one of our API invocations we have been including the `Ocp-Apim-Trace: true`. APIM provides an ability to trace requests across the policy execution chain which is helpful policy debugging. The response of each one fo the above invocation includes the `Ocp-Apim-Trace-Location` header parameter. Just paste the value of that parameter into your browser to get the full trace stack in JSON. The full stack can get pretty long so here are few Dapr-specific snippets: 
+Notice in each one of our API invocations we have been including the `Ocp-Apim-Trace: true` header parameter. APIM provides an ability to trace requests across the policy execution chain which is helps in debugging your policy. The response of each one fo the above invocation includes the `Ocp-Apim-Trace-Location` header parameter. Just paste the value of that parameter into your browser to see the full trace stack in JSON. The trace can get pretty long so here are few Dapr-specific snippets: 
 
 
 ```json 
@@ -631,20 +627,22 @@ Notice in each one of our API invocations we have been including the `Ocp-Apim-T
 ...
 ```
 
+## Summary 
+
+This demo illustrated how to setup the APIM service and deploy the self-hosted gateway into your cluster. Using this gateway you can mange access to any number of Dapr services hosted on Kubernetes. You can find out more about all the features of APIM (e.g. Discovery, Caching, Logging etc.) [here](https://azure.microsoft.com/en-us/services/api-management/).
 
 ## Cleanup 
 
 ```shell
 kubectl delete -f k8s/gateway.yaml
+kubectl delete secret demo-apim-gateway-token
+kubectl delete configmap demo-apim-gateway-env
 
 kubectl delete -f k8s/echo-service.yaml
 kubectl delete -f k8s/event-subscriber.yaml
 
 kubectl delete -f k8s/pubsub.yaml
 kubectl delete -f k8s/binding.yaml
-
-kubectl delete secret demo-apim-gateway-token
-kubectl delete configmap demo-apim-gateway-env
 
 az apim delete --name $APIM_SERVICE_NAME --no-wait --yes
 ```

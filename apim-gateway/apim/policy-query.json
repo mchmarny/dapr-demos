@@ -1,6 +1,0 @@
-{
-    "properties": {
-      "format": "xml",
-      "value": "<policies><invoke-dapr-binding name=\"demo-binding\" operation=\"create\" template=\"liquid\" response-variable-name=\"binding-response\"><metadata><item key=\"source\">APIM</item><item key=\"client-id\">{{context.Request.Headers.Client-Id}}</item></metadata><data>{{context.Request.Body}}</data></invoke-dapr-binding><return-response response-variable-name=\"binding-response\" /><backend /><outbound><base /></outbound><on-error><base /></on-error></policies>"
-    }
-}
