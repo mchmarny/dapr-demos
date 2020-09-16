@@ -56,7 +56,7 @@ dapr: ## Install and configures Dapr
 .PHONY: keda
 keda: ## Install and configures Keda
 	# Updating Help repos...
-	helm repo add keda https://kedacore.github.io/charts
+	helm repo add kedacore https://kedacore.github.io/charts
 	helm repo update
 	# Installing Keda
 	kubectl create ns keda
