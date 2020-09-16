@@ -24,7 +24,7 @@ namespace DaprAzFn.Sample
         /// </summary>
         [FunctionName("ReceiveTopicMessage")]
         public static async Task<IActionResult> Run(
-            [DaprTopicTrigger(Topic = "%TopicName%")] CloudEvent cloudEvent,
+            [DaprTopicTrigger("%PubSubName%", Topic = "%TopicName%")] CloudEvent cloudEvent,
             [DaprState("%StateStore%")] IAsyncCollector<DaprStateRecord> state, ILogger log)
         {
             // Get data from CloudEvent

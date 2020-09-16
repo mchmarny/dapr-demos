@@ -1,5 +1,5 @@
 APP_NAME         =auditor
-RELEASE_VERSION  =v0.1.7
+RELEASE_VERSION  =v0.2.10
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: test mod run dapr lint image tag clean help

@@ -9,7 +9,7 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />    
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Dapr.AzureFunctions.Extension" Version="0.8.0-preview01" />
+    <PackageReference Include="Dapr.AzureFunctions.Extension" Version="0.10.0-preview01" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
