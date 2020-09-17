@@ -1,6 +1,6 @@
 # Dapr Cluster Setup
 
-An opinionated Kubernetes clusters Dapr deployment:
+An opinionated Dapr deployment to Kubernetes including:
 
 * Latest version of Dapr
 * Metrics Monitoring
@@ -23,6 +23,7 @@ An opinionated Kubernetes clusters Dapr deployment:
   * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
   * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
   * [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
+* Domain name and access to the DNS service where you can manage it
 
 ## Deployment 
 
