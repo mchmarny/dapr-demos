@@ -98,14 +98,6 @@ az account set --subscription <id or name>
 az configure --defaults location=<preferred location> group=<preferred resource group>
 ```
 
-## Help
-
-To find the list of all the commands with their short descriptions run: 
-
-```shell
-make help
-```
-
 ## Cleanup
 
 To lists previously created clusters run 
@@ -120,6 +112,14 @@ To delete any of the previously created clusters run
 
 ```shell
 make cleanup CLUSTER_NAME=name
+```
+
+## Help
+
+To find the list of all the commands with their short descriptions run: 
+
+```shell
+make help
 ```
 
 ## Disclaimer
