@@ -28,3 +28,4 @@ vendor
 
 # secrets
 secrets.json
+setup/config/ingress.yaml

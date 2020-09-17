@@ -7,7 +7,7 @@ NODE_TYPE    ?=Standard_D4_v2
 all: help
 
 .PHONY: clusterlist
-clusterlist: ## List all your AKS clusters in the default resource group
+clusterlist: ## List AKS clusters
 	az aks list -o table
 
 .PHONY: cluster
@@ -17,11 +17,12 @@ cluster: ## Create AKS cluster
 		--node-count $(NODE_COUNT) \
 		--node-vm-size $(NODE_TYPE) \
 		--enable-addons monitoring \
-		--generate-ssh-keys
+		--generate-ssh-keys \
+		--enable-managed-identity
 	az aks get-credentials --name $(CLUSTER_NAME)
 
 .PHONY: nodepool
-nodepool: ## Add new node pool to the existing cluster
+nodepool: ## Add new AKS node pool
 	$(eval NODE_SUFIX=$(shell date +"%d%m"))
 	az aks nodepool add \
 		--cluster-name $(CLUSTER_NAME) \
@@ -39,7 +40,10 @@ certs: ## Create wildcard TLS certificates using letsencrypt
 	sudo chmod 644 *.pem
 
 .PHONY: dapr
-dapr: ## Install and configures Dapr
+dapr: dapr-install keda-install observe-install ## Install dapr, keda, and observability 
+
+.PHONY: dapr-install
+dapr-install: ## Install and configures Dapr
 	# Updating Help repos...
 	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
 	helm repo update
@@ -53,8 +57,8 @@ dapr: ## Install and configures Dapr
 	kubectl rollout status deployment/dapr-sentry -n dapr-system
 	kubectl rollout status deployment/dapr-sidecar-injector -n dapr-system
 
-.PHONY: keda
-keda: ## Install and configures Keda
+.PHONY: keda-install
+keda-install: ## Install and configures Keda
 	# Updating Help repos...
 	helm repo add kedacore https://kedacore.github.io/charts
 	helm repo update
@@ -65,8 +69,8 @@ keda: ## Install and configures Keda
 	kubectl rollout status deployment/keda-operator -n keda
 	kubectl rollout status deployment/keda-operator-metrics-apiserver -n keda
 
-.PHONY: observe
-observe: ## Install observability stack
+.PHONY: observe-install
+observe-install: ## Install observability stack
 	# Updating Help repos...
 	helm repo add stable https://kubernetes-charts.storage.googleapis.com
 	helm repo add elastic https://helm.elastic.co
@@ -82,18 +86,25 @@ observe: ## Install observability stack
 		--set persistence.accessModes={ReadWriteOnce} \
 		--set persistence.size=8Gi
 	helm install kibana elastic/kibana -n dapr-monitoring
-	
-.PHONY: observe-config
-observe-config: ports ## Configure observability stack
-	$(eval GRAFANA_PASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
-	# Wait for everything to finish installing 
+	# Wait for everything to be ready...
 	kubectl rollout status deployment/dapr-prom-kube-state-metrics -n dapr-monitoring
 	kubectl rollout status deployment/dapr-prom-prometheus-alertmanager -n dapr-monitoring
 	kubectl rollout status deployment/dapr-prom-prometheus-pushgateway -n dapr-monitoring
 	kubectl rollout status deployment/dapr-prom-prometheus-server -n dapr-monitoring
 	kubectl rollout status deployment/grafana -n dapr-monitoring
 	kubectl rollout status deployment/kibana-kibana -n dapr-monitoring
-	# Configure kibana and grafana
+	
+.PHONY: config
+config: ports ## Configure Dapr after install
+	$(eval GRAFANA_PASS=$(shell kubectl get secret -n dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode))
+	# Check that everything is ready...
+	kubectl rollout status deployment/dapr-prom-kube-state-metrics -n dapr-monitoring
+	kubectl rollout status deployment/dapr-prom-prometheus-alertmanager -n dapr-monitoring
+	kubectl rollout status deployment/dapr-prom-prometheus-pushgateway -n dapr-monitoring
+	kubectl rollout status deployment/dapr-prom-prometheus-server -n dapr-monitoring
+	kubectl rollout status deployment/grafana -n dapr-monitoring
+	kubectl rollout status deployment/kibana-kibana -n dapr-monitoring
+	# Configure grafana
 	curl -X POST -s -k -u "admin:$(GRAFANA_PASS)" \
 		 -H "Content-Type: application/json" \
 		 -d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
@@ -110,6 +121,7 @@ observe-config: ports ## Configure observability stack
 		 -H "Content-Type: application/json" \
 		 -d @config/actor-dashboard.json \
 	     http://localhost:8888/api/dashboards/db
+	# Configure kibana
 	curl -X POST -H "kbn-xsrf: true" \
 		 -H "Content-Type: application/json" \
 		 -d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
@@ -124,7 +136,7 @@ ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr
 	# Updating Help repos...
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo update
-	# While observabiliity and KADA is insrtalling, deploying ingress...
+	# Deploy nginx...
 	helm install nginx ingress-nginx/ingress-nginx \
 		--set controller.replicaCount=3 \
 		--set controller.metrics.enabled=true \

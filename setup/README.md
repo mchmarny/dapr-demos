@@ -1,8 +1,11 @@
 # Dapr Cluster Setup
 
-An opinionated Dapr deployment to Kubernetes including:
+An opinionated Dapr deployment to Kubernetes including latest version of Dapr configured with:
 
-* Latest version of Dapr
+* Ingress with custom domain and TLS termination
+  * [ngnx](https://nginx.org/en/) for ingress controller and TLS to service mapping 
+  * [letsencrypt](https://letsencrypt.org/) as certificate provider
+* KEDA for autoscaling
 * Metrics Monitoring
   * [Prometheus](https://prometheus.io/) for metrics aggregation
   * [Grafana](https://grafana.com/) for metrics visualization with Dapr monitoring dashboards
@@ -12,9 +15,8 @@ An opinionated Dapr deployment to Kubernetes including:
   * [Kibana](https://www.elastic.co/products/kibana) for full-text log query and visualization
 * Distributed Tracing
   * [Jaeger](https://www.jaegertracing.io/) for capturing traces, latency and dependency trace viewing
-* Ingress and TLS termination
-  * [ngnx](https://nginx.org/en/) for ingress controller and TLS to service mapping 
-  * [letsencrypt](https://letsencrypt.org/) as certificate provider
+
+> All demos in the [dapr-demo](../) repository are validated on this deployment
   
 ## Prerequisites
 
@@ -23,28 +25,31 @@ An opinionated Dapr deployment to Kubernetes including:
   * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
   * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
   * [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
-* Domain name and access to the DNS service where you can manage it
+* Domain name and access to the DNS service where you can manage that domain (required for letsencrypt challenge during cert generation and the `A` record creation to pont to the ingress gateway IP for custom domain support)
 
 ## Deployment 
+Update [Makefile](./Makefile) variables as necessary, then:
 
-* Update [Makefile](./Makefile) variables
-* Run:
-  * `make cluster` (optional, otherwise use one selected in your kubectol context)
-  * `make certs` (optional, to create TLS certs if you don't have them)
+* If you need a cluster (otherwise use one selected in your kubectol context)
+  * `make cluster` to create a cluster on AKS
+* If you need TLS certificates 
+  * `make certs` to create TLS certs, otherwise, use your own
+* Dapr deployment
   * `make dapr` to install Dapr
-  * `make keda` (optional, to install Keda for autoscaling)
-  * `make observe` to install observability stack (logging, metric, tracing)
-  * `make observe-config` to configure Dapr Grafana dashboards and Kibana indexes
+  * `make config` to perform all post-install configuration
+* External access configuration (optional)
   * `make ingress` to configures Ngnx ingress, SSL termination, Dapr API auth
   * `make dns` to configure DNS
-  * `make test` to test deployment 
-  * `make ports` (optional) to forward observability dashboards ports
-  * `make redis` (optional) to install Redis into the cluster 
-  * `make mongo` (optional) to install Mongo into the cluster 
-  * `make kafka` (optional) to install Kafka into the cluster 
-  * `make namespace` (optional) to create namespace and configure service secrets 
+  * `make test` to test deployment (look for `HTTP/2 200`)
+* In-cluster data services (optional) 
+  * `make redis` to install Redis into the cluster 
+  * `make mongo` to install Mongo into the cluster 
+  * `make kafka` to install Kafka into the cluster 
+* Cluster operations 
+  * `make ports` to forward observability dashboards ports
+  * `make namespace` to create namespace and configure service secrets 
 
-## Observability
+## Cluster operations
 
 To get access to the Kibana, Grafana, Zipkin dashboards run:
 
@@ -85,28 +90,29 @@ az configure --defaults location=<preferred location> group=<preferred resource 
 
 ```shell
 $ make help
-clusterlist          List all your AKS clusters in the default resource group
-cluster              Create AKS cluster
-nodepool             Add new node pool to the existing cluster
-certs                Create wildcard TLS certificates using letsencrypt
-dapr                 Install and configures Dapr
-keda                 Install and configures Keda
-observe              Install observability stack
-observe-config       Configure observability stack
-ingress              Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
-dns                  Check DNS resolution for cluster IP
-test                 Test deployment and execute Dapr API health checks
-token                Print Dapr API token
-pass                 Print Grafana admin password
-ports                Forward observability ports
-reload               Reloads API to pickup new components
-redis                Install Redis into the cluster
-mongo                Install Mongo into the cluster
-kafka                Install Kafka into the cluster
-namespace            Configures namespace (make namespace NSNAME="demo")
-portstop             Stop previously forwarded observability ports
-cleanup              Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
-help                 Display available commands
+clusterlist                    List AKS clusters
+cluster                        Create AKS cluster
+nodepool                       Add new AKS node pool
+certs                          Create wildcard TLS certificates using letsencrypt
+dapr                           Install dapr, keda, and observability
+dapr-install                   Install and configures Dapr
+keda-install                   Install and configures Keda
+observe-install                Install observability stack
+config                         Configure Dapr after install
+ingress                        Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
+dns                            Check DNS resolution for cluster IP
+test                           Test deployment and execute Dapr API health checks
+token                          Print Dapr API token
+pass                           Print Grafana admin password
+ports                          Forward observability ports
+reload                         Reloads API to pickup new components
+redis                          Install Redis into the cluster
+mongo                          Install Mongo into the cluster
+kafka                          Install Kafka into the cluster
+namespace                      Configures namespace (make namespace NSNAME="demo")
+portstop                       Stop previously forwarded observability ports
+cleanup                        Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
+help                           Display available commands
 ```
 
 ## Cleanup
