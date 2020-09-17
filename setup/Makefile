@@ -211,19 +211,6 @@ reload: ## Reloads API to pickup new components
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 
-
-.PHONY: namespace
-namespace: ## Configres namespace (make namespace NSNAME="demo")
-	# Create namespace if one doesn't exists 
-	sed "s/NSNAME/${NSNAME}/g" config/namespace-template.yml > config/namespace.yml
-	kubectl apply -f config/namespace.yml
-	# Configure Redis password in that namespace 
-	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode))
-	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)" -n $(NSNAME)
-	# Configre Redis password in that namespace 
-	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
-	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)" -n $(NSNAME)
-
 .PHONY: redis
 redis: ## Install Redis into the cluster
 	# Updating Help repos...
@@ -274,6 +261,18 @@ kafka: ## Install Kafka into the cluster
 	kubectl rollout status deployment.apps/kafka-cp-ksql-server -n kafka
 	kubectl rollout status statefulset.apps/kafka-cp-kafka -n kafka
 	kubectl rollout status statefulset.apps/kafka-cp-zookeeper -n kafka
+
+.PHONY: namespace
+namespace: ## Configures namespace (make namespace NSNAME="demo")
+	# Create namespace if one doesn't exists 
+	sed "s/NSNAME/${NSNAME}/g" config/namespace-template.yml > config/namespace.yml
+	kubectl apply -f config/namespace.yml
+	# Configure Redis password in that namespace 
+	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode))
+	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)" -n $(NSNAME)
+	# Configre Redis password in that namespace 
+	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
+	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)" -n $(NSNAME)
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

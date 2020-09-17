@@ -84,27 +84,28 @@ az configure --defaults location=<preferred location> group=<preferred resource 
 
 ```shell
 $ make help
-clusterlist                    List all your AKS clusters in the default resource group
-cluster                        Create AKS cluster (make cluster
-nodepool                       Add new node pool to the existing cluster
-certs                          Create wildcard TLS certificates using letsencrypt
-dapr                           Install and configures Dapr
-keda                           Install and configures Keda
-observe                        Install observability stack
-observe-config                 Configure observability stack
-ingress                        Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
-dns                            Check DNS resolution for cluster IP
-test                           Test deployment and execute Dapr API health checks
-token                          Print Dapr API token
-pass                           Print Grafana admin password
-ports                          Forward observability ports
-reload                         Reloads API to pickup new components
-redis                          Install Redis into the cluster
-mongo                          Install Mongo into the cluster
-kafka                          Install Kafka into the cluster
-portstop                       Stop previously forwarded observability ports
-cleanup                        Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
-help                           Display available commands
+clusterlist          List all your AKS clusters in the default resource group
+cluster              Create AKS cluster
+nodepool             Add new node pool to the existing cluster
+certs                Create wildcard TLS certificates using letsencrypt
+dapr                 Install and configures Dapr
+keda                 Install and configures Keda
+observe              Install observability stack
+observe-config       Configure observability stack
+ingress              Install and configures Ngnx ingress, configure SSL termination, Dapr API auth
+dns                  Check DNS resolution for cluster IP
+test                 Test deployment and execute Dapr API health checks
+token                Print Dapr API token
+pass                 Print Grafana admin password
+ports                Forward observability ports
+reload               Reloads API to pickup new components
+redis                Install Redis into the cluster
+mongo                Install Mongo into the cluster
+kafka                Install Kafka into the cluster
+namespace            Configures namespace (make namespace NSNAME="demo")
+portstop             Stop previously forwarded observability ports
+cleanup              Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
+help                 Display available commands
 ```
 
 ## Cleanup
