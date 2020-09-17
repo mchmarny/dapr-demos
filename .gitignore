@@ -28,4 +28,7 @@ vendor
 
 # secrets
 secrets.json
+
+# other 
 setup/config/ingress.yaml
+setup/config/namespace.yml
