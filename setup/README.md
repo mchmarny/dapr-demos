@@ -41,6 +41,7 @@ An opinionated Kubernetes clusters Dapr deployment:
   * `make redis` (optional) to install Redis into the cluster 
   * `make mongo` (optional) to install Mongo into the cluster 
   * `make kafka` (optional) to install Kafka into the cluster 
+  * `make namespace` (optional) to create namespace and configure service secrets 
 
 ## Observability
 
