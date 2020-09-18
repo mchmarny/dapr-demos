@@ -35,8 +35,8 @@ nodepool: ## Add new AKS node pool
 .PHONY: certs
 certs: ## Create wildcard TLS certificates using letsencrypt
 	sudo certbot certonly --manual --preferred-challenges dns -d "*.$(DOMAIN)"
-	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" ./cert-ca.pem	
-	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" ./cert-pk.pem
+	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" cert-ca.pem	
+	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" cert-pk.pem
 	sudo chmod 644 *.pem
 
 .PHONY: dapr
@@ -77,8 +77,9 @@ observe-install: ## Install observability stack
 	helm repo update
 	# Installing observabiliity...
 	kubectl create ns dapr-monitoring
-	kubectl apply -f ./config/fluentd-config.yaml -f ./config/fluentd.yaml
-	kubectl apply -f ./config/zipkin-config.yaml -f ./config/zipkin.yaml
+	kubectl apply -f config/fluentd-config.yaml -f config/fluentd.yaml
+	sed "s/NSNAME/default/g" config/zipkin-template.yaml > config/zipkin.yaml
+	kubectl apply -f config/zipkin-config.yaml -f config/zipkin.yaml
 	helm install elasticsearch elastic/elasticsearch -n dapr-monitoring
 	helm install dapr-prom stable/prometheus -n dapr-monitoring
 	helm install grafana stable/grafana -n dapr-monitoring \
@@ -140,14 +141,16 @@ ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr
 	helm install nginx ingress-nginx/ingress-nginx \
 		--set controller.replicaCount=3 \
 		--set controller.metrics.enabled=true \
-		-f ./config/annotations.yaml
+		-f config/annotations.yaml
+	kubectl rollout status deployment/nginx-ingress-nginx-controller
+	# Gen Dapr API token 
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
+	# Install cert secrets
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
-	# Waiting for ingress to be ready (max 2 min)... 
-	kubectl wait --for=condition=ready pod --all --timeout=300s
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
-	kubectl apply -f ./config/ingress.yaml
+	# Apply configured ingress 
+	kubectl apply -f config/ingress.yaml
 
 .PHONY: dns
 dns: ## Check DNS resolution for cluster IP
@@ -279,12 +282,16 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 	# Create namespace if one doesn't exists 
 	sed "s/NSNAME/${NSNAME}/g" config/namespace-template.yml > config/namespace.yml
 	kubectl apply -f config/namespace.yml
-	# Configure Redis password in that namespace 
+	# Configure Redis password
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)" -n $(NSNAME)
-	# Configre Redis password in that namespace 
+	# Configre Mongo password
 	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)" -n $(NSNAME)
+	# Configure zipkin
+	sed "s/NSNAME/${NSNAME}/g" config/zipkin-template.yaml > config/zipkin.yaml
+	kubectl apply -f config/zipkin-config.yaml -f config/zipkin.yaml -n $(NSNAME)
+
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
