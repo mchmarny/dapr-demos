@@ -275,7 +275,7 @@ kafka: ## Install Kafka into the cluster
 	kubectl rollout status statefulset.apps/kafka-cp-zookeeper -n kafka
 
 .PHONY: namespace
-namespace: ## Configures namespace (make namespace NSNAME="demo")
+namespace: ## Configures namespace (make namespace NSNAME=default)
 	# Create namespace if one doesn't exists 
 	sed "s/NSNAME/${NSNAME}/g" config/namespace-template.yml > config/namespace.yml
 	kubectl apply -f config/namespace.yml
