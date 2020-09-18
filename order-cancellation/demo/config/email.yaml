@@ -13,4 +13,4 @@ spec:
       key: api-key
 scopes:
 - nginx-ingress
-- workflows-host
+- workflows

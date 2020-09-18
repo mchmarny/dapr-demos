@@ -13,5 +13,5 @@ spec:
       key: password
 scopes:
 - order-auditor
-- workflows-host
+- workflows
 - order-viewer

@@ -13,12 +13,12 @@ run: ## Runs function locally
              --app-port 3001 \
              --port 3501 \
              --components-path config \
-             env TopicName=cancellations StateStore="fn-store" func host start
+             env PubSubName=queue TopicName=cancellations StateStore=store func host start
 
 event: ## Publishes event onto the Dapr topic 
 	curl -d @./config/meta.json \
 		 -H "Content-type: application/json" \
-		 http://localhost:3501/v1.0/publish/cancellations
+		 http://localhost:3501/v1.0/publish/queue/cancellations
 
 test: restore ## Tests the entire project 
 	dotnet test

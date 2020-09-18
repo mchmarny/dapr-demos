@@ -25,7 +25,7 @@ Submit the order [cancellation.json](data/cancellation.json) file using `curl`
 
 ```shell
 API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
-curl -v \
+curl -i \
      -d @data/cancellation.json \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
@@ -34,11 +34,11 @@ curl -v \
 
 ### 3. Dashboard (updated)
 
+View the dashboard again at https://view.cloudylabs.dev/ to see the orders
 
 ### 4. Email 
 
 Show confirmation email delivered after the processed completed 
-
 
 ## 5. Observability 
 
@@ -71,7 +71,7 @@ kubectl apply -f config/queue.yaml
 ## State Store 
 
 ```shell
-kubectl apply -f config/fn-store.yaml \
+kubectl apply -f config/audit-store.yaml \
               -f config/workflow-store.yaml
 ```
 
@@ -92,17 +92,18 @@ kubectl apply -f config/email.yaml
 
 ## Auditor 
 
-Deploy Dapr Functions
+Deploy Dapr auditor functions and wait for it to be ready 
 
 ```shell
-kubectl apply -f function.yaml
+kubectl apply -f auditor.yaml
+kubectl rollout status deployment/order-auditor
 ```
 
 Check logs for errors from both containers
 
 ```shell
-kubectl logs -l app=auditor -c daprd
-kubectl logs -l app=auditor -c auditor
+kubectl logs -l app=order-auditor -c daprd --tail 300
+kubectl logs -l app=order-auditor -c auditor
 ```
 
 ## Workflow 
@@ -130,17 +131,18 @@ kubectl create secret generic dapr-workflows \
   --from-literal=accountKey=$AZSAKEY
 ```
 
-Deploy Dapr Workflows host
+Deploy Dapr Workflows host and wait for it to be ready
 
 ```shell
 kubectl apply -f workflow.yaml
+kubectl rollout status deployment/workflows-host
 ```
 
 Check logs for errors from both containers
 
 ```shell
-kubectl logs -l app=dapr-workflows-host -c daprd
-kubectl logs -l app=dapr-workflows-host -c host
+kubectl logs -l app=workflows-host -c daprd --tail 300
+kubectl logs -l app=workflows-host -c host
 ```
 
 
@@ -149,20 +151,27 @@ kubectl logs -l app=dapr-workflows-host -c host
 Deploy Dashboard 
 
 ```shell
-kubectl apply -f dashboard.yaml
+kubectl apply -f viewer.yaml
 ```
 
-
-Patch ingress
+Patch ingress to add the viewer rule
 
 ```shell
-kubectl patch deployment patch-demo --patch "$(cat config/ingress.yaml)"
+kubectl get ing/ingress-rules -o json \
+  | jq '.spec.rules += [{"host":"viewer.cloudylabs.dev","http":{"paths":[{"backend": {"serviceName":"order-viewer","servicePort":80},"path":"/"}]}}]' \
+  | kubectl apply -f -
 ```
 
 Test it
 
 https://viewer.cloudylabs.dev
 
+## Restart Gateway
+
+```shell
+kubectl rollout restart deployment/nginx-ingress-nginx-controller
+kubectl rollout status deployment/nginx-ingress-nginx-controller
+```
 
 
 ## Cleanup 

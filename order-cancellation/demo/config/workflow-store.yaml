@@ -6,16 +6,16 @@ spec:
   type: state.mongodb
   metadata:
   - name: host
-    value: state-mongodb-0.state-mongodb-headless.redis.svc.cluster.local:27017
+    value: mongo-mongodb-headless.mongo.svc.cluster.local:27017
   - name: username
     value: dapr
   - name: password
     secretKeyRef:
       name: mongo-secret
-      key: mongodb-password
+      key: password
   - name: databaseName
     value: dapr
   - name: collectionName
     value: record
 scopes:
-- workflows-host
+- workflows

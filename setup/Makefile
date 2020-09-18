@@ -286,7 +286,7 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 	$(eval REDIS_PASSWORD=$(shell kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode))
 	kubectl create secret generic redis-secret --from-literal=password="$(REDIS_PASSWORD)" -n $(NSNAME)
 	# Configre Mongo password
-	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode))
+	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)" -n $(NSNAME)
 	# Configure zipkin
 	sed "s/NSNAME/${NSNAME}/g" config/zipkin-template.yaml > config/zipkin.yaml
