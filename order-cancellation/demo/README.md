@@ -15,7 +15,7 @@ Dapr integration demo consists of:
 
 > Note, these instructions assume `cloudylabs.dev` domain setup in the [cluster setup](../setup/README.md) step. You will need to substitute this for your own domain. 
 
-Navigate to https://view.cloudylabs.dev/ to start the order processing dashboard. There won't be any data yet, so this is just to open the WebSocket connection. 
+Navigate to https://viewer.cloudylabs.dev to start the order processing dashboard. There won't be any data yet, so this is just to open the WebSocket connection. 
 
 ![Initial UI](../img/ui1.png)
 
@@ -34,11 +34,13 @@ curl -i \
 
 ### 3. Dashboard (updated)
 
-View the dashboard again at https://view.cloudylabs.dev/ to see the orders
+View the dashboard again at https://viewer.cloudylabs.dev to see the orders
 
 ### 4. Email 
 
 Show confirmation email delivered after the processed completed 
+
+> Make sure to check junk mail!
 
 ## 5. Observability 
 
@@ -46,16 +48,19 @@ Show confirmation email delivered after the processed completed
 
 Forward local port to Zipkin
 
+http://localhost:9411
 
 ### Logging 
 
 Forward local port to Kibana
 
+http://localhost:5601
 
 ### Metrics 
 
 Forward local port to Grafana
 
+http://localhost:8888
 
 
 ## Setup 
