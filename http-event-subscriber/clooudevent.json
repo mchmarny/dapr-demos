@@ -1,0 +1,12 @@
+{
+    "specversion" : "1.0",
+    "type" : "some.other.operation",
+    "source" : "https://domain.com/cloudevents/operation",
+    "subject" : "test operation",
+    "id" : "id-1234-5678-9011",
+    "time" : "2020-09-23T06:23:21Z",
+    "comexampleextension1" : "value",
+    "comexampleothervalue" : 5,
+    "datacontenttype" : "text/xml",
+    "data" : "<much wow=\"xml\"/>"
+}

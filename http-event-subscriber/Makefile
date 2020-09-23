@@ -35,6 +35,11 @@ run: build ## Builds binary and runs it in Dapr
       --log-level debug \
       bin/$(SERVICE_NAME) 
 
+ce: ## Publishes CloudEvent message to Dapr pubsub API 
+	curl -d@clooudevent.json \
+     -H "Content-type: application/json" \
+     "http://localhost:3500/v1.0/publish/http-events/messages"
+
 jsonevent: ## Publishes sample JSON message to Dapr pubsub API 
 	curl -d '{ "from": "John", "to": "Lary", "message": "hi" }' \
      -H "Content-type: application/json" \
