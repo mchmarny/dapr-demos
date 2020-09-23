@@ -8,5 +8,5 @@
     "comexampleextension1" : "value",
     "comexampleothervalue" : 5,
     "datacontenttype" : "text/xml",
-    "data" : "<much wow=\"xml\"/>"
+    "data" : "<note><to>User1</to><from>user2</from><message>hi</message></note>"
 }
