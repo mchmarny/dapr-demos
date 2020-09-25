@@ -1,6 +1,6 @@
 # Dapr pipeline demo 
 
-Dapr supports a wide array of state and pubsub building clocks across multiple OSS, Cloud, and on-prem services. This demo will show how to use a few of these components to build tweet sentiment pipeline
+Dapr supports a wide array of state and pubsub building blocks across multiple OSS, Cloud, and on-prem services. This demo shows how to use a few of these components to build tweet sentiment processing pipeline.
 
 ![alt text](./img/overview.png "Pipeline Overview")
 
@@ -32,7 +32,7 @@ Navigate to the [tweet-viewer](./tweet-viewer) directory and run:
 
 ```shell
 cd tweet-viewer
-	dapr run \
+dapr run \
     --app-id tweet-viewer \
     --app-port 8084 \
     --app-protocol http \
@@ -171,7 +171,7 @@ export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}"
 And then invoke the service manually
 
 ```shell
-curl -d '{ "text": "dapr is the best" }' \
+curl -i -d '{ "text": "dapr is the best" }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
      "https://api.cloudylabs.dev/v1.0/invoke/sentiment-scorer/method/sentiment"
@@ -182,6 +182,40 @@ Response should look something like this
 ```json 
 { "sentiment":"positive", "confidence":1 }
 ```
+
+
+### tweet-viewer
+
+Deploy `tweet-viewer` along with its component
+
+```shell
+kubectl apply -f tweet-viewer/k8s/source-pubsub.yaml
+kubectl apply -f tweet-viewer/k8s/deployment.yaml
+kubectl rollout status deployment/tweet-viewer
+```
+
+Patch ingress to add the viewer rule
+
+```shell
+kubectl get ing/ingress-rules -o json \
+  | jq '.spec.rules += [{"host":"tweets.cloudylabs.dev","http":{"paths":[{"backend": {"serviceName":"tweet-viewer","servicePort":80},"path":"/"}]}}]' \
+  | kubectl apply -f -
+```
+
+Check that the ingress was updated 
+
+```shell
+kubectl get ingress
+```
+
+Should include `viewer.`
+
+```shell
+NAME            HOSTS                                      ADDRESS   PORTS     AGE
+ingress-rules   api.cloudylabs.dev,tweets.cloudylabs.dev   x.x.x.x   80, 443   9h
+```
+
+Check in browser: https://tweets.cloudylabs.dev
 
 ### tweet-provider
 
@@ -218,40 +252,13 @@ Check Dapr to make sure components were registered correctly
 kubectl logs -l app=tweet-provider -c daprd --tail 200
 ```
 
-### tweet-viewer
+## View
 
-Deploy `tweet-viewer` along with its component
-
-```shell
-kubectl apply -f tweet-viewer/k8s/source-pubsub.yaml
-kubectl apply -f tweet-viewer/k8s/deployment.yaml
-kubectl rollout status deployment/tweet-viewer
-```
-
-Patch the ingress to expose it externally
-
-```shell
-kubectl patch ingress ingress-rules --type json -p "$(cat tweet-viewer/k8s/ingress.json)"
-```
-
-Check that the ingress was updated 
-
-```shell
-kubectl get ingress
-```
-
-Should include `viewer.`
-
-```shell
-NAME            HOSTS                                      ADDRESS   PORTS     AGE
-ingress-rules   api.cloudylabs.dev,viewer.cloudylabs.dev   x.x.x.x   80, 443   9h
-```
-
-And the URL in browser: https://viewer.cloudylabs.dev
+Navigate back to: https://tweets.cloudylabs.dev
 
 If everything went well, you should see some tweets appear. 
 
-> Note, this demo shows only tweets meeting your query posted sine the viewer was started. If you chosen an unpopular search term you may have to be patient
+> Note, this demo shows only tweets meeting your query posted since the viewer was started. If you chosen an unpopular search term you may have to be patient
 
 ## Disclaimer
 

@@ -28,7 +28,7 @@ var (
 
 	serviceAddress = getEnvVar("ADDRESS", ":60005")
 	apiToken       = getEnvVar("API_TOKEN", "")
-	apiDomain      = getEnvVar("API_DOMAIN", "tweetmaptextanalytics")
+	apiDomain      = getEnvVar("API_DOMAIN", "tweet-sentiment")
 
 	apiURL = fmt.Sprintf("https://%s.cognitiveservices.azure.com/text/analytics/v3.0/sentiment", apiDomain)
 )
