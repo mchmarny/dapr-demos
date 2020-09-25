@@ -1,5 +1,5 @@
-DOMAIN       ?=cloudylabs.dev
-CLUSTER_NAME ?=demo
+DOMAIN       ?=thingz.io
+CLUSTER_NAME ?=test
 NODE_COUNT   ?=3
 NODE_TYPE    ?=Standard_D4_v2
 
@@ -45,7 +45,7 @@ dapr: dapr-install keda-install observe-install ## Install dapr, keda, and obser
 .PHONY: dapr-install
 dapr-install: ## Install and configures Dapr
 	# Updating Help repos...
-	helm repo add dapr https://daprio.azurecr.io/helm/v1/repo
+	helm repo add dapr https://dapr.github.io/helm-charts/
 	helm repo update
 	# Installing Dapr...
 	kubectl create ns dapr-system
@@ -137,15 +137,15 @@ ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr
 	# Updating Help repos...
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo update
-	# Deploy nginx...
-	helm install nginx ingress-nginx/ingress-nginx \
-		--set controller.replicaCount=3 \
-		--set controller.metrics.enabled=true \
-		-f config/annotations.yaml
-	kubectl rollout status deployment/nginx-ingress-nginx-controller
 	# Gen Dapr API token 
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
+	# Deploy nginx...
+	helm install nginx ingress-nginx/ingress-nginx \
+		--set controller.replicaCount=2 \
+		--set controller.metrics.enabled=true \
+		-f config/annotations.yaml
+	kubectl rollout status deployment/nginx-ingress-nginx-controller
 	# Install cert secrets
 	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
