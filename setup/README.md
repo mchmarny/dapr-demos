@@ -44,6 +44,8 @@ To deploy and configure Dapr
 * `make dapr` to install Dapr, KEDA, and the entire observability stack
 * `make config` to perform post-install configuration
 
+> Optionally you can use `make daprupgrade` to in place upgrade Dapr to specific version
+
 To configure external access 
 
 * `make ingress` to configures Ngnx ingress, SSL termination, Dapr API auth
@@ -103,7 +105,7 @@ az configure --defaults location=<preferred location> group=<preferred resource 
 To lists previously created clusters run 
 
 ```shell
-make clusterlist
+make clusterdown
 ```
 
 To delete any of the previously created clusters run 
@@ -111,7 +113,7 @@ To delete any of the previously created clusters run
 > yes, there will be a prompt to confirm before deleting
 
 ```shell
-make cleanup CLUSTER_NAME=name
+make clusterdown CLUSTER_NAME=name
 ```
 
 ## Help

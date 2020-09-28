@@ -29,8 +29,11 @@ vendor
 # secrets
 secrets.json
 
+# certs
+certs
+setup/certs
+
 # other 
 setup/config/ingress.yaml
 setup/config/namespace.yml
-setup/config/zipkin.yaml
 setup/config/zipkin.yaml

@@ -1,10 +1,20 @@
-DOMAIN       ?=thingz.io
-CLUSTER_NAME ?=test
-NODE_COUNT   ?=3
-NODE_TYPE    ?=Standard_D4_v2
+DOMAIN           ?=example.com
+CLUSTER_NAME     ?=demo
+CLUSTER_VERSION  ?=1.18.8
+NODE_COUNT       ?=3
+NODE_TYPE        ?=Standard_D4_v2
 
 .PHONY: all
-all: help
+all:
+	@echo === ACTIVE CONFIGURATION ===
+	@echo "DOMAIN:          ${DOMAIN}"
+	@echo "CLUSTER_NAME:    ${CLUSTER_NAME}"
+	@echo "CLUSTER_VERSION: ${CLUSTER_VERSION}"
+	@echo "NODE_COUNT:      ${NODE_COUNT}"
+	@echo "NODE_TYPE:       ${NODE_TYPE}"
+	@echo 
+	@echo "* export these as variables to change their values"
+	@echo 
 
 .PHONY: clusterlist
 clusterlist: ## List AKS clusters
@@ -17,6 +27,7 @@ cluster: ## Create AKS cluster
 		--node-count $(NODE_COUNT) \
 		--node-vm-size $(NODE_TYPE) \
 		--enable-addons monitoring \
+		--kubernetes-version $(CLUSTER_VERSION) \
 		--generate-ssh-keys \
 		--enable-managed-identity
 	az aks get-credentials --name $(CLUSTER_NAME)
@@ -34,10 +45,11 @@ nodepool: ## Add new AKS node pool
 
 .PHONY: certs
 certs: ## Create wildcard TLS certificates using letsencrypt
+	mkdir -p certs/$(DOMAIN)
 	sudo certbot certonly --manual --preferred-challenges dns -d "*.$(DOMAIN)"
-	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" cert-ca.pem	
-	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" cert-pk.pem
-	sudo chmod 644 *.pem
+	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/fullchain.pem" certs/$(DOMAIN)/cert-ca.pem	
+	sudo cp "/etc/letsencrypt/live/$(DOMAIN)/privkey.pem" certs/$(DOMAIN)/cert-pk.pem
+	sudo chmod 644 certs/$(DOMAIN)/*.pem
 
 .PHONY: dapr
 dapr: dapr-install keda-install observe-install ## Install dapr, keda, and observability 
@@ -147,7 +159,9 @@ ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr
 		-f config/annotations.yaml
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 	# Install cert secrets
-	kubectl create secret tls tls-secret --key cert-pk.pem --cert cert-ca.pem
+	kubectl create secret tls tls-secret \
+		--key certs/$(DOMAIN)/cert-pk.pem \
+		--cert certs/$(DOMAIN)/cert-ca.pem
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	# Apply configured ingress 
 	kubectl apply -f config/ingress.yaml
@@ -297,8 +311,20 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 portstop: ## Stop previously forwarded observability ports 
 	pkill kubectl -9	
 
-.PHONY: cleanup
-cleanup: clusterlist ## Delete previously created AKS cluster (make cleanup CLUSTER_NAME=demo)
+.PHONY: daprupgrade
+daprupgrade: ## Upgrades Dapr to specific release version (make daprupgrade DAPR_RELEASE="0.11.0-rc.3")
+	kubectl delete clusterrolebinding dapr-operator
+	dapr mtls export -o ./certs
+	helm upgrade dapr -n=dapr-system \
+		--set-string global.tag=$(DAPR_RELEASE) \
+		--set-string global.registry=docker.io/daprio \
+		--set-file dapr_sentry.tls.root.certPEM=./certs/ca.crt \
+		--set-file dapr_sentry.tls.issuer.certPEM=./certs/issuer.crt \
+		--set-file dapr_sentry.tls.issuer.keyPEM=./certs/issuer.key \
+		--reset-values ./charts/dapr
+
+.PHONY: clusterdown
+clusterdown: clusterlist ## Delete previously created AKS cluster (make clusterdown CLUSTER_NAME=demo)
 	az aks delete --name $(CLUSTER_NAME)
 
 .PHONY: help
