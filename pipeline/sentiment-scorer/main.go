@@ -133,6 +133,7 @@ func getSentiment(ctx context.Context, lang, text string) (out *SentimentScore, 
 				Positive float64 `json:"positive"`
 				Neutral  float64 `json:"neutral"`
 				Negative float64 `json:"negative"`
+				Mixed    float64 `json:"mixed"`
 			} `json:"confidenceScores"`
 		} `json:"documents"`
 	}
@@ -157,6 +158,8 @@ func getSentiment(ctx context.Context, lang, text string) (out *SentimentScore, 
 		out.Confidence = rez.Documents[0].Scores.Negative
 	case "neutral":
 		out.Confidence = rez.Documents[0].Scores.Neutral
+	case "mixed":
+		out.Confidence = rez.Documents[0].Scores.Mixed
 	default:
 		return nil, fmt.Errorf("invalid sentiment: %s", out.Sentiment)
 	}

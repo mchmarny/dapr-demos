@@ -1,4 +1,4 @@
-RELEASE_VERSION  =v0.10.3
+RELEASE_VERSION  =v0.10.4
 SERVICE_NAME    ?=sentiment-scorer
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
@@ -20,13 +20,13 @@ run: tidy ## Runs uncompiled code in Dapr
         go run main.go
 
 invoke: ## Invokes service through Dapr API 
-	curl -d '{ "text": "dapr is the best" }' \
+	curl -i -d '{ "text": "dapr is the best" }' \
      -H "Content-type: application/json" \
      "http://localhost:3505/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
-	curl -d '{ "text": "spinach is the worst" }' \
+	curl -i -d '{ "text": "spinach is the worst" }' \
      -H "Content-type: application/json" \
      "http://localhost:3505/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
-	curl -d '{ "text": "something is green" }' \
+	curl -i -d '{ "text": "happy alram make me sad" }' \
      -H "Content-type: application/json" \
      "http://localhost:3505/v1.0/invoke/$(SERVICE_NAME)/method/sentiment"
 

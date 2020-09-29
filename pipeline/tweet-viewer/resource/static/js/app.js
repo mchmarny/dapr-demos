@@ -41,16 +41,18 @@ window.onload = function () {
 
             
             var scoreStr = "neutral";
+            var scoreAlt = "neutral: 0"
             if (t.hasOwnProperty("sentiment")) { 
                 console.log(t.sentiment);
                 if (t.sentiment.sentiment.length > 0) {
                     scoreStr = t.sentiment.sentiment;
+                    scoreAlt = scoreStr + ": " + t.sentiment.confidence;
                 }
             } 
 
             var tweetText = t.text;
-            if (t.truncated == true) {
-                tweetText = t.full_text;
+            if(t.extended_tweet != null) {
+                tweetText = t.extended_tweet.full_text;
             }
 
             var item = document.createElement("div");
@@ -58,7 +60,7 @@ window.onload = function () {
             // TODO: template this
             var tmsg = "<img src='" + t.user.profile_image_url_https + "' class='profile-pic' />" +
                 "<div class='item-text'><b><img src='static/img/" + scoreStr +
-                ".svg' alt='sentiment' class='sentiment' />" + t.user.screen_name +
+                ".svg' title='" + scoreAlt + "' class='sentiment' />" + t.user.screen_name +
                 "<a href='https://twitter.com/" + t.user.screen_name + "/status/" + t.id_str +
                 "' target='_blank'><img src='static/img/tw.svg' class='tweet-link' /></a></b>" +
                 "<br /><i>" + tweetText + "</i></div>";

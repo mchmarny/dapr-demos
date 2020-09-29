@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/tweet-viewer:v0.10.3
+        image: mchmarny/tweet-viewer:v0.10.5
         ports:
         - containerPort: 8084
         env:
