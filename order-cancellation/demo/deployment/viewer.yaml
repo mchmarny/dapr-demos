@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: viewer
-        image: mchmarny/order-viewer:v0.10.0
+        image: mchmarny/order-viewer:v0.11.1
         ports:
         - containerPort: 8080
         env:

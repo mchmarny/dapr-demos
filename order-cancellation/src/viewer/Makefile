@@ -1,11 +1,11 @@
 APP_NAME         =order-viewer
-RELEASE_VERSION  =v0.10.0
+RELEASE_VERSION  =v0.11.1
 DOCKER_USERNAME ?=$(DOCKER_USER)
 
 .PHONY: test mod run dapr lint image tag clean help
 all: test
 
-mod: ## Updates the go modules and vendors 
+tidy: ## Updates the go modules and vendors 
 	go mod tidy
 	go mod vendor
 

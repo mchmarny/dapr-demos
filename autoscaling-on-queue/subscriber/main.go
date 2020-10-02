@@ -80,14 +80,14 @@ func main() {
 	}
 
 	// subscribe
-	if err := s.AddTopicEventHandler(subscription, func(ctx context.Context, e *common.TopicEvent) error {
+	if err := s.AddTopicEventHandler(subscription, func(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 		if err := processRequest(ctx, e.Data); err != nil {
 			logger.Printf("error processing request: %v", err)
 			resultCh <- false
-			return errors.Wrap(err, "error processing request")
+			return true, errors.Wrap(err, "error processing request")
 		}
 		resultCh <- true
-		return nil
+		return false, nil
 	}); err != nil {
 		logger.Fatalf("error adding topic subscription: %v", err)
 	}

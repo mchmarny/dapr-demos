@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/http-echo-service:v0.10.0
+        image: mchmarny/http-echo-service:v0.11.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

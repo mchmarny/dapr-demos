@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/cron-binding-demo:v0.10.0
+        image: mchmarny/cron-binding-demo:v0.11.1
         ports:
         - containerPort: 8080
         env:

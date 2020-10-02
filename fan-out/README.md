@@ -12,7 +12,7 @@ This demo will illustrate how to use Dapr's plugable component mechanism to `fan
 
 This allows for incremental modifications with ability to customize each stream according to its unique configuration needs (e.g. throughout, authentication, format, retry strategy, or even error tolerance). For more information about Dapr's pub/sub see these [docs](https://github.com/dapr/docs/tree/master/concepts/publish-subscribe-messaging)
 
-This demo requires Dapr `v0.10` as well as go `1.14+` and docker-compose `v1.26+`
+This demo requires Dapr `v0.11` as well as go `1.14+` and docker-compose `v1.26+`
 
 > Note, the version of the demo with Event Hub binding has been moved to [this branch](https://github.com/mchmarny/dapr-demos/tree/fanout-eventhubs/fan-out)
 

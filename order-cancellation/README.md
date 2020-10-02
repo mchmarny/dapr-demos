@@ -1,6 +1,6 @@
 # Dapr integrations demo
 
-> WIP: This demo is being currently updated to Dapr v0.10
+> WIP: This demo is being currently updated to Dapr v0.11
 
 ## Use-case
 

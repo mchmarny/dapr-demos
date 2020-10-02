@@ -37,9 +37,9 @@ func main() {
 	}
 }
 
-func eventHandler(ctx context.Context, e *common.TopicEvent) error {
+func eventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	logger.Printf("Event - PubsubName:%s, Topic:%s, ID:%s", e.PubsubName, e.Topic, e.ID)
-	return nil
+	return false, nil
 }
 
 func getEnvVar(key, fallbackValue string) string {

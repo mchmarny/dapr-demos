@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/autoscaling-subscriber:v0.10.4
+        image: mchmarny/autoscaling-subscriber:v0.11.1
         ports:
         - containerPort: 60033
         env:

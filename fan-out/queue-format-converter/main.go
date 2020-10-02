@@ -62,17 +62,17 @@ type SourceEvent struct {
 	Time        int64   `json:"time"`
 }
 
-func eventHandler(ctx context.Context, e *common.TopicEvent) error {
+func eventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	logger.Printf("Event - PubsubName:%s, Topic:%s, ID:%s", e.PubsubName, e.Topic, e.ID)
 
 	d, ok := e.Data.([]byte)
 	if !ok {
-		return errors.Errorf("invalid event data type: %T", e.Data)
+		return false, errors.Errorf("invalid event data type: %T", e.Data)
 	}
 
 	var se SourceEvent
 	if err := json.Unmarshal(d, &se); err != nil {
-		return errors.Errorf("error parsing input content: %v", err)
+		return false, errors.Errorf("error parsing input content: %v", err)
 	}
 
 	var (
@@ -85,21 +85,21 @@ func eventHandler(ctx context.Context, e *common.TopicEvent) error {
 		b = d
 	case "xml":
 		if b, me = xml.Marshal(&e); me != nil {
-			return errors.Errorf("error while converting content: %v", me)
+			return false, errors.Errorf("error while converting content: %v", me)
 		}
 	case "csv":
 		b = []byte(fmt.Sprintf(`"%s",%f,%f,"%s"`,
 			se.ID, se.Temperature, se.Humidity, time.Unix(se.Time, 0).Format(time.RFC3339)))
 	default:
-		return errors.Errorf("invalid target format: %s", targetTopicFormat)
+		return false, errors.Errorf("invalid target format: %s", targetTopicFormat)
 	}
 	logger.Printf("Target (%s): %s", targetTopicFormat, b)
 
 	if err := client.PublishEvent(ctx, targetPubSubName, targetTopicName, b); err != nil {
-		return errors.Wrap(err, "error publishing converted content")
+		return true, errors.Wrap(err, "error publishing converted content")
 	}
 
-	return nil
+	return false, nil
 }
 
 func getEnvVar(key, fallbackValue string) string {

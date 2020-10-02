@@ -12,7 +12,7 @@ kind: Component
 metadata:
   name: changes
 spec:
-  type: digitaltwins.rethinkdb.statechange
+  type: bindings.rethinkdb.statechange
   metadata:
   - name: address
     value: "127.0.0.1:28015"

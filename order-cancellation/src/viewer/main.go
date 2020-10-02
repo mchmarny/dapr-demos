@@ -98,7 +98,7 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./resource/static/img/favicon.ico")
 }
 
-func eventHandler(ctx context.Context, e *common.TopicEvent) error {
+func eventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	logger.Printf(
 		"event - PubsubName:%s, Topic:%s, ID:%s, Data: %v",
 		e.PubsubName, e.Topic, e.ID, e.Data,
@@ -106,11 +106,11 @@ func eventHandler(ctx context.Context, e *common.TopicEvent) error {
 
 	b, err := json.Marshal(e.Data)
 	if err != nil {
-		return errors.Wrap(err, "error marshaling data")
+		return false, errors.Wrap(err, "error marshaling data")
 	}
 
 	broadcaster.Broadcast(b)
-	return nil
+	return false, nil
 }
 
 func getEnvVar(key, fallbackValue string) string {

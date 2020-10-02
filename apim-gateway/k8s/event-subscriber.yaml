@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/http-event-subscriber:v0.10.0
+        image: mchmarny/http-event-subscriber:v0.11.1
         ports:
         - containerPort: 8080
         env:
