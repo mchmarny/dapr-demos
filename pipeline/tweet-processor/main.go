@@ -95,41 +95,41 @@ func getSentimentScore(ctx context.Context, req *SentimentRequest) (score *Senti
 	return &s, nil
 }
 
-func tweetHandler(ctx context.Context, e *common.TopicEvent) error {
+func tweetHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	logger.Printf("Processing pubsub:%s/topic:%s id:%s", e.PubsubName, e.Topic, e.ID)
 
 	b, ok := e.Data.([]byte)
 	if !ok {
-		return fmt.Errorf("invalid data type, expected []bytes: %T", e.Data)
+		return false, fmt.Errorf("invalid data type, expected []bytes: %T", e.Data)
 	}
 
 	sentReq, err := topicDataToSentimentRequest(b)
 	if err != nil {
-		return errors.Wrap(err, "error getting tweet text")
+		return false, errors.Wrap(err, "error getting tweet text")
 	}
 
 	sentScore, err := getSentimentScore(ctx, sentReq)
 	if err != nil {
-		return errors.Wrap(err, "error getting sentiment score")
+		return true, errors.Wrap(err, "error getting sentiment score")
 	}
 
 	var tweetMap map[string]interface{}
 	if err := json.Unmarshal(b, &tweetMap); err != nil {
-		return errors.Wrap(err, "error deserializing content into map")
+		return true, errors.Wrap(err, "error deserializing content into map")
 	}
 
 	tweetMap["sentiment"] = sentScore
 	content, err := json.Marshal(tweetMap)
 	if err != nil {
-		return errors.Wrap(err, "unable to serialize tweet map content")
+		return true, errors.Wrap(err, "unable to serialize tweet map content")
 	}
 
 	if err := client.PublishEvent(ctx, resultPubSubName, resultTopicName, content); err != nil {
-		return errors.Wrapf(err, "error publishing to %s/%s", resultPubSubName, resultTopicName)
+		return true, errors.Wrapf(err, "error publishing to %s/%s", resultPubSubName, resultTopicName)
 	}
 
 	logger.Printf("Processed tweet:%s - %v", e.ID, sentScore)
-	return nil
+	return false, nil
 }
 
 // TweetText represents only the text of tweet for sentiment

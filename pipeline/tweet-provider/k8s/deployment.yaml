@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: mchmarny/tweet-provider:v0.10.2
+        image: mchmarny/tweet-provider:v0.11.1
         ports:
         - containerPort: 8080
         env:
