@@ -81,9 +81,12 @@ To deploy in-cluster data services
 
 And few cluster operations helpers
 
-* `make ports` to forward observability dashboards ports
-* `make namespace` to create namespace and configure service secrets 
+* `make ports` to forward observability dashboards ports 
 * `make pass` to print the Grafana password (username: admin)
+
+Then for each namespace you want to deploy demo apps to
+
+* `make namespace` to create/configure namespace with service secrets
 
 ## Accessing observability dashboards 
 

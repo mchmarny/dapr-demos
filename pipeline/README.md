@@ -126,7 +126,7 @@ kubectl apply -f tweet-processor/k8s/deployment.yaml
 kubectl rollout status deployment/tweet-processor
 ```
 
-If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
+> Note, throughout this demo, if you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
 
 ```shell
 kubectl rollout restart deployment/nginx-ingress-nginx-controller
@@ -152,8 +152,6 @@ Deploy `sentiment-scorer` and wait for it to be ready
 ```shell
 kubectl apply -f sentiment-scorer/deployment.yaml
 kubectl rollout status deployment/sentiment-scorer
-kubectl rollout restart deployment/nginx-ingress-nginx-controller
-kubectl rollout status deployment/nginx-ingress-nginx-controller
 ```
 
 Check the logs to make sure Dapr was started correctly 
@@ -236,13 +234,6 @@ kubectl apply -f tweet-provider/k8s/state.yaml
 kubectl apply -f tweet-provider/k8s/pubsub.yaml
 kubectl apply -f tweet-provider/k8s/twitter.yaml
 kubectl apply -f tweet-provider/k8s/deployment.yaml
-kubectl rollout status deployment/tweet-provider
-```
-
-If you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
-
-```shell
-kubectl rollout restart deployment/tweet-provider
 kubectl rollout status deployment/tweet-provider
 ```
 
