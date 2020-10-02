@@ -3,6 +3,8 @@ CLUSTER_NAME     ?=demo
 CLUSTER_VERSION  ?=1.18.8
 NODE_COUNT       ?=3
 NODE_TYPE        ?=Standard_D4_v2
+DAPR_HA          ?=true
+DAPR_LOG_AS_JSON ?=true
 
 .PHONY: all
 all:
@@ -61,7 +63,9 @@ dapr-install: ## Install and configures Dapr
 	helm repo update
 	# Installing Dapr...
 	kubectl create ns dapr-system
-	helm install dapr dapr/dapr -n dapr-system --set global.logAsJson=true
+	helm install dapr dapr/dapr -n dapr-system \
+		--set global.logAsJson=$(DAPR_HA) \
+		--set global.ha.enabled=$(DAPR_LOG_AS_JSON)
 	# Wait for everything to finish installing 
 	kubectl rollout status deployment/dapr-operator -n dapr-system
 	kubectl rollout status deployment/dapr-dashboard -n dapr-system

@@ -37,7 +37,7 @@ func main() {
 	client = c
 	defer client.Close()
 
-	// add some input binding handler
+	// add twitter input binding handler
 	if err := s.AddBindingInvocationHandler("tweets", tweetHandler); err != nil {
 		logger.Fatalf("error adding binding handler: %v", err)
 	}
@@ -54,10 +54,12 @@ func tweetHandler(ctx context.Context, in *common.BindingEvent) (out []byte, err
 	if err := json.Unmarshal(in.Data, &m); err != nil {
 		return nil, errors.Wrap(err, "error deserializing event data")
 	}
+
 	k := fmt.Sprintf("tw-%s", m["id_str"])
 	if err := client.SaveState(ctx, storeName, k, in.Data); err != nil {
 		return nil, errors.Wrapf(err, "error saving to store:%s with key:%s", storeName, k)
 	}
+
 	logger.Printf("Tweet saved in store: %s: %s", storeName, k)
 	if err := client.PublishEvent(ctx, pubSubName, topicName, in.Data); err != nil {
 		return nil, errors.Wrapf(err, "error publishing to %s/%s", pubSubName, topicName)

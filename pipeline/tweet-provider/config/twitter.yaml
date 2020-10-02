@@ -18,6 +18,6 @@ spec:
     secretKeyRef:
       name: Twitter:AccessSecret
   - name: query
-    value: "football" # use common term for demo
+    value: "football" # common term for demo
 auth:
     secretStore: pipeline-secrets

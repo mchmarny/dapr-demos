@@ -27,11 +27,32 @@ An opinionated deployment of Dapr on Kubernetes, configured with:
   * [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
 * Domain name and access to the DNS service where you can manage that domain (required for letsencrypt challenge during cert generation and the `A` record creation to pont to the ingress gateway IP for custom domain support)
 
+## Setup 
+
+The following parameters can be used to configure your deployment. Define these as environment variables to set or override the default value:
+
+**Cluster** 
+
+```shell
+CLUSTER_NAME      # default: demo
+CLUSTER_VERSION   # default: 1.18.8
+NODE_COUNT        # default: 3
+NODE_TYPE         # default: Standard_D4_v2
+```
+
+**Dapr**
+
+```shell
+DOMAIN            # default: example.com
+DAPR_HA           # default: true
+DAPR_LOG_AS_JSON  # default: true
+```
+
 ## Usage
 
-Update [Makefile](./Makefile) variables as necessary, then:
+> Run `make` by itself to see the active configuration 
 
-If you need a cluster (otherwise use one selected in your kubectol context)
+If you need a cluster (otherwise use one selected in your kubectl context)
 
 * `make cluster` to create a cluster on AKS
 
@@ -42,7 +63,7 @@ If you need TLS certificates, otherwise, use your own
 To deploy and configure Dapr 
 
 * `make dapr` to install Dapr, KEDA, and the entire observability stack
-* `make config` to perform post-install configuration
+* `make config` to perform post-install configurations
 
 > Optionally you can use `make daprupgrade` to in place upgrade Dapr to specific version
 
