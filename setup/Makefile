@@ -9,13 +9,15 @@ DAPR_LOG_AS_JSON ?=true
 .PHONY: all
 all:
 	@echo === ACTIVE CONFIGURATION ===
-	@echo "DOMAIN:          ${DOMAIN}"
-	@echo "CLUSTER_NAME:    ${CLUSTER_NAME}"
-	@echo "CLUSTER_VERSION: ${CLUSTER_VERSION}"
-	@echo "NODE_COUNT:      ${NODE_COUNT}"
-	@echo "NODE_TYPE:       ${NODE_TYPE}"
+	@echo "DOMAIN:           ${DOMAIN}"
+	@echo "CLUSTER_NAME:     ${CLUSTER_NAME}"
+	@echo "CLUSTER_VERSION:  ${CLUSTER_VERSION}"
+	@echo "NODE_COUNT:       ${NODE_COUNT}"
+	@echo "NODE_TYPE:        ${NODE_TYPE}"
+	@echo "DAPR_HA:          ${DAPR_HA}"
+	@echo "DAPR_LOG_AS_JSON: ${DAPR_LOG_AS_JSON}"
 	@echo 
-	@echo "* export these as variables to change their values"
+	@echo "Export these as environment variables to change their values"
 	@echo 
 
 .PHONY: clusterlist

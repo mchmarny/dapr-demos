@@ -83,6 +83,7 @@ And few cluster operations helpers
 
 * `make ports` to forward observability dashboards ports
 * `make namespace` to create namespace and configure service secrets 
+* `make pass` to print the Grafana password (username: admin)
 
 ## Accessing observability dashboards 
 
