@@ -71,7 +71,7 @@ az container create \
     --ports 3500 \
     --protocol TCP \
     --dns-name-label $SNAME \
-    --image docker.io/daprio/daprd:0.10.0 \
+    --image docker.io/daprio/daprd:0.11.0 \
     --command-line "/daprd --components-path /components --app-protocol http" \
     --secure-environment-variables "DAPR_API_TOKEN=${DTOKEN}" \
     --azure-file-volume-share-name $SNAME \
@@ -91,7 +91,7 @@ The result should look something like this
 ```shell
 Name      ResourceGroup  Status     Image                          IP:ports           Network  CPU/Memory       OsType    Location
 --------  -------------  ---------  -----------------------------  -----------------  -------  ---------------  --------  --------
-demodapr  mchmarny       Succeeded  docker.io/daprio/daprd:0.10.0  51.143.49.0:3500   Public   1.0 core/1.5 gb  Linux     westus2
+demodapr  mchmarny       Succeeded  docker.io/daprio/daprd:0.11.0  51.143.49.0:3500   Public   1.0 core/1.5 gb  Linux     westus2
 ```
 
 If everything went OK, you should be able post to the email output binding below
