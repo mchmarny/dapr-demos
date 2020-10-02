@@ -113,7 +113,7 @@ Navigate once more to http://localhost:8084/ and provided there were tweets matc
 
 ## Run on Kubernetes 
 
-> This section is WIP. Use the individual Makefiles located in each app to deploy to Kubernetes for now. 
+> Note, these instructions assume cluster created using the [demo setup](../setup).
 
 ### tweet-processor
 
