@@ -3,7 +3,7 @@
 An opinionated deployment of Dapr on Kubernetes, configured with:
 
 * Ingress with custom domain and TLS termination
-  * [ngnx](https://nginx.org/en/) for ingress controller and TLS to service mapping 
+  * [NGNX](https://nginx.org/en/) for ingress controller and TLS to service mapping 
   * [letsencrypt](https://letsencrypt.org/) as certificate provider
 * KEDA autoscaling
 * Metrics Monitoring
@@ -56,10 +56,6 @@ If you need a cluster (otherwise use one selected in your kubectl context)
 
 * `make cluster` to create a cluster on AKS
 
-If you need TLS certificates, otherwise, use your own
-
-* `make certs` to create TLS certs using letsencrypt
-
 To deploy and configure Dapr 
 
 * `make dapr` to install Dapr, KEDA, and the entire observability stack
@@ -69,7 +65,9 @@ To deploy and configure Dapr
 
 To configure external access 
 
-* `make ingress` to configures Ngnx ingress, SSL termination, Dapr API auth
+* `make ip` (optional) to create static IP in the cluster resource group
+* `make certs` to create TLS certs using letsencrypt
+* `make ingress` to configures NGNX ingress, SSL termination, Dapr API auth
 * `make dns` to configure your DNS service for custom domain support 
 * `make test` to test deployment
 
@@ -83,6 +81,7 @@ And few cluster operations helpers
 
 * `make ports` to forward observability dashboards ports 
 * `make pass` to print the Grafana password (username: admin)
+* `make nodes` to print node resource usage
 
 Then for each namespace you want to deploy demo apps to
 

@@ -24,6 +24,10 @@ all:
 clusterlist: ## List AKS clusters
 	az aks list -o table
 
+.PHONY: versionlist
+versionlist: ## List Kubernetes versions supported in AKS
+	az aks get-versions -o json --query 'orchestrators[].orchestratorVersion'
+
 .PHONY: cluster
 cluster: ## Create AKS cluster
 	az aks create \
@@ -35,6 +39,22 @@ cluster: ## Create AKS cluster
 		--generate-ssh-keys \
 		--enable-managed-identity
 	az aks get-credentials --name $(CLUSTER_NAME)
+
+.PHONY: nodes
+nodes: ## Print node resource usage
+	kubectl top nodes
+
+.PHONY: ip
+ip: ## Create Static IP for the existing AKS cluster
+	$(eval CLUSTERRC=$(shell az aks show -n $(CLUSTER_NAME) -o tsv --query nodeResourceGroup))
+	az network public-ip create \
+		-g $(CLUSTERRC) \
+		-n "${CLUSTER_NAME}IP" \
+		--sku STANDARD
+	az network public-ip show \
+		-g $(CLUSTERRC) \
+		-n "${CLUSTER_NAME}IP" \
+		-o tsv --query ipAddress
 
 .PHONY: nodepool
 nodepool: ## Add new AKS node pool
@@ -240,7 +260,7 @@ ports: ## Forward observability ports
 	@echo
 	@echo "To stop forwarding run 'make portstop'"
 	@echo
-	
+
 .PHONY: reload
 reload: ## Reloads API to pickup new components 
 	kubectl rollout restart deployment/nginx-ingress-nginx-controller
@@ -311,7 +331,6 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 	# Configure zipkin
 	sed "s/NSNAME/${NSNAME}/g" config/zipkin-template.yaml > config/zipkin.yaml
 	kubectl apply -f config/zipkin-config.yaml -f config/zipkin.yaml -n $(NSNAME)
-
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 

@@ -37,3 +37,4 @@ setup/certs
 setup/config/ingress.yaml
 setup/config/namespace.yml
 setup/config/zipkin.yaml
+setup/config/zipkin.yaml
