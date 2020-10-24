@@ -20,16 +20,16 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "app1"
         dapr.io/app-protocol: "http"
-        dapr.io/app-port: "8080"
+        dapr.io/app-port: "8081"
         dapr.io/config: "app1-config"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: app
-        image: ghcr.io/mchmarny/hardened-app1:v0.1.3
+        image: ghcr.io/mchmarny/hardened-app1:v0.1.4
         ports:
-        - containerPort: 8080
+        - containerPort: 8081
         env:
         - name: PUBSUB_NAME
           value: "pubsub"
@@ -49,3 +49,15 @@ spec:
       - storeName: kubernetes
         defaultAccess: allow
         deniedSecrets: ["redis-secret"]
+  accessControl:
+    defaultAction: deny
+    trustDomain: "public"
+    policies:
+    - appId: nginx-ingress
+      defaultAction: deny 
+      trustDomain: "public"
+      namespace: "default"
+      operations:
+      - name: /ping
+        httpVerb: ["POST"] 
+        action: allow

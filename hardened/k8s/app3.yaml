@@ -1,47 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app2
+  name: app3
   namespace: hardened
   labels:
-    app: app2
+    app: app3
     demo: hardened
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app2
+      app: app3
   template:
     metadata:
       labels:
-        app: app2
+        app: app3
         demo: hardened
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "app2"
+        dapr.io/app-id: "app3"
         dapr.io/app-protocol: "http"
-        dapr.io/app-port: "8082"
-        dapr.io/config: "app2-config"
+        dapr.io/app-port: "8083"
+        dapr.io/config: "app3-config"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: app
-        image: ghcr.io/mchmarny/hardened-app2:v0.1.4
+        image: ghcr.io/mchmarny/hardened-app3:v0.1.4
         ports:
-        - containerPort: 8082
+        - containerPort: 8083
         env:
         - name: PUBSUB_NAME
           value: "pubsub"
         - name: TOPIC_NAME
           value: "messages"
-        - name: STORE_NAME
-          value: "state"
 ---
 apiVersion: dapr.io/v1alpha1
 kind: Configuration
 metadata:
-  name: app2-config
+  name: app3-config
   namespace: hardened
 spec:
   tracing:
@@ -51,15 +49,4 @@ spec:
       - storeName: kubernetes
         defaultAccess: allow
         deniedSecrets: ["redis-secret"]
-  accessControl:
-    defaultAction: deny
-    trustDomain: "public"
-    policies:
-    - appId: app1
-      defaultAction: deny 
-      trustDomain: "public"
-      namespace: "hardened"
-      operations:
-      - name: /counter
-        httpVerb: ["POST"] 
-        action: allow
+          

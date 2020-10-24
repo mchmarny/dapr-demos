@@ -2,23 +2,18 @@
 all: help
 
 
-.PHONY: call
-call: ## Invokes call method on app1 service through Dapr API 
-	curl -i -d '{ "message": "hello" }' \
-      -H "Content-type: application/json" \
-      "http://localhost:3500/v1.0/invoke/hardened-app1/method/call"
+.PHONY: ping
+ping: ## Invokes ping method on app1 service through Dapr API 
+	curl -i -d '{ "message": "hi" }' \
+        -H "Content-type: application/json" \
+        "http://localhost:3500/v1.0/invoke/app1/method/ping"
 
-.PHONY: pub
-pub: ## Invokes pub method on app1 service through Dapr API 
-	curl -i -d '{ "message": "hello" }' \
-      -H "Content-type: application/json" \
-      "http://localhost:3500/v1.0/invoke/hardened-app1/method/pub"
 
-.PHONY: direct
-direct: ## Publish directly to the Dapr Pub/Sub API
-	curl -i -d '{ "message": "hello" }' \
-      -H "Content-type: application/json" \
-      "http://localhost:3500/v1.0/publish/pubsub/messages"
+.PHONY: message
+message: ## Publish message directly to the Dapr Pub/Sub API
+	curl -i -d '{ "message": "hi" }' \
+        -H "Content-type: application/json" \
+        "http://localhost:3500/v1.0/publish/pubsub/messages"
 
 
 .PHONY: help

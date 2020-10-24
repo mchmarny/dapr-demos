@@ -13,9 +13,9 @@ spec:
       name: redis-secret
       key: password
   - name: publishingScopes
-    value: "app1=messages"
-  - name: subscriptionScopes
     value: "app2=messages"
+  - name: subscriptionScopes
+    value: "app3=messages"
 scopes:
-- app1
 - app2
+- app3

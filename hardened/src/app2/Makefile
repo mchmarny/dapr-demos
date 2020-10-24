@@ -1,8 +1,8 @@
 IMAGE_NAME  ?=hardened-app2
-IMAGE_TAG   ?=v0.1.2
+IMAGE_TAG   ?=v0.1.4
 IMAGE_OWNER ?=$(shell git config --get user.username)
 APP_ID      ?=app2
-APP_PORT    ?=8081
+APP_PORT    ?=8082
 
 all: help
 
@@ -21,8 +21,7 @@ run: tidy ## Runs uncompiled code in Dapr
       --app-id $(APP_ID) \
       --app-port $(APP_PORT) \
       --app-protocol http \
-      --components-path ../config \
-	  --config ../config/app2.yaml \
+      --components-path ../../config \
       --log-level debug \
       go run main.go
 

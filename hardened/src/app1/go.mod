@@ -1,4 +1,4 @@
-module github.com/mchmarny/dapr-demos/hardened/app2
+module github.com/mchmarny/dapr-demos/hardened/src/app1
 
 go 1.15
 
