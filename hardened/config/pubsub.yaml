@@ -1,0 +1,19 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+  namespace: hardened
+spec:
+  type: pubsub.redis
+  metadata:
+  - name: redisHost
+    value: localhost:6379
+  - name: redisPassword
+    value: ""
+  - name: publishingScopes
+    value: "app1=messages"
+  - name: subscriptionScopes
+    value: "app2=messages"
+scopes:
+- app1
+- app2

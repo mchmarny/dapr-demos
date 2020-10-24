@@ -1,0 +1,16 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: state
+  namespace: hardened
+spec:
+  type: state.redis
+  metadata:
+  - name: redisHost
+    value: redis-master.redis.svc.cluster.local:6379
+  - name: redisPassword
+    secretKeyRef:
+      name: redis-secret
+      key: password
+scopes:
+- app2
