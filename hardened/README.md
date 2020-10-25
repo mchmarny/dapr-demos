@@ -8,7 +8,7 @@ This demo will overview:
 
 * In-transit encryption for all sidecar-to-sidecar communication using mutual TLS
 * Cross-namespace service invocation with [SPIFFE](https://spiffe.io/) identity verification 
-* Trust relationship management using "trustDomain" logical grouping
+* Trust relationship management using logical domain grouping
 * Per-operation access control settings, down to verb level (e.g. only POST on /op1)
 * Component scoping (i.e. which app should be able to access a given component)
 * Pub/Sub topic scoping (which app should be able to publish or subscriber to a given topic)
