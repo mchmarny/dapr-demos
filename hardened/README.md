@@ -2,6 +2,8 @@
 
 In addition to support for namespace isolation and its Role-based access control (RBAC) authorization, Dapr also provides additional, more granular, control-points which can be used to harden application deployment on Kubernetes. 
 
+![](img/diagram.png)
+
 This demo will overview: 
 
 * In-transit encryption for all sidecar-to-sidecar communication using mutual TLS
