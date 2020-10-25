@@ -1,4 +1,4 @@
-# hardened demo 
+# Hardening Dapr app demo 
 
 In addition to support for Kubernetes namespace isolation and Role-Based Access Control (RBAC) authorization, Dapr also provides additional, more granular, controls to harden applications deployment in Kubernetes. Some security related features, like in-transit encryption for all sidecar-to-sidecar communication using mutual TLS, are enabled by default. Others, require opt-in. This demo will overview: 
 
