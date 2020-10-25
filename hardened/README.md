@@ -100,14 +100,14 @@ export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}"
 
 ### Service Invocation
 
-The app identity its access control within Dapr as controlled using policies which are defined in the app configuration. To attach configuration, an app has to annotate on the deployment template the name of the configuration:
+The app identity and its access control within Dapr as controlled using [policies](https://github.com/dapr/docs/blob/master/howto/allowlists-serviceinvocation/README.md) which are defined in the app configuration. To attach [configuration](https://github.com/dapr/docs/blob/master/howto/allowlists-serviceinvocation/README.md), an app has to annotate on the deployment template the name of the configuration:
 
 ```yaml
 annotations:
   dapr.io/config: "app1-config"
 ```
 
-To allow only the Dapr'ized NGNX ingress to invoke the `/ping` method on `app1`, the default action is set to `deny` and an explicit policy created for `nginx-ingress` which first denies access to all methods on that app and only then allows access on the `/ping` method (aka operation) when the HTTP verb is `POST`. 
+To allow only the Dapr'ized NGNX ingress to invoke the `/ping` method on [app1.yaml](./k8s/app1.yaml), the default action is set to `deny` and an explicit policy created for `nginx-ingress` which first denies access to all methods on that app and only then allows access on the `/ping` method (aka operation) when the HTTP verb is `POST`. 
 
 ```yaml
 accessControl:
@@ -164,7 +164,21 @@ That invocation will result in an error. The response will include `PermissionDe
 }
 ```
 
-The access control defined above applies also to in-cluster invocation. To demo this, forward local port to any other Dapr sidecar on that cluster.
+The access control defined above applies also to in-cluster invocation ([app2.yaml](./k8s/app2.yaml)). Where the additional `trustDomain` setting is used to allow access for the calling app `app1` to invoke the `/counter` method:
+
+```yaml
+policies:
+  - appId: app1
+    defaultAction: deny 
+    trustDomain: "hardened"
+    namespace: "hardened"
+    operations:
+    - name: /counter
+      httpVerb: ["POST"] 
+      action: allow
+```
+
+To demo this, forward local port to any other Dapr sidecar on that cluster.
 
 ```shell
 kubectl port-forward deployment/app2 3500 -n hardened
