@@ -1,6 +1,6 @@
 # hardened demo 
 
-In addition to support for namespace isolation and its Role-Based Access Control (RBAC) authorization, Dapr also provides additional, more granular, control-points which can be used to harden application deployment on Kubernetes. 
+In addition to support for namespace isolation and Role-Based Access Control (RBAC) authorization, Dapr also provides additional, more granular, control options which can be used to harden application deployment in Kubernetes. 
 
 ![](img/diagram.png)
 
