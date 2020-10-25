@@ -47,6 +47,6 @@ spec:
   secrets:
     scopes:
       - storeName: kubernetes
-        defaultAccess: allow
-        deniedSecrets: ["redis-secret"]
+        defaultAccess: deny
+        allowedSecrets: ["redis-secret"]
           

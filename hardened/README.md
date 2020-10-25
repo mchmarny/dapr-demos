@@ -26,14 +26,20 @@ In Kubernetes, namespaces provide way to divide cluster resources between multip
 kubectl create namespace hardened
 ```
 
-To illustrate Dapr components like PubSub and State, this demo will use Redis. To showcase the declarative access control for applications over secrets this demo will use Redis password defined in the `hardened` namespace.
-
-> If this is Redis on your cluster you can look it up using `kubectl get svc nginx-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` and define the `REDIS_PASS` environment variable with that secret. 
+To illustrate Dapr components like PubSub and State, this demo will use Redis. To showcase the declarative access control for applications over secrets this demo will use passwords defined in the `hardened` namespace.
 
 ```shell
 kubectl create secret generic redis-secret \
     --from-literal=password="${REDIS_PASS}" \
     -n hardened 
+```
+
+> If this is Redis on your cluster you can look it up using `kubectl get svc nginx-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` and define the `REDIS_PASS` environment variable with that secret. 
+
+Also, create another secret to we can demonstrate later how Dapr controls application's access to the secrets.
+
+```shell
+kubectl create secret generic test-secret --from-literal=test="test" -n hardened 
 ```
 
 ## Deploy
@@ -92,7 +98,33 @@ Start by exporting the API token from the cluster ingress.
 export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
 ```
 
-Now invoke the `ping` method on `app1` in the `hardened` namespace over the Dapr API on the NGNX ingress.
+### Service Invocation
+
+The app identity its access control within Dapr as controlled using policies which are defined in the app configuration. To attach configuration, an app has to annotate on the deployment template the name of the configuration:
+
+```yaml
+annotations:
+  dapr.io/config: "app1-config"
+```
+
+To allow only the Dapr'ized NGNX ingress to invoke the `/ping` method on `app1`, the default action is set to `deny` and an explicit policy created for `nginx-ingress` which first denies access to all methods on that app and only then allows access on the `/ping` method (aka operation) when the HTTP verb is `POST`. 
+
+```yaml
+accessControl:
+  defaultAction: deny
+  trustDomain: "hardened"
+  policies:
+  - appId: nginx-ingress
+    defaultAction: deny 
+    trustDomain: "public"
+    namespace: "default"
+    operations:
+    - name: /ping
+      httpVerb: ["POST"] 
+      action: allow
+```
+
+To demo this, invoke the `ping` method on `app1` in the `hardened` namespace over the Dapr API on the NGNX ingress.
 
 ```shell
 curl -i -d '{ "message": "hello" }' \
@@ -114,23 +146,16 @@ strict-transport-security: max-age=15724800; includeSubDomains
 { "on": 1603627556200126373, "count": 8 }
 ```
 
-### Tests
-
-To simulate any other app trying to invoke `app1`, first forward the local port to any other Dapr sidecar on that cluster.
+Now, try also to invoke the `counter` method on `app2` in the `hardened` namespace over the Dapr API on the NGNX ingress.
 
 ```shell
-kubectl port-forward deployment/app2 3500 -n hardened
-```
-
-And then invoke the `/ping` method on the `app1`
-
-```shell
-curl -i -d '{ "message": "hello" }' \
+curl -i -d '{ "on": 1603627556200126373, "count": 2 }' \
      -H "Content-type: application/json" \
-     http://localhost:3500/v1.0/invoke/app1/method/ping
+     -H "dapr-api-token: ${API_TOKEN}" \
+     https://api.thingz.io/v1.0/invoke/app2.hardened/method/counter
 ```
 
-The response will look include `PermissionDenied` message 
+That invocation will result in an error. The response will include `PermissionDenied` message:
 
 ```json
 {
@@ -139,9 +164,88 @@ The response will look include `PermissionDenied` message
 }
 ```
 
-> Similarly, you can repeat that test on other apps by forwarding, for example, the local port to the Dapr sidecar in `app3` and trying to invoke the `/counter` method on `app1`. 
+The access control defined above applies also to in-cluster invocation. To demo this, forward local port to any other Dapr sidecar on that cluster.
 
-## Restart 
+```shell
+kubectl port-forward deployment/app2 3500 -n hardened
+```
+
+And then try to invoke the `/ping` method on the `app1`. That too which will result in `PermissionDenied` message. 
+
+```shell
+curl -i -d '{ "message": "hello" }' \
+     -H "Content-type: application/json" \
+     http://localhost:3500/v1.0/invoke/app1/method/ping
+```
+
+> All  invocation that are not explicitly permitted in Dapr access policy will be denied!
+
+### Topic Publishing and Subscription 
+
+Access to components in Dapr is driven by configuration. The [pubsub](./k8s/pubsub.yaml) component is scoped to only be accessible by `app2` and `app3`:
+
+```yaml
+scopes:
+- app2
+- app3
+```
+
+The topic access of the PubSub component is further defined by the `publishingScopes` and `subscriptionScopes` lists. In this case `app2` can only publish, and the `app3` can only subscribe to the `messages` topic:
+
+```yaml
+- name: publishingScopes
+  value: "app2=messages"
+- name: subscriptionScopes
+  value: "app3=messages"
+```
+
+To demo this, while still forwarding local port to the `app2` pod, try publish to any other topic besides `messages`.
+
+```shell
+curl -i -d '{ "message": "test" }' \
+     -H "Content-type: application/json" \
+     http://localhost:3500/v1.0/publish/pubsub/test
+```
+
+The above publish will result in error:
+
+```json
+{
+  "errorCode": "ERR_PUBSUB_PUBLISH_MESSAGE",
+  "message": "topic test is not allowed for app id app2"
+}
+```
+
+You can also try to subscribe to the `messages` topic or even forward port to `app3` and try to publish to the valid topic and still receive an error because that application is only allowed to subscribe to the `messages` topic, not publish to it. 
+
+### Secrets 
+
+Application access to secrets within Dapr is driven by configuration. In this demo, the `app2` for example, has its secrets configuration defined as follow: `deny` this app access to all secrets except `redis-secret`. 
+
+```yaml
+secrets:
+  scopes:
+    - storeName: kubernetes
+      defaultAccess: deny
+      allowedSecrets: ["redis-secret"]
+```        
+
+To demo this, while still forwarding local port to the `app2`, try access the other secret we have defined in the `hardened` namespace: `test-secret`.
+
+```shell
+curl -i http://localhost:3500/v1.0/secrets/kubernetes/test-secret
+```
+
+The above query will result in `403 Forbidden` as the `test-secret` secret is not listed in the `allowedSecrets` list and the `defaultAccess` is set to `deny`
+
+```json
+{
+  "errorCode": "ERR_PERMISSION_DENIED", 
+  "message": "Access denied by policy to get test-secret from kubernetes"
+}
+```
+
+## Restarts
 
 If you update components you may have to restart the deployments.
 

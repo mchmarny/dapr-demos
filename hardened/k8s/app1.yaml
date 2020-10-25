@@ -46,7 +46,7 @@ spec:
     samplingRate: "1"
   accessControl:
     defaultAction: deny
-    trustDomain: "public"
+    trustDomain: "hardened"
     policies:
     - appId: nginx-ingress
       defaultAction: deny 

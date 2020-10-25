@@ -1,20 +1,6 @@
 .PHONY: all
 all: help
 
-
-.PHONY: ping
-ping: ## Invokes ping method on app1 service through Dapr API 
-	curl -i -d '{ "message": "hi" }' \
-        -H "Content-type: application/json" \
-        "http://localhost:3500/v1.0/invoke/app1/method/ping"
-
-
-.PHONY: message
-message: ## Publish message directly to the Dapr Pub/Sub API
-	curl -i -d '{ "message": "hi" }' \
-        -H "Content-type: application/json" \
-        "http://localhost:3500/v1.0/publish/pubsub/messages"
-
 .PHONY: apply
 apply: ## Applies all and restarts the apps 
 	# apply
@@ -35,6 +21,14 @@ ping: ## Execute ping on the Dapr API
       -H "Content-type: application/json" \
       -H "dapr-api-token: $(API_TOKEN)" \
       https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping
+
+.PHONY: count
+count: ## Execute counter on the Dapr API 
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -i -d '{ "on": 1603627556200126373, "count": 2 }' \
+      -H "Content-type: application/json" \
+      -H "dapr-api-token: $(API_TOKEN)" \
+      https://api.thingz.io/v1.0/invoke/app2.hardened/method/counter
 
 .PHONY: help
 help: ## Display available commands

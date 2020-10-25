@@ -49,15 +49,15 @@ spec:
   secrets:
     scopes:
       - storeName: kubernetes
-        defaultAccess: allow
-        deniedSecrets: ["redis-secret"]
+        defaultAccess: deny
+        allowedSecrets: ["redis-secret"]
   accessControl:
     defaultAction: deny
-    trustDomain: "public"
+    trustDomain: "hardened"
     policies:
     - appId: app1
       defaultAction: deny 
-      trustDomain: "public"
+      trustDomain: "hardened"
       namespace: "hardened"
       operations:
       - name: /counter
