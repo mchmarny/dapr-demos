@@ -8,11 +8,11 @@ This demo will overview:
 
 * In-transit encryption for all sidecar-to-sidecar communication using mutual TLS
 * Cross-namespace service invocation with [SPIFFE](https://spiffe.io/) identity verification 
+* Trust relationship management using "trustDomain" logical grouping
+* Per-operation access control settings, down to verb level (e.g. only POST on /op1)
 * Component scoping (i.e. which app should be able to access a given component)
 * Pub/Sub topic scoping (which app should be able to publish or subscriber to a given topic)
-* Which specific secrets should an app be able to access (e.g. deny access to all others)
-* Configurable "trustDomain" to scope app-level access control settings 
-* Per-operation access control settings, down to verb level (e.g. only POST on /op1)
+* Per-application secret access control (i.e. which secrets the app should be able to access)
 
 > You can replicate this demo on any Kubernetes cluster configured with Dapr. To demo the cross-namespace service invocation you will need "dapr'ized' cluster ingress (ingress with Dapr sidecar). You can setup fully configured Dapr cluster with all these dependencies using included [Dapr cluster setup](../setup).
 
