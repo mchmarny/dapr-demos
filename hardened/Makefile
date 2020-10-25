@@ -15,6 +15,26 @@ message: ## Publish message directly to the Dapr Pub/Sub API
         -H "Content-type: application/json" \
         "http://localhost:3500/v1.0/publish/pubsub/messages"
 
+.PHONY: apply
+apply: ## Applies all and restarts the apps 
+	# apply
+	kubectl apply -f k8s/ -n hardened
+	# restart
+	kubectl rollout restart deployment/app1 -n hardened
+	kubectl rollout restart deployment/app2 -n hardened
+	kubectl rollout restart deployment/app3 -n hardened
+	# status
+	kubectl rollout status deployment/app1 -n hardened
+	kubectl rollout status deployment/app2 -n hardened
+	kubectl rollout status deployment/app3 -n hardened
+
+.PHONY: ping
+ping: ## Execute ping on the Dapr API 
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	curl -i -d '{ "message": "hello" }' \
+      -H "Content-type: application/json" \
+      -H "dapr-api-token: $(API_TOKEN)" \
+      https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping
 
 .PHONY: help
 help: ## Display available commands
