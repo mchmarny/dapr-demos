@@ -1,8 +1,0 @@
-version: 2
-updates:
-  - package-ecosystem: "go:modules"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    default_reviewers:
-      - "mchmarny"
