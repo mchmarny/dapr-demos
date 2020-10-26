@@ -268,7 +268,7 @@ The above query will result in `403 Forbidden` as the `test-secret` secret is no
 
 ## Summary 
 
-This demo illustrated just a few of the options that Dapr provides to harden application deployments. For more security-related information (including network, threat model, and latest security audit) see the [Security section](https://github.com/dapr/docs/blob/master/concepts/security/README.md) in Dapr documentation. 
+This demo illustrated just a few of the options that Dapr provides to harden application deployments. For more security-related information (including network, threat model, and latest security audit) see the [Security section](https://docs.dapr.io/concepts/security-concept/) in Dapr documentation. 
 
 ## Restarts
 
