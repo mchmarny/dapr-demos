@@ -2,13 +2,13 @@
 
 In addition to support for Kubernetes namespace isolation and Role-Based Access Control (RBAC) authorization, Dapr also provides additional, more granular, controls to harden applications deployment in Kubernetes. Some security related features, like in-transit encryption for all sidecar-to-sidecar communication using mutual TLS, are enabled by default. Others, like middleware to apply [Open Policy Agent](https://www.openpolicyagent.org/) (OPA) policies on incoming requests, require opt-in. This demo will overview: 
 
-* [x] Cross-namespace service invocation with logical domain groups trust relationship management
-* [x] Secure microservice communication using mTLS and [SPIFFE](https://spiffe.io/) identity verification 
-* [x] Per operation verb access control settings (e.g. deny all except `POST` from `app2` on `/op1`)
-* [x] Per application component scoping (i.e. which app should be able to access a given component)
-* [x] Pub/Sub topic scoping (i.e. which app should be able to publish or subscriber to a given topic)
-* [x] Application-level secret access control (i.e. which secrets the app should be able to access)
-* [x] Token authentication on cluster ingress for both HTTP and gRPC API
+* Cross-namespace service invocation with logical domain groups trust relationship management
+* Secure microservice communication using mTLS and [SPIFFE](https://spiffe.io/) identity verification 
+* Per operation verb access control settings (e.g. deny all except `POST` from `app2` on `/op1`)
+* Per application component scoping (i.e. which app should be able to access a given component)
+* Pub/Sub topic scoping (i.e. which app should be able to publish or subscriber to a given topic)
+* Application-level secret access control (i.e. which secrets the app should be able to access)
+* Token authentication on cluster ingress for both HTTP and gRPC API
 
 ![](img/diagram.png)
 
