@@ -245,10 +245,16 @@ secrets:
       allowedSecrets: ["redis-secret"]
 ```        
 
-To demo this, while still forwarding local port to the `app2` pod, try access the other secret we created in the `hardened` namespace during setup: `test-secret`.
+To demo this, while still forwarding local port to the `app2` pod, and access the `redis-secret`.
 
 ```shell
-curl -i http://localhost:3500/v1.0/secrets/kubernetes/test-secret
+curl -i "http://localhost:3500/v1.0/secrets/kubernetes/redis-secret?metadata.namespace=hardened"
+```
+
+Now, try access the other secret we created in the `hardened` namespace during setup: `test-secret`.
+
+```shell
+curl -i "http://localhost:3500/v1.0/secrets/kubernetes/test-secret?metadata.namespace=hardened"
 ```
 
 The above query will result in `403 Forbidden` as the `test-secret` secret is not listed in the `allowedSecrets` list and the `defaultAccess` is set to `deny`.
