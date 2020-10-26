@@ -113,9 +113,8 @@ accessControl:
   trustDomain: "hardened"
   policies:
   - appId: nginx-ingress
-    defaultAction: deny 
-    trustDomain: "public"
     namespace: "default"
+    defaultAction: deny 
     operations:
     - name: /ping
       httpVerb: ["POST"] 
