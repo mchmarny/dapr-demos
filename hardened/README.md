@@ -1,6 +1,6 @@
 # Hardening Dapr app demo 
 
-In addition to support for Kubernetes namespace isolation and Role-Based Access Control (RBAC) authorization, Dapr also provides additional, more granular, controls to harden applications deployment in Kubernetes. Some security related features, like in-transit encryption for all sidecar-to-sidecar communication using mutual TLS, are enabled by default. Others, require opt-in. This demo will overview: 
+In addition to support for Kubernetes namespace isolation and Role-Based Access Control (RBAC) authorization, Dapr also provides additional, more granular, controls to harden applications deployment in Kubernetes. Some security related features, like in-transit encryption for all sidecar-to-sidecar communication using mutual TLS, are enabled by default. Others, like middleware to apply [Open Policy Agent](https://www.openpolicyagent.org/) (OPA) policies on incoming requests, require opt-in. This demo will overview: 
 
 * Token-based authentication on Dapr APIs exposed on cluster ingress
 * Cross-namespace service invocation with [SPIFFE](https://spiffe.io/) identity verification 
@@ -10,7 +10,7 @@ In addition to support for Kubernetes namespace isolation and Role-Based Access 
 * Pub/Sub topic scoping (i.e. which app should be able to publish or subscriber to a given topic)
 * Secret access control per application (i.e. which secrets the app should be able to access)
 
-![](img/overview.png)
+![](img/diagram.png)
 
 > You can replicate this demo on any Kubernetes cluster configured with Dapr. To demo the cross-namespace service invocation with external API gateway you will need "dapr'ized' cluster ingress (ingress with Dapr sidecar). You can setup fully configured Dapr cluster with all these dependencies using included [Dapr cluster setup](../setup#dapr-cluster-setup).
 
@@ -195,15 +195,19 @@ curl -i -d '{ "message": "hello" }' \
 
 > In this configuration, all invocations that are not explicitly permitted in Dapr access policy will be denied!
 
-### Topic Publishing and Subscription 
+### Components
 
-Just like in case of invocation, access to components in Dapr is also driven by configuration. The [pubsub](./k8s/pubsub.yaml) component in this demo is scoped to only be accessible by `app2` and `app3`:
+
+Just like in case of invocation, access to components in Dapr is also driven by configuration. The [state store](./k8s/state.yaml) component in this demo is scoped to only be accessible by `app2`:
 
 ```yaml
 scopes:
 - app2
-- app3
 ```
+
+> Dapr automatically isolates state between applications by contextualizing to the app that created it, rendering it inaccessible by any other application regardless of policies.
+
+### Topic Publishing and Subscription 
 
 The topic access of the PubSub component is further defined by the `publishingScopes` and `subscriptionScopes` lists. In this case `app2` can only publish, and the `app3` can only subscribe to the `messages` topic:
 
@@ -232,6 +236,8 @@ The above publish will result in error:
 ```
 
 You can also try to subscribe to the `messages` topic or even forward port to `app3` and try to publish to the valid topic there, and still receive the same error, because that application is only allowed to subscribe to the `messages` topic, not publish to it.
+
+
 
 ### Secrets 
 
