@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1
+  namespace: hardened
+  labels:
+    app: app1
+    demo: hardened
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app1
+  template:
+    metadata:
+      labels:
+        app: app1
+        demo: hardened
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "app1"
+        dapr.io/app-protocol: "http"
+        dapr.io/app-port: "8081"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: app
+        image: ghcr.io/mchmarny/hardened-app1:v0.1.4
+        ports:
+        - containerPort: 8081
+        env:
+        - name: PUBSUB_NAME
+          value: "pubsub"
+        - name: TOPIC_NAME
+          value: "messages"

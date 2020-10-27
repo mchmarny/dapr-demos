@@ -21,7 +21,7 @@ In Kubernetes, [namespaces](https://kubernetes.io/docs/concepts/overview/working
 > For purposes of this demo, the namespace will be called `hardened` but you can choose your own name.
 
 ```shell
-kubectl create namespace hardened
+kubectl apply -f ./deployment/namespace
 ```
 
 Also, to illustrate Dapr component scoping (e.g. PubSub and State), this demo will use in-cluster Redis deployment (see [Redis setup](../setup#usage)). To showcase the declarative access control for applications over secrets this demo will use `redis-secret` defined in the `hardened` namespace.
@@ -32,28 +32,28 @@ kubectl create secret generic redis-secret \
     -n hardened 
 ```
 
-> If this is Redis on your cluster you can look it up using `kubectl get svc nginx-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` and define the `REDIS_PASS` environment variable with that secret. 
+> If this is Redis on your cluster you can look it up using `kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode` and define the `REDIS_PASS` environment variable with that secret. 
 
-Also, create another secret to demonstrate later how Dapr controls application's access to secrets.
+Finally, create one more `demo` secret to illustrate later how Dapr controls application's access to secrets.
 
 ```shell
-kubectl create secret generic test-secret --from-literal=test="test" -n hardened 
+kubectl create secret generic demo-secret --from-literal=demo="demo" -n hardened 
 ```
 
 ## Deploy
 
 With the namespace configured and the Redis password created, it's time to deploy:
 
-* [app1.yaml](./k8s/app1.yaml), [app2.yaml](./k8s/app1.yaml), and [app2.yaml](./k8s/app1.yaml) are the Kubernetes deployments with their Dapr configuration.
-* [pubsub.yaml](./k8s/pubsub.yaml) and [state.yaml](./k8s/state.yaml) are the configuration files for PubSub and State components using Redis
-* [role.yaml](./k8s/role.yaml) defines the Role and RoleBinding required for Dapr application access the Kubernetes secrets in the `hardened` namespace.
+* [app1.yaml](./deployment/hardened/app1.yaml), [app2.yaml](./deployment/hardened/app1.yaml), and [app2.yaml](./deployment/hardened/app1.yaml) are the Kubernetes deployments with their Dapr configuration.
+* [pubsub.yaml](./deployment/hardened/pubsub.yaml) and [state.yaml](./deployment/hardened/state.yaml) are the configuration files for PubSub and State components using Redis
+* [role.yaml](./deployment/hardened/role.yaml) defines the Role and RoleBinding required for Dapr application access the Kubernetes secrets in the `hardened` namespace.
 
 > This demo uses [prebuilt application images](https://github.com/mchmarny?tab=packages&q=hardened-app). You can review the code for these 3 applications in the [src](./src) directory.
 
 Now, apply the demo resources to the cluster.
 
 ```shell
-kubectl apply -f k8s/ -n hardened
+kubectl apply -f ./deployment/hardened -n hardened
 ```
 
 The response from the above command should confirm that all the resources were configured.
@@ -66,8 +66,6 @@ configuration.dapr.io/app2-config configured
 deployment.apps/app3 configured
 configuration.dapr.io/app3-config configured
 component.dapr.io/pubsub configured
-role.rbac.authorization.k8s.io/secret-reader configured
-rolebinding.rbac.authorization.k8s.io/dapr-secret-reader configured
 component.dapr.io/state configured
 ```
 
@@ -105,7 +103,7 @@ annotations:
   dapr.io/config: "app1-config"
 ```
 
-In this demo, to allow only the Dapr'ized NGNX ingress to invoke the `/ping` method on [app1.yaml](./k8s/app1.yaml), the default action is set to `deny` and an explicit policy created for `nginx-ingress` in the `default` namespace which also, first denies access to all methods on that app, and only then allows access on the `/ping` method (aka operation) when the HTTP verb is `POST`. 
+In this demo, to allow only the Dapr'ized NGNX ingress to invoke the `/ping` method on [app1.yaml](./deployment/hardened/app1.yaml), the default action is set to `deny` and an explicit policy created for `nginx-ingress` in the `default` namespace which also, first denies access to all methods on that app, and only then allows access on the `/ping` method (aka operation) when the HTTP verb is `POST`. 
 
 ```yaml
 accessControl:
@@ -134,7 +132,7 @@ curl -i -d '{ "message": "hello" }' \
 
 Dapr should respond with HTTP status code `200` as well as parent trace ID for this invocation (`traceparent`) in the header, and a JSON payload with the number of API invocations and nano epoch timestamp.
 
-> The count of API invocations is persisted in the Dapr sate store configured in [State component](./k8s/state.yaml)
+> The count of API invocations is persisted in the Dapr sate store configured in [State component](./deployment/hardened/state.yaml)
 
 ```shell
 HTTP/2 200
@@ -165,7 +163,7 @@ That invocation will result in an error. The response will include `PermissionDe
 }
 ```
 
-The access control defined above applies also to in-cluster invocation ([app2.yaml](./k8s/app2.yaml)). Where the additional `trustDomain` setting on `app2` configuration is used to only allow access to invoke the `/counter` method when the calling app is `app1`:
+The access control defined above applies also to in-cluster invocation ([app2.yaml](./deployment/hardened/app2.yaml)). Where the additional `trustDomain` setting on `app2` configuration is used to only allow access to invoke the `/counter` method when the calling app is `app1`:
 
 ```yaml
 policies:
@@ -198,7 +196,7 @@ curl -i -d '{ "message": "hello" }' \
 ### Components
 
 
-Just like in case of invocation, access to components in Dapr is also driven by configuration. The [state store](./k8s/state.yaml) component in this demo is scoped to only be accessible by `app2`:
+Just like in case of invocation, access to components in Dapr is also driven by configuration. The [state store](./deployment/hardened/state.yaml) component in this demo is scoped to only be accessible by `app2`:
 
 ```yaml
 scopes:
@@ -237,8 +235,6 @@ The above publish will result in error:
 
 You can also try to subscribe to the `messages` topic or even forward port to `app3` and try to publish to the valid topic there, and still receive the same error, because that application is only allowed to subscribe to the `messages` topic, not publish to it.
 
-
-
 ### Secrets 
 
 Application access to secrets within Dapr is also driven by configuration. In this demo, the `app2` for example, has its secrets configuration defined as follow: `deny` this application's access to all secrets except `redis-secret`: 
@@ -257,24 +253,24 @@ To demo this, while still forwarding local port to the `app2` pod, and access th
 curl -i "http://localhost:3500/v1.0/secrets/kubernetes/redis-secret?metadata.namespace=hardened"
 ```
 
-Now, try access the other secret we created in the `hardened` namespace during setup: `test-secret`.
+Now, try access the other secret we created in the `hardened` namespace during setup: `demo-secret`.
 
 ```shell
-curl -i "http://localhost:3500/v1.0/secrets/kubernetes/test-secret?metadata.namespace=hardened"
+curl -i "http://localhost:3500/v1.0/secrets/kubernetes/demo-secret?metadata.namespace=hardened"
 ```
 
-The above query will result in `403 Forbidden` as the `test-secret` secret is not listed in the `allowedSecrets` list and the `defaultAccess` is set to `deny`.
+The above query will result in `403 Forbidden` as the `demo-secret` secret is not listed in the `allowedSecrets` list and the `defaultAccess` is set to `deny`.
 
 ```json
 {
   "errorCode": "ERR_PERMISSION_DENIED", 
-  "message": "Access denied by policy to get test-secret from kubernetes"
+  "message": "Access denied by policy to get demo-secret from kubernetes"
 }
 ```
 
 ## Summary 
 
-This demo illustrated just a few of the options that Dapr provides to harden application deployments. For more security-related information (including network, threat model, and latest security audit) see the [Security section](https://docs.dapr.io/concepts/security-concept/) in Dapr documentation. 
+This demo illustrated just a few of the options that Dapr provides to harden application deployments. For more security-related information (including network, threat model, and latest security audit) see the [Security section](https://docs.dapr.io/concepts/security-concept/) in Dapr documentation.
 
 ## Restarts
 
@@ -291,9 +287,9 @@ kubectl rollout status deployment/app3 -n hardened
 
 ## Cleanup
 
+> By deleting the `hardened` Kubernetes will cascade delete all resources created in that namespace.
+
 ```shell
-kubectl delete -f k8s/ -n hardened
-kubectl delete secret redis-secret -n hardened
 kubectl delete ns hardened
 ```
 
