@@ -161,6 +161,7 @@ That's it, I hope you found it helpful.
 
 ## Todo
 
+* Dapr API token auth
 * Configuration to show ACT
 * Secrets to enable Azure Vault 
 
