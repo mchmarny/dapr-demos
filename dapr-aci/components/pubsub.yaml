@@ -1,0 +1,9 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+spec:
+  type: pubsub.azure.servicebus
+  metadata:
+  - name: connectionString
+    value: "Endpoint=sb://<TOPIC>.servicebus.windows.net/;SharedAccessKeyName=dapracidemo;SharedAccessKey=<KEY>;EntityPath=messages"

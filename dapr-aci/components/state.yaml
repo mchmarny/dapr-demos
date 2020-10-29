@@ -1,0 +1,13 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: store
+spec:
+  type: state.azure.tablestorage
+  metadata:
+  - name: accountName
+    value: dapracidemo
+  - name: accountKey
+    value: <KEY>
+  - name: tableName
+    value: dapracidemodata

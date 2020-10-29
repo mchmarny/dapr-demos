@@ -1,15 +1,13 @@
-# Dapr API in ACI
+# Dapr sidecar in ACI
 
-* Purpose-configured instance of Dapr deployed into Azure Container Instances (ACI) with API token authentication using single command 
-* Use of Dapr output binding + Dapr as a microservice (in this case email sending)
-
+Demo of Dapr sidecar in Azure Container Instances (ACI)
 
 ## Setup 
 
-The storage account name needs to be globally unique. Set `SNAME` to something 3-24 chars long, containing alphanumerics only, and make sure it's all in lower case.
+This demo illustrates simple service subscription to pub/sub topic and persistence of event payload into state. To deploy Dapr into ACI however you will need to first setup a SMB volume which will be used to store the Dapr components and mounted in the `daprd` container The storage account name needs to be globally unique so set `SNAME` to something 3-24 chars long, containing alphanumerics only, and make sure it's all in lower case.
 
 ```shell
-export SNAME="demodapr"
+export SNAME="dapraci"
 ```
 
 > assumes your resource group and location defaults are already set. If not, set them now:
@@ -19,13 +17,14 @@ az account set --subscription <id or name>
 az configure --defaults location=<preferred location> group=<preferred resource group>
 ```
 
+
 Create a storage account
 
 ```shell
 az storage account create --name $SNAME --sku Standard_LRS
 ```
 
-Create a storage share for config
+Create a storage share
 
 > For demo purposes share and storage user names are the same 
 
@@ -36,89 +35,134 @@ az storage share create --name $SNAME --account-name $SNAME
 Capture storage key 
 
 ```shell
-export SKEY=$(az storage account keys list --account-name $SNAME --query "[0].value" --output tsv)
+export ACCOUNT_KEY=$(az storage account keys list --account-name $SNAME \
+                                                  --query "[0].value" \
+                                                  --output tsv)
+echo $ACCOUNT_KEY
 ```
 
-Create a storage directory for config files  
-
-```shell
-az storage directory create --account-name $SNAME --name $SNAME --share-name $SNAME
-```
+Now update `volumes[components].azureFile.storageAccountKey` in `configuration/app.yaml` file so that ACI can mount it.
 
 Upload the Dapr component files
 
-> TODO: Make sure you set the Sendgrid API key in the email.yaml
+```shell
+az storage file upload --account-key $ACCOUNT_KEY \
+                       --account-name $SNAME \
+                       --share-name $SNAME \
+                       --source components/state.yaml
+
+az storage file upload --account-key $ACCOUNT_KEY \
+                       --account-name $SNAME \
+                       --share-name $SNAME \
+                       --source components/pubsub.yaml
+```
+
+List files to make sure they are all there
 
 ```shell
-az storage file upload --account-name $SNAME --share-name $SNAME --source email.yaml
+az storage file list \
+    --account-key $ACCOUNT_KEY \
+    --share-name $SNAME \
+    --account-name $SNAME  \
+    --output tsv
 ```
 
 ## Deployment 
 
-Once the storage is set up, you can deploy. Start by exporting Dapr API Authentication token
+Once the storage is set up, you can deploy
 
 ```shell
-export DTOKEN=$(openssl rand -base64 36)
+az container create -f deployment/app.yaml
 ```
 
-> Note, make sure to save the value exported into `$DTOKEN` variable to ensure you can use it in other terminal sessions. That value will not be recoverable from the ACI service. 
-
-And launch the Dapr container
-
-```shell
-az container create \
-    --name $SNAME \
-    --ports 3500 \
-    --protocol TCP \
-    --dns-name-label $SNAME \
-    --image docker.io/daprio/daprd:0.11.0 \
-    --command-line "/daprd --components-path /components --app-protocol http" \
-    --secure-environment-variables "DAPR_API_TOKEN=${DTOKEN}" \
-    --azure-file-volume-share-name $SNAME \
-    --azure-file-volume-account-name $SNAME \
-    --azure-file-volume-account-key $SKEY \
-    --azure-file-volume-mount-path /components
-```
-
-Then check on the status of the deployment 
+When you list the containers:
 
 ```shell
 az container list -o table
 ```
 
-The result should look something like this 
+The result should look something like this:
 
 ```shell
-Name      ResourceGroup  Status     Image                          IP:ports           Network  CPU/Memory       OsType    Location
---------  -------------  ---------  -----------------------------  -----------------  -------  ---------------  --------  --------
-demodapr  mchmarny       Succeeded  docker.io/daprio/daprd:0.11.0  51.143.49.0:3500   Public   1.0 core/1.5 gb  Linux     westus2
+Name      ResourceGroup    Status     Image                                                IP:ports               Network    CPU/Memory       OsType    Location
+--------  ---------------  ---------  ---------------------------------------------------  ---------------------  ---------  ---------------  --------  ----------
+dapraci   mchmarny         Succeeded  daprio/daprd:0.11.3,ghcr.io/mchmarny/aci-app:v0.2.2  40.xx.xx.xx:3500       Public     1.0 core/1.5 gb  Linux     westus2
 ```
 
-If everything went OK, you should be able post to the email output binding below
+## Demo
 
-To restart the service after update of environment variables 
+First, capture the IP for ease of access:
 
 ```shell
-az container restart --name $SNAME
+export APP_IP=$(az container show -n dapraci --query "ipAddress.ip" -o tsv)
 ```
 
-## Use
-
-To use the above deployed instance of Dapr configured with SendGrid output binding, POST to the Dapr API following message using `curl`.
-
-> Note, the from, to, and email subject are configured server side so all you have to submit is a valid output binding message with the `operation` and `data` properties, with the body of the email sent to the user.
+Next, invoke the ping method thru Dapr API:
 
 ```shell
-export SREGION=$(az container list --query "[?contains(name, '${SNAME}')].location" --output tsv)
+curl -i -d '{"message":"ping"}' \
+     -H "Content-type: application/json" \
+     "http://${APP_IP}:3500/v1.0/invoke/dapraci/method/ping"
 ```
 
+Response should look something like this:
+
+```json
+{ "on": 1604003460965972895, "greeting": "pong" }
+```
+
+You can also invoke the PubSub API on Dapr to publish:
 
 ```shell
-curl -v -X POST -H "Content-Type: application/json" \
-    -H "dapr-api-token: ${DTOKEN}" \
-    "http://${SNAME}.${SREGION}.azurecontainer.io:3500/v1.0/bindings/email" \
-    -d '{ "operation": "create", "data": "<h1>Test Headline</h1><p>Test message</p>"}'
+curl -i -d '{"message":"hello"}' \
+     -H "Content-type: application/json" \
+     "http://${APP_IP}:3500/v1.0/publish/pubsub/messages"
 ```
+
+Response from post has no body but you should see the headers:
+
+```shell
+HTTP/1.1 200 OK
+Server: fasthttp
+Date: Thu, 29 Oct 2020 21:05:43 GMT
+Content-Length: 0
+Traceparent: 00-bd0f6f745de1b2cc8b5463f8abaa8656-d2f1d6be6d202273-00
+```
+
+This demo also exposes the user container directly. You can disable it but commenting out `- port: 8080` in `ports` section of [configuration/app.yaml](configuration/app.yaml). To invoke the `/ping` route on the deployed app: 
+
+```shell
+curl -i -d '{"message":"ping"}' \
+     -H "Content-type: application/json" \
+     "http://${APP_IP}:8082/ping"
+```
+
+### Logs
+
+To view logs from the Dapr container:
+
+```shell
+az container logs --name dapraci --container-name daprd
+```
+
+> Note, `daprd` is set to log in JSON so you can use `jq` or similar to query the logs and parse out only the messages
+
+```shell
+az container logs --name dapraci --container-name daprd | jq ".msg"
+```
+
+To query the app container:
+
+```shell
+az container logs --name dapraci --container-name app
+```
+
+That's it, I hope you found it helpful. 
+
+## Todo
+
+* Configuration to show ACT
+* Secrets to enable Azure Vault 
 
 ## Disclaimer
 

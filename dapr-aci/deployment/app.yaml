@@ -1,0 +1,67 @@
+apiVersion: 2018-06-01
+location: westus
+name: dapraci
+properties:
+  containers:
+  - name: app
+    properties:
+      image: ghcr.io/mchmarny/aci-app:v0.2.2
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+      environmentVariables:
+        - name: ADDRESS
+          value: ":8082"
+        - name: PUBSUB_NAME
+          value: pubsub
+        - name: TOPIC_NAME
+          value: messages
+        - name: STORE_NAME
+          value: store
+      ports:
+      - port: 8082
+  - name: daprd
+    properties:
+      image: daprio/daprd:0.11.3
+      volumeMounts:
+      - name: dapr-logs
+        mountPath: /var/log/pods
+      - name: component-store
+        mountPath: /components
+      command:
+      - /daprd
+      - --app-id
+      - dapraci
+      - --app-port
+      - 8082
+      - --components-path
+      - /components
+      - --log-as-json
+      - --log-level
+      - debug
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+      ports:
+        - port: 3500
+  osType: Linux
+  restartPolicy: Always
+  ipAddress:
+    ports:
+    # comment the ports you do not want to expose 
+    - port: 8082
+      protocol: TCP
+    - port: 3500
+      protocol: TCP
+    type: Public
+  volumes:
+  - name: dapr-logs
+    emptyDir: {}
+  - name: component-store
+    azureFile:
+      shareName: dapraci
+      storageAccountName: dapraci
+      storageAccountKey: <KEY>
+type: Microsoft.ContainerInstance/containerGroups
