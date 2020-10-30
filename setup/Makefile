@@ -40,8 +40,8 @@ cluster: ## Create AKS cluster
 		--enable-managed-identity
 	az aks get-credentials --name $(CLUSTER_NAME)
 
-.PHONY: nodes
-nodes: ## Print node resource usage
+.PHONY: nodelist
+nodelist: ## Print node resources and their usage
 	kubectl top nodes
 
 .PHONY: ip
@@ -110,14 +110,13 @@ keda-install: ## Install and configures Keda
 .PHONY: observe-install
 observe-install: ## Install observability stack
 	# Updating Help repos...
-	helm repo add stable https://kubernetes-charts.storage.googleapis.com
+	helm repo add stable https://charts.helm.sh/stable
 	helm repo add elastic https://helm.elastic.co
 	helm repo update
 	# Installing observabiliity...
 	kubectl create ns dapr-monitoring
 	kubectl apply -f config/fluentd-config.yaml -f config/fluentd.yaml
-	sed "s/NSNAME/default/g" config/zipkin-template.yaml > config/zipkin.yaml
-	kubectl apply -f config/zipkin-config.yaml -f config/zipkin.yaml
+	kubectl apply -f config/zipkin.yaml -n dapr-monitoring
 	helm install elasticsearch elastic/elasticsearch -n dapr-monitoring
 	helm install dapr-prom stable/prometheus -n dapr-monitoring
 	helm install grafana stable/grafana -n dapr-monitoring \
@@ -175,14 +174,19 @@ ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr
 	# Updating Help repos...
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo update
+	# Configure deafault namespace 
+	sed "s/NSNAME/default/g" config/namespace-template.yml > config/namespace.yml
+	kubectl apply -f config/namespace.yml
 	# Gen Dapr API token 
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
 	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
+	# Apply ingress config 
+	kubectl apply -f config/ingress-config.yaml
 	# Deploy nginx...
 	helm install nginx ingress-nginx/ingress-nginx \
 		--set controller.replicaCount=2 \
 		--set controller.metrics.enabled=true \
-		-f config/annotations.yaml
+		-f config/ingress-annotations.yaml
 	kubectl rollout status deployment/nginx-ingress-nginx-controller
 	# Install cert secrets
 	kubectl create secret tls tls-secret \
@@ -251,7 +255,7 @@ pass: ## Print Grafana admin password
 ports: ## Forward observability ports
 	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
 	kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
-	kubectl port-forward svc/zipkin 9411 &
+	kubectl port-forward svc/zipkin 9411 -n dapr-monitoring &
 	@echo Ports forwarded:
 	@echo
 	@echo   kibana  - http://localhost:5601
@@ -328,13 +332,10 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 	# Configre Mongo password
 	$(eval MONGO_PASSWORD=$(shell kubectl get secret -n mongo mongo-mongodb -o jsonpath="{.data.mongodb-password}" | base64 --decode))
 	kubectl create secret generic mongo-secret --from-literal=password="$(MONGO_PASSWORD)" -n $(NSNAME)
-	# Configure zipkin
-	sed "s/NSNAME/${NSNAME}/g" config/zipkin-template.yaml > config/zipkin.yaml
-	kubectl apply -f config/zipkin-config.yaml -f config/zipkin.yaml -n $(NSNAME)
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
-	pkill kubectl -9	
+	pkill kubectl -9
 
 .PHONY: daprupgrade
 daprupgrade: ## Upgrades Dapr to specific release version (make daprupgrade DAPR_RELEASE="0.11.0-rc.3")

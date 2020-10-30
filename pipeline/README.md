@@ -126,13 +126,6 @@ kubectl apply -f tweet-processor/k8s/deployment.yaml
 kubectl rollout status deployment/tweet-processor
 ```
 
-> Note, throughout this demo, if you have changed an existing component, make sure to reload the deployment and wait until the new version is ready
-
-```shell
-kubectl rollout restart deployment/nginx-ingress-nginx-controller
-kubectl rollout status deployment/nginx-ingress-nginx-controller
-```
-
 Check the Dapr logs to make sure the components were registered correctly 
 
 ```shell
@@ -172,7 +165,7 @@ And then invoke the service manually
 curl -i -d '{ "text": "dapr is the best" }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     "https://api.cloudylabs.dev/v1.0/invoke/sentiment-scorer/method/sentiment"
+     "https://api.thingz.io/v1.0/invoke/sentiment-scorer/method/sentiment"
 ```
 
 Response should look something like this 
@@ -196,7 +189,7 @@ Patch ingress to add the viewer rule
 
 ```shell
 kubectl get ing/ingress-rules -o json \
-  | jq '.spec.rules += [{"host":"tweets.cloudylabs.dev","http":{"paths":[{"backend": {"serviceName":"tweet-viewer","servicePort":80},"path":"/"}]}}]' \
+  | jq '.spec.rules += [{"host":"tweets.thingz.io","http":{"paths":[{"backend": {"serviceName":"tweet-viewer","servicePort":80},"path":"/"}]}}]' \
   | kubectl apply -f -
 ```
 
@@ -210,14 +203,16 @@ Should include `viewer.`
 
 ```shell
 NAME            HOSTS                                      ADDRESS   PORTS     AGE
-ingress-rules   api.cloudylabs.dev,tweets.cloudylabs.dev   x.x.x.x   80, 443   9h
+ingress-rules   api.cloudylabs.dev,tweets.thingz.io   x.x.x.x   80, 443   9h
 ```
 
-Check in browser: https://tweets.cloudylabs.dev
+Check in browser: https://tweets.thingz.io
 
 ### tweet-provider
 
 Create secret for `tweet-provider` to connect to Twitter API 
+
+> Check [twitter developer portal](https://developer.twitter.com/en/portal/dashboard) if you need this info
 
 ```shell
 kubectl create secret generic twitter-secret \
@@ -245,7 +240,7 @@ kubectl logs -l app=tweet-provider -c daprd --tail 200
 
 ## View
 
-Navigate back to: https://tweets.cloudylabs.dev
+Navigate back to: https://tweets.thingz.io
 
 If everything went well, you should see some tweets appear. 
 

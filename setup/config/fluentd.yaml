@@ -4,7 +4,6 @@ kind: ServiceAccount
 metadata:
   name: fluentd
   namespace: kube-system
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -21,7 +20,6 @@ rules:
   - get
   - list
   - watch
-
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1

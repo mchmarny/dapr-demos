@@ -21,7 +21,7 @@ In Kubernetes, [namespaces](https://kubernetes.io/docs/concepts/overview/working
 > For purposes of this demo, the namespace will be called `hardened` but you can choose your own name.
 
 ```shell
-kubectl apply -f ./deployment/namespace
+kubectl apply -f deployment/namespace
 ```
 
 Also, to illustrate Dapr component scoping (e.g. PubSub and State), this demo will use in-cluster Redis deployment (see [Redis setup](../setup#usage)). To showcase the declarative access control for applications over secrets this demo will use `redis-secret` defined in the `hardened` namespace.
@@ -29,10 +29,10 @@ Also, to illustrate Dapr component scoping (e.g. PubSub and State), this demo wi
 ```shell
 kubectl create secret generic redis-secret \
     --from-literal=password="${REDIS_PASS}" \
-    -n hardened 
+    -n hardened
 ```
 
-> If this is Redis on your cluster you can look it up using `kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode` and define the `REDIS_PASS` environment variable with that secret. 
+> If this is Redis on your cluster you can look it up using `export REDIS_PASS=$(kubectl get secret -n redis redis -o jsonpath="{.data.redis-password}" | base64 --decode)` and define the `REDIS_PASS` environment variable with that secret. 
 
 Finally, create one more `demo` secret to illustrate later how Dapr controls application's access to secrets.
 
@@ -53,7 +53,7 @@ With the namespace configured and the Redis password created, it's time to deplo
 Now, apply the demo resources to the cluster.
 
 ```shell
-kubectl apply -f ./deployment/hardened -n hardened
+kubectl apply -f deployment/hardened -n hardened
 ```
 
 The response from the above command should confirm that all the resources were configured.
@@ -268,9 +268,59 @@ The above query will result in `403 Forbidden` as the `demo-secret` secret is no
 }
 ```
 
+## Tracing 
+
+Start by generating some requests:
+
+```shell
+for i in {1..100}; do \
+  curl -i -d '{ "message": "hello" }' \
+     -H "Content-type: application/json" \
+     -H "dapr-api-token: ${API_TOKEN}" \
+     https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping; \
+  sleep 1; \
+done
+```
+
+Then forward the Zipkin port locally:
+
+```shell
+kubectl port-forward svc/zipkin 9411 -n dapr-monitoring &
+```
+
+And navigate to the Zipkin UI to review traces 
+
+http://localhost:9411/
+
+![](img/trace.png)
+
 ## Summary 
 
 This demo illustrated just a few of the options that Dapr provides to harden application deployments. For more security-related information (including network, threat model, and latest security audit) see the [Security section](https://docs.dapr.io/concepts/security-concept/) in Dapr documentation.
+
+## Logging 
+
+To view logs from either the app container (`app`) or Dapr (`daprd`) use the label selector with the app ID (e.g. `app1`, `app2`, or `app3`):
+
+```shell
+kubectl logs -l app=app1 -c daprd -n hardened
+```
+
+> Because this demo set Dapr logs to be output as JSON you can use [jq](https://stedolan.github.io/jq/) or similar to query the logs 
+
+```shell
+kubectl logs -l app=app1 -c daprd -n hardened --tail 300 | jq ".msg"
+```
+
+Resulting in:
+
+```shell
+"starting Dapr Runtime -- version 0.11.3 -- commit a1a8e11"
+"log level set to: debug"
+"metrics server started on :9090/"
+"kubernetes mode configured"
+"app id: app1"
+```
 
 ## Restarts
 

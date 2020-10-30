@@ -12,7 +12,7 @@ spec:
   - name: password
     secretKeyRef:
       name: mongo-secret
-      key: mongodb-password
+      key: password
   - name: databaseName
     value: dapr
   - name: collectionName

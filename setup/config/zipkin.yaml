@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zipkin
+  namespace: dapr-monitoring
   labels:
     app: zipkin
 spec:
@@ -24,6 +25,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: zipkin
+  namespace: dapr-monitoring
   labels:
     app: zipkin
 spec:
@@ -34,15 +36,3 @@ spec:
     port: 9411
     targetPort: 9411
   type: ClusterIP
----
-apiVersion: dapr.io/v1alpha1
-kind: Component
-metadata:
-  name: zipkin
-spec:
-  type: exporters.zipkin
-  metadata:
-  - name: enabled
-    value: "true"
-  - name: exporterAddress
-    value: "http://zipkin.NSNAME.svc.cluster.local:9411/api/v2/spans"
