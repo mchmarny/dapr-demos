@@ -337,8 +337,8 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 portstop: ## Stop previously forwarded observability ports 
 	pkill kubectl -9
 
-.PHONY: daprupgrade
-daprupgrade: ## Upgrades Dapr to specific release version (make daprupgrade DAPR_RELEASE="0.11.0-rc.3")
+.PHONY: upgrade
+upgrade: ## Upgrades Dapr to specific release version (make upgrade DAPR_RELEASE="0.11.0-rc.3")
 	kubectl delete clusterrolebinding dapr-operator
 	dapr mtls export -o ./certs
 	helm upgrade dapr -n=dapr-system \

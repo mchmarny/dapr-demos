@@ -3,9 +3,9 @@
 An opinionated deployment of Dapr on Kubernetes, configured with:
 
 * Ingress with custom domain and TLS termination
-  * [NGNX](https://nginx.org/en/) for ingress controller and TLS to service mapping 
+  * [NGINX](https://nginx.org/en/) for ingress controller and TLS to service mapping 
   * [letsencrypt](https://letsencrypt.org/) as certificate provider
-* KEDA autoscaling
+* [KEDA](https://keda.sh/) for autoscaling
 * Metrics Monitoring
   * [Prometheus](https://prometheus.io/) for metrics aggregation
   * [Grafana](https://grafana.com/) for metrics visualization with Dapr monitoring dashboards
@@ -14,14 +14,14 @@ An opinionated deployment of Dapr on Kubernetes, configured with:
   * [Elasticsearch](https://www.elastic.co/) for log aggregation and query execution
   * [Kibana](https://www.elastic.co/products/kibana) for full-text log query and visualization
 * Distributed Tracing
-  * [Jaeger](https://www.jaegertracing.io/) for capturing traces, latency and dependency trace viewing
+  * [Jaeger](https://www.jaegertracing.io/) for capturing traces, latency and dependency viewing
 
 > All demos in the [dapr-demo](../) repository are validated on this deployment
   
 ## Prerequisites
 
-* 1.15+ Kubernates cluster (see [Create Cluster](#create-cluster-on-aks) section below if you don't already have one)
-* CLIs locally on the machine where you will be running this setup:
+* 1.15+ Kubernates cluster (see `make cluster` command below to create one on AKS)
+* Tooling on the machine where you will be running this setup:
   * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
   * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
   * [certbot](https://certbot.eff.org/lets-encrypt/osx-other.html) to generate wildcard cert (`brew install certbot`)
@@ -34,6 +34,7 @@ The following parameters can be used to configure your deployment. Define these 
 **Cluster** 
 
 ```shell
+DOMAIN            # default: example.com
 CLUSTER_NAME      # default: demo
 CLUSTER_VERSION   # default: 1.18.8
 NODE_COUNT        # default: 3
@@ -43,7 +44,6 @@ NODE_TYPE         # default: Standard_D4_v2
 **Dapr**
 
 ```shell
-DOMAIN            # default: example.com
 DAPR_HA           # default: true
 DAPR_LOG_AS_JSON  # default: true
 ```
@@ -54,6 +54,13 @@ DAPR_LOG_AS_JSON  # default: true
 
 If you need a cluster (otherwise use one selected in your kubectl context)
 
+> Note, this assumes your default Azure resource group and location are already defined. If not, run
+
+```shell
+az account set --subscription <id or name>
+az configure --defaults location=<preferred location> group=<preferred resource group>
+```
+
 * `make cluster` to create a cluster on AKS
 
 To deploy and configure Dapr 
@@ -61,13 +68,13 @@ To deploy and configure Dapr
 * `make dapr` to install Dapr, KEDA, and the entire observability stack
 * `make config` to perform post-install configurations
 
-> Optionally you can use `make daprupgrade` to in place upgrade Dapr to specific version
+> Optionally you can use `make upgrade` to in place upgrade Dapr to specific version
 
 To configure external access 
 
 * `make ip` (optional) to create static IP in the cluster resource group
 * `make certs` to create TLS certs using letsencrypt
-* `make ingress` to configures NGNX ingress, SSL termination, Dapr API auth
+* `make ingress` to configures NGINX ingress, SSL termination, Dapr API auth
 * `make dns` to configure your DNS service for custom domain support 
 * `make test` to test deployment
 
@@ -83,7 +90,7 @@ And few cluster operations helpers
 * `make pass` to print the Grafana password (username: admin)
 * `make nodes` to print node resource usage
 
-Then for each namespace you want to deploy demo apps to
+Then for each namespace you want to deploy Dapr apps to
 
 * `make namespace` to create/configure namespace with service secrets
 
@@ -107,22 +114,6 @@ To stop port forwarding run
 make portstop
 ```
 
-## Create Cluster on AKS
-
-If you don't already have a Kubernates cluster, you can create one in AKS by following these steps
-
-* Update [Makefile](./Makefile) to set:
-  * `CLUSTER_NAME` - Name of the cluster you want to create 
-  * `NODE_COUNT` - NUmber of nodes in the cluster default pool
-  * `NODE_TYPE` - VM type used for the nodes in default pool 
-* Run `make cluster`
-
-> Note, this assumes your default Azure resource group and location are already defined. If not, run
-
-```shell
-az account set --subscription <id or name>
-az configure --defaults location=<preferred location> group=<preferred resource group>
-```
 
 ## Cleanup
 
