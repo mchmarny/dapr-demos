@@ -28,6 +28,8 @@ Start by navigating to the [setup/gke](./setup/gke) directory
 * `make cluster-list` to list your AKS clusters
 * `make version-list` to list Kubernetes versions supported on AKS
 
+Once cluster is created, you can follow [these instructions](../) to configure Dapr.
+
 ## Cleanup
 
 To lists previously created clusters run 
