@@ -20,7 +20,10 @@ An opinionated deployment of Dapr on Kubernetes, configured with:
   
 ## Prerequisites
 
-* 1.15+ Kubernates cluster (see `make cluster` command below to create one on AKS)
+* 1.15+ Kubernates cluster. If needed, you can setup cluster on:
+  * [AKS](./aks/)
+  * [GKE](./gke/)
+  * AKS (coming)
 * Tooling on the machine where you will be running this setup:
   * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to do k8s stuff (`brew install kubectl`)
   * [Helm 3](https://helm.sh/docs/intro/install/) to install Dapr and its dependencies (`brew install helm`)
@@ -31,37 +34,19 @@ An opinionated deployment of Dapr on Kubernetes, configured with:
 
 The following parameters can be used to configure your deployment. Define these as environment variables to set or override the default value:
 
-**Cluster** 
-
 ```shell
 DOMAIN            # default: example.com
-CLUSTER_NAME      # default: demo
-CLUSTER_VERSION   # default: 1.18.8
-NODE_COUNT        # default: 3
-NODE_TYPE         # default: Standard_D4_v2
-```
-
-**Dapr**
-
-```shell
 DAPR_HA           # default: true
 DAPR_LOG_AS_JSON  # default: true
 ```
 
+> Note, make sure the correct "target" cluster is set kubectl context (`kubectl config current-context`). You can lists all registered contexts using: `kubectl config get-contexts`, and if needed, set it using `kubectl config use-context demo`.
+
 ## Usage
 
+Start by navigate to the [setup](./setup) directory
+
 > Run `make` by itself to see the active configuration 
-
-If you need a cluster (otherwise use one selected in your kubectl context)
-
-> Note, this assumes your default Azure resource group and location are already defined. If not, run
-
-```shell
-az account set --subscription <id or name>
-az configure --defaults location=<preferred location> group=<preferred resource group>
-```
-
-* `make cluster` to create a cluster on AKS
 
 To deploy and configure Dapr 
 
@@ -86,6 +71,7 @@ To deploy in-cluster data services
 
 And few cluster operations helpers
 
+* `node-list` to print node resources and their usage
 * `make ports` to forward observability dashboards ports 
 * `make pass` to print the Grafana password (username: admin)
 * `make nodes` to print node resource usage
@@ -114,22 +100,6 @@ To stop port forwarding run
 make portstop
 ```
 
-
-## Cleanup
-
-To lists previously created clusters run 
-
-```shell
-make clusterdown
-```
-
-To delete any of the previously created clusters run 
-
-> yes, there will be a prompt to confirm before deleting
-
-```shell
-make clusterdown CLUSTER_NAME=name
-```
 
 ## Help
 

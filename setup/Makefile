@@ -1,8 +1,5 @@
 DOMAIN           ?=example.com
 CLUSTER_NAME     ?=demo
-CLUSTER_VERSION  ?=1.18.8
-NODE_COUNT       ?=3
-NODE_TYPE        ?=Standard_D4_v2
 DAPR_HA          ?=true
 DAPR_LOG_AS_JSON ?=true
 
@@ -11,61 +8,15 @@ all:
 	@echo === ACTIVE CONFIGURATION ===
 	@echo "DOMAIN:           ${DOMAIN}"
 	@echo "CLUSTER_NAME:     ${CLUSTER_NAME}"
-	@echo "CLUSTER_VERSION:  ${CLUSTER_VERSION}"
-	@echo "NODE_COUNT:       ${NODE_COUNT}"
-	@echo "NODE_TYPE:        ${NODE_TYPE}"
 	@echo "DAPR_HA:          ${DAPR_HA}"
 	@echo "DAPR_LOG_AS_JSON: ${DAPR_LOG_AS_JSON}"
 	@echo 
 	@echo "Export these as environment variables to change their values"
 	@echo 
 
-.PHONY: clusterlist
-clusterlist: ## List AKS clusters
-	az aks list -o table
-
-.PHONY: versionlist
-versionlist: ## List Kubernetes versions supported in AKS
-	az aks get-versions -o json --query 'orchestrators[].orchestratorVersion'
-
-.PHONY: cluster
-cluster: ## Create AKS cluster
-	az aks create \
-		--name $(CLUSTER_NAME) \
-		--node-count $(NODE_COUNT) \
-		--node-vm-size $(NODE_TYPE) \
-		--enable-addons monitoring \
-		--kubernetes-version $(CLUSTER_VERSION) \
-		--generate-ssh-keys \
-		--enable-managed-identity
-	az aks get-credentials --name $(CLUSTER_NAME)
-
-.PHONY: nodelist
-nodelist: ## Print node resources and their usage
+.PHONY: node-list
+node-list: ## Print node resources and their usage
 	kubectl top nodes
-
-.PHONY: ip
-ip: ## Create Static IP for the existing AKS cluster
-	$(eval CLUSTERRC=$(shell az aks show -n $(CLUSTER_NAME) -o tsv --query nodeResourceGroup))
-	az network public-ip create \
-		-g $(CLUSTERRC) \
-		-n "${CLUSTER_NAME}IP" \
-		--sku STANDARD
-	az network public-ip show \
-		-g $(CLUSTERRC) \
-		-n "${CLUSTER_NAME}IP" \
-		-o tsv --query ipAddress
-
-.PHONY: nodepool
-nodepool: ## Add new AKS node pool
-	$(eval NODE_SUFIX=$(shell date +"%d%m"))
-	az aks nodepool add \
-		--cluster-name $(CLUSTER_NAME) \
-		--name nodepool$(NODE_SUFIX) \
-		--node-count $(NODE_COUNT) \
-		--node-vm-size $(NODE_TYPE) \
-		--mode System \
-		--no-wait
 
 .PHONY: certs
 certs: ## Create wildcard TLS certificates using letsencrypt
@@ -252,7 +203,7 @@ pass: ## Print Grafana admin password
 	@echo 
 
 .PHONY: ports
-ports: ## Forward observability ports
+ports: portstop ## Forward observability ports
 	kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
 	kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
 	kubectl port-forward svc/zipkin 9411 -n dapr-monitoring &
@@ -335,7 +286,7 @@ namespace: ## Configures namespace (make namespace NSNAME=default)
 
 .PHONY: portstop
 portstop: ## Stop previously forwarded observability ports 
-	pkill kubectl -9
+	if pgrep kubectl &> /dev/null ; then pkill kubectl -9 ; fi
 
 .PHONY: upgrade
 upgrade: ## Upgrades Dapr to specific release version (make upgrade DAPR_RELEASE="0.11.0-rc.3")
@@ -348,10 +299,6 @@ upgrade: ## Upgrades Dapr to specific release version (make upgrade DAPR_RELEASE
 		--set-file dapr_sentry.tls.issuer.certPEM=./certs/issuer.crt \
 		--set-file dapr_sentry.tls.issuer.keyPEM=./certs/issuer.key \
 		--reset-values ./charts/dapr
-
-.PHONY: clusterdown
-clusterdown: clusterlist ## Delete previously created AKS cluster (make clusterdown CLUSTER_NAME=demo)
-	az aks delete --name $(CLUSTER_NAME)
 
 .PHONY: help
 help: ## Display available commands
