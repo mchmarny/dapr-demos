@@ -86,8 +86,8 @@ dapr-install: ## Install and configures Dapr
 	# Installing Dapr...
 	kubectl create ns dapr-system
 	helm install dapr dapr/dapr -n dapr-system \
-		--set global.logAsJson=$(DAPR_HA) \
-		--set global.ha.enabled=$(DAPR_LOG_AS_JSON)
+		--set global.logAsJson=$(DAPR_LOG_AS_JSON) \
+		--set global.ha.enabled=$(DAPR_HA)
 	# Wait for everything to finish installing 
 	kubectl rollout status deployment/dapr-operator -n dapr-system
 	kubectl rollout status deployment/dapr-dashboard -n dapr-system
