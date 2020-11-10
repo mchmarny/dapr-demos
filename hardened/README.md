@@ -274,11 +274,11 @@ Start by generating some requests:
 
 ```shell
 for i in {1..100}; do \
+  sleep 1; \
   curl -i -d '{ "message": "hello" }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping; \
-  sleep 1; \
+     https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping
 done
 ```
 
