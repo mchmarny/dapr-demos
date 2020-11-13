@@ -21,6 +21,7 @@ Collection of personal [Dapr](https://dapr.io) demos.
   * [Dapr Component in Kubernetes](./component-api) - Dapr components as microservices on Kubernates without app
   * [Dapr Apps in ACI](./dapr-aci) - Deploying apps with Dapr sidecar and components on ACI
   * [Dapr with APIM](./apim-gateway) - Dapr API using Azure API Management self-hosted gateway
+  * [Dapr API on Ingress](./daprized-ingress) - Expose Dapr API on Kubernetes Ingress Controller using NGINX
 * Solutions
   * [Order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Pipeline](./pipeline) - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
