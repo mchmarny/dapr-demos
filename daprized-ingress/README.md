@@ -4,11 +4,11 @@ This how to will walk through the process of configuring Dapr api on your cluste
 
 ![](img/diagram.png)
 
-> This how-to assumes you already have Dapr installed in your cluster. If not, consider the opinionated install [here](../setup).
+> This how-to assumes you already have Dapr installed in your cluster. If not, consider the opinionated install [here](../setup) or the fully documented instruction in [Dapr docs](https://docs.dapr.io/operations/hosting/kubernetes/).
 
 ## Setup
 
-To make this how-to more reproducable, start by defining the namespace where your NGINX ingress is/will be located:
+To make this how-to more reproducible, start by defining the namespace where your NGINX ingress is/will be located:
 
 ```shell
 export INGRESS_NAMESPACE="default"
@@ -99,6 +99,8 @@ When done, apply the ingress to the cluster:
 ```shell
 kubectl apply -f config/ingress.yaml -n $INGRESS_NAMESPACE
 ```
+
+> See [setup](../setup) for instructions hot to create TLS certificates and configure SSL for your domain.
 
 ## DNS
 
