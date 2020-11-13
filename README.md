@@ -2,7 +2,7 @@
 
 Collection of personal [Dapr](https://dapr.io) demos.
 
-> Note, some of these demos require latest version of Dapr, Ingress gateway, Observability components, or cluster-local Redis and Mongo services. To create Kubernates cluster with all these components on AKS, or quickly configure an existing cluster, consider the [Dapr Cluster Setup](./setup) utility.
+> Note, some of these demos require latest version of Dapr, Ingress gateway, Observability components, or cluster-local Redis and Mongo services. To create Kubernetes cluster with all these components on AKS, or quickly configure an existing cluster, consider the [Dapr Cluster Setup](./setup) utility.
 
 
 * Bindings
@@ -18,7 +18,7 @@ Collection of personal [Dapr](https://dapr.io) demos.
   * [Sentiment Scorer](./pipeline/sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
 * Integrations
   * [Dapr Components in ACI](./dapr-api-on-aci) - Dapr components as microservices on ACI without app
-  * [Dapr Component in Kubernetes](./component-api) - Dapr components as microservices on Kubernates without app
+  * [Dapr Component in Kubernetes](./component-api) - Dapr components as microservices on Kubernetes without app
   * [Dapr Apps in ACI](./dapr-aci) - Deploying apps with Dapr sidecar and components on ACI
   * [Dapr with APIM](./apim-gateway) - Dapr API using Azure API Management self-hosted gateway
   * [Dapr API on Ingress](./daprized-ingress) - Expose Dapr API on Kubernetes Ingress Controller using NGINX
