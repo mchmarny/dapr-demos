@@ -50,8 +50,15 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.DEVOPS_TOKEN }}
         registry: ${{ env.REGISTRY }}
+        repository: ${{ github.actor }}/dapr-demos/git-ops-app
         push: true
         tags: ${{ env.RELEASE_VERSION }}
         build-args: |
             APP_VERSION=${{ env.RELEASE_VERSION }}
             BUILD_TIME=${{ env.BUILD_TIME }}
+
+
+
+
+          
+  
