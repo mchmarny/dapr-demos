@@ -51,9 +51,7 @@ jobs:
         password: ${{ secrets.DEVOPS_TOKEN }}
         registry: ${{ env.REGISTRY }}
         push: true
-        tags: |
-          ${{ env.RELEASE_VERSION }}
-          latest
+        tags: ${{ env.RELEASE_VERSION }}
         build-args: |
             APP_VERSION=${{ env.RELEASE_VERSION }}
             BUILD_TIME=${{ env.BUILD_TIME }}
