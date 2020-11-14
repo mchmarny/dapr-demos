@@ -52,8 +52,8 @@ jobs:
         registry: ${{ env.REGISTRY }}
         push: true
         tags: |
-          ghcr.io/${{ github.actor }}/git-ops-app:${{ env.RELEASE_VERSION }}
-          ghcr.io/${{ github.actor }}/git-ops-app:latest
+          ${{ env.RELEASE_VERSION }}
+          latest
         build-args: |
             APP_VERSION=${{ env.RELEASE_VERSION }}
             BUILD_TIME=${{ env.BUILD_TIME }}
