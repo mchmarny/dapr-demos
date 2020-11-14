@@ -50,6 +50,8 @@ jobs:
             GIT_AUTH_TOKEN=${{ secrets.DEVOPS_TOKEN }}
         context: ./git-ops/app
         file: ./git-ops/app/Dockerfile
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
         push: true
         tags: |
