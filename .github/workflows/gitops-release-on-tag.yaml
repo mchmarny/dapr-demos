@@ -24,13 +24,13 @@ jobs:
 
     - name: Tidy
       run: |
-        cd git-ops
+        cd git-ops/app
         go mod tidy 
         go mod vendor
 
     - name: Test
       run: |
-        cd git-ops
+        cd git-ops/app
         go test -v -count=1 -race ./...
 
     - name: Version
