@@ -1,5 +1,5 @@
 CLUSTER_NAME     ?=demo
-CLUSTER_VERSION  ?=1.18.8
+CLUSTER_VERSION  ?=1.18.10
 NODE_COUNT       ?=3
 NODE_TYPE        ?=Standard_D4_v2
 

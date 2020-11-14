@@ -1,5 +1,6 @@
 DOMAIN           ?=example.com
 CLUSTER_NAME     ?=demo
+DAPR_RELEASE     ?=0.11.3
 DAPR_HA          ?=true
 DAPR_LOG_AS_JSON ?=true
 
@@ -8,6 +9,7 @@ all:
 	@echo === ACTIVE CONFIGURATION ===
 	@echo "DOMAIN:           ${DOMAIN}"
 	@echo "CLUSTER_NAME:     ${CLUSTER_NAME}"
+	@echo "DAPR_RELEASE:     ${DAPR_RELEASE}"
 	@echo "DAPR_HA:          ${DAPR_HA}"
 	@echo "DAPR_LOG_AS_JSON: ${DAPR_LOG_AS_JSON}"
 	@echo 
@@ -37,6 +39,7 @@ dapr-install: ## Install and configures Dapr
 	# Installing Dapr...
 	kubectl create ns dapr-system
 	helm install dapr dapr/dapr -n dapr-system \
+		--set global.tag=$(DAPR_RELEASE) \
 		--set global.logAsJson=$(DAPR_LOG_AS_JSON) \
 		--set global.ha.enabled=$(DAPR_HA)
 	# Wait for everything to finish installing 

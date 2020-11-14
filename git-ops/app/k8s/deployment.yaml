@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitops
+  namespace: gitops
+  labels:
+    app: gitops
+spec:
+  selector:
+    matchLabels:
+      app: gitops
+  template:
+    metadata:
+      labels:
+        app: gitops
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "gitops"
+        dapr.io/app-protocol: "http"
+        dapr.io/app-port: "8080"
+        dapr.io/config: "gitops-config"
+        dapr.io/log-as-json: "true"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: service
+        image: ghcr.io/mchmarny/git-ops-app:v0.1.4
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ADDRESS
+          value: ":8080"

@@ -1,0 +1,19 @@
+{{ define "index" }}
+
+{{ template "header" . }}
+
+
+<div id="middle-section">
+    <div id="message">
+        {{ .message }}
+    </div>
+    <div id="version">
+        release: <b>{{ .version }}</b>
+        <br />
+        build time: <b>{{ .built }}</b>
+    </div>
+</div>
+
+{{ template "footer" . }}
+
+{{ end }}

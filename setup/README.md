@@ -74,7 +74,6 @@ And few cluster operations helpers
 * `node-list` to print node resources and their usage
 * `make ports` to forward observability dashboards ports 
 * `make pass` to print the Grafana password (username: admin)
-* `make nodes` to print node resource usage
 
 Then for each namespace you want to deploy Dapr apps to
 

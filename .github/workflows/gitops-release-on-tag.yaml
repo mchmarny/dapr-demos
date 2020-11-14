@@ -1,0 +1,50 @@
+name: git-ops release on tag
+
+on:
+  push:
+    tags:
+      - 'gitops-v*' # gitops-v0.1.1
+
+jobs:
+
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Setup
+      id: go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.15
+
+    - name: Checkout
+      id: setup
+      uses: actions/checkout@v2
+
+    - name: Tidy
+      run: |
+        cd git-ops
+        go mod tidy 
+        go mod vendor
+
+    - name: Test
+      run: |
+        cd git-ops
+        go test -v -count=1 -race ./...
+
+    - name: Version
+      id: get_version
+      run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:10})
+
+    - name: Push
+      uses: docker/build-push-action@v2
+      with:
+        context: ./git-ops/app
+        file: ./Dockerfile
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: docker.pkg.github.com
+        push: true
+        tags: ${{ github.actor }}/git-ops-app:${{ ASSET_SHA }}
+        tag_with_ref: true
