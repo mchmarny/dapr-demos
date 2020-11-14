@@ -46,18 +46,15 @@ jobs:
     - name: Push
       uses: docker/build-push-action@v2
       with:
-        run: |
-          echo "::debug::RELEASE_VERSION=${{ env.RELEASE_VERSION }}"
-          echo "::debug::BUILD_TIME=${{ env.BUILD_TIME }}"
+        secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.DEVOPS_TOKEN }}
         context: ./git-ops/app
         file: ./git-ops/app/Dockerfile
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
         push: true
         tags: |
-          ghcr.io/${{ github.actor }}/dapr-demos/git-ops-app:${{ env.RELEASE_VERSION }}
-          ghcr.io/${{ github.actor }}/dapr-demos/git-ops-app:latest
+          ghcr.io/${{ github.actor }}/git-ops-app:${{ env.RELEASE_VERSION }}
+          ghcr.io/${{ github.actor }}/git-ops-app:latest
         build-args: |
             APP_VERSION=${{ env.RELEASE_VERSION }}
             BUILD_TIME=${{ env.BUILD_TIME }}
