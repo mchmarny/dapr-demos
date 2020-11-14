@@ -65,7 +65,7 @@ Notice we are adding additional configuration which appends all the necessary po
 controller:
   podAnnotations:
     dapr.io/enabled: "true" 
-    dapr.io/id: "nginx-ingress" 
+    dapr.io/app-id: "nginx-ingress" 
     dapr.io/app-protocol: "http"
     dapr.io/app-port: "80"
     dapr.io/api-token-secret: "dapr-api-token" 

@@ -14,7 +14,7 @@ spec:
         app: autoscaling-subscriber
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "autoscaling-subscriber"
+        dapr.io/app-id: "autoscaling-subscriber"
         dapr.io/app-protocol: "grpc"
         dapr.io/app-port: "60033"
         dapr.io/log-level: "debug"

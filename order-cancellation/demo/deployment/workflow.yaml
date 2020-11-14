@@ -14,9 +14,9 @@ spec:
       labels:
         app: workflows-host
       annotations:
-        dapr.io/id: "workflows"
+        dapr.io/app-id: "workflows"
         dapr.io/enabled: "true"
-        dapr.io/port: "50003"
+        dapr.io/app-port: "50003"
         dapr.io/protocol: "grpc"
         dapr.io/config: "tracing"
         dapr.io/log-level: "debug"

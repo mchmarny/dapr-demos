@@ -15,9 +15,9 @@ spec:
         app: order-auditor
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "order-auditor"
+        dapr.io/app-id: "order-auditor"
         dapr.io/protocol: "http"
-        dapr.io/port: "3001"
+        dapr.io/app-port: "3001"
         dapr.io/config: "tracing"
         dapr.io/log-as-json: "true"
     spec:

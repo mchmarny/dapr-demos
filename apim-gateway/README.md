@@ -393,8 +393,8 @@ To deploy your application as a Dapr service all you need to do is augment your 
 ```yaml
 annotations:
      dapr.io/enabled: "true"
-     dapr.io/id: "event-subscriber"
-     dapr.io/port: "8080"
+     dapr.io/app-id: "event-subscriber"
+     dapr.io/app-port: "8080"
 ```
 
 > To learn more about Kubernetes sidecar configuration see [Dapr docs](https://github.com/dapr/docs/blob/master/concepts/configuration/README.md#kubernetes-sidecar-configuration).

@@ -14,7 +14,7 @@ spec:
         app: autoscaling-producer
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/id: "autoscaling-producer"
+        dapr.io/app-id: "autoscaling-producer"
         dapr.io/app-protocol: "grpc"
         dapr.io/app-port: "60034"
         dapr.io/log-level: "debug"
