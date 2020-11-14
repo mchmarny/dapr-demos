@@ -43,7 +43,7 @@ jobs:
         echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_ENV
 
     - name: Push
-      uses: docker/build-push-action@v2.1
+      uses: docker/build-push-action@v2
       with:
         context: ./git-ops/app
         file: ./git-ops/app/Dockerfile
