@@ -48,5 +48,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
         push: true
-        tags: "ghcr.io/${{ github.actor }}/git-ops-app:${RELEASE_VERSION}"
-        build-args: "APP_VERSION=${RELEASE_VERSION},BUILD_TIME=${BUILD_TIME}"
+        tags: "ghcr.io/${{ github.actor }}/git-ops-app:${{ env.RELEASE_VERSION }}"
+        build-args: |
+            APP_VERSION=${{ env.RELEASE_VERSION }}
+            BUILD_TIME=${{ env.BUILD_TIME }}
