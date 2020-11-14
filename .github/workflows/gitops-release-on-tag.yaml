@@ -45,9 +45,9 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: ./git-ops/app
-        file: ./Dockerfile
+        file: ./git-ops/app/Dockerfile
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
         push: true
-        tags: ${{ github.actor }}/git-ops-app:v0.2.3
+        tags: ${{ github.actor }}/git-ops-app:v0.2.4
