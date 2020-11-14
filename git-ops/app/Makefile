@@ -1,4 +1,4 @@
-APP_VERSION ?=v0.1.7
+APP_VERSION ?=v0.1.8
 APP_ID      ?=app
 APP_PORT    ?=8080
 IMAGE_NAME  ?=git-ops-app

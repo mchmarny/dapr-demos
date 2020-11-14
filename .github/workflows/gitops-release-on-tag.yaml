@@ -46,5 +46,5 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
         push: true
-        tags: ${{ github.actor }}/git-ops-app:${RELEASE_VERSION}
+        tags: ${{ github.actor }}/git-ops-app:${{ RELEASE_VERSION }}
         tag_with_ref: true
