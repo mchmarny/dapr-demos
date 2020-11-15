@@ -17,11 +17,12 @@ Collection of personal [Dapr](https://dapr.io) demos.
   * [HTTP echo service](./http-echo-service) - HTTP service invocation example
   * [Sentiment Scorer](./pipeline/sentiment-scorer) - Sentiment scoring serving backed by Azure Cognitive Service 
 * Integrations
-  * [Dapr Components in ACI](./dapr-api-on-aci) - Dapr components as microservices on ACI without app
-  * [Dapr Component in Kubernetes](./component-api) - Dapr components as microservices on Kubernetes without app
+  * [Components in ACI](./dapr-api-on-aci) - Dapr components as microservices on ACI without app
+  * [Component in Kubernetes](./component-api) - Dapr components as microservices on Kubernetes without app
   * [Dapr Apps in ACI](./dapr-aci) - Deploying apps with Dapr sidecar and components on ACI
   * [Dapr with APIM](./apim-gateway) - Dapr API using Azure API Management self-hosted gateway
   * [Dapr API on Ingress](./daprized-ingress) - Expose Dapr API on Kubernetes Ingress Controller using NGINX
+  * [Dapr GitOps](https://github.com/mchmarny/git-ops) - GitHub Actions build pipeline for Dapr apps
 * Solutions
   * [Order cancellation](./order-cancellation) - multiple Dapr service integrations with observability
   * [Pipeline](./pipeline) - Demos combining Twitter binding, Sentiment scoring, Multi Pub/Sub Processor, and WebSocket Viewer app
