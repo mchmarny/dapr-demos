@@ -91,7 +91,7 @@ app3-6d57778cbd-mxn2k   2/2     Running   0          40s
 The Dapr API exposed on the cluster ingress is protected with [token authentication](https://github.com/dapr/docs/tree/master/howto/enable-dapr-api-token-based-authentication#enable-dapr-apis-token-based-authentication). Start by exporting that token from the cluster secret to allow for API invocation in this demo.
 
 ```shell
-export API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
+export API_TOKEN=$(kubectl get secret dapr-api-token -n nginx -o jsonpath="{.data.token}" | base64 --decode)
 ```
 
 ### Service Invocation
@@ -121,13 +121,13 @@ accessControl:
 
 To demo this now, invoke the `ping` method on `app1` in the `hardened` namespace using the Dapr API exposed on the NGNX ingress.
 
-> The [Dapr cluster setup](../setup#dapr-cluster-setup) includes custom domain and TLS certificate support. This demo users `thingz.io` domain and a wildcard certificates for al (`*`) subdomains.
+> The [Dapr cluster setup](../setup#dapr-cluster-setup) includes custom domain and TLS certificate support. This demo users `api.demo.dapr.team` domain and a wildcard certificates for al (`*`) subdomains.
 
 ```shell
 curl -i -d '{ "message": "hello" }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping
+     https://api.demo.dapr.team/v1.0/invoke/app1.hardened/method/ping
 ```
 
 Dapr should respond with HTTP status code `200` as well as parent trace ID for this invocation (`traceparent`) in the header, and a JSON payload with the number of API invocations and nano epoch timestamp.
@@ -151,7 +151,7 @@ To demo the active access policy, try also to invoke the `counter` method on `ap
 curl -i -d '{ "on": 1603627556200126373, "count": 2 }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     https://api.thingz.io/v1.0/invoke/app2.hardened/method/counter
+     https://api.demo.dapr.team/v1.0/invoke/app2.hardened/method/counter
 ```
 
 That invocation will result in an error. The response will include `PermissionDenied` message:
@@ -278,14 +278,14 @@ for i in {1..100}; do \
   curl -i -d '{ "message": "hello" }' \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     https://api.thingz.io/v1.0/invoke/app1.hardened/method/ping
+     https://api.demo.dapr.team/v1.0/invoke/app1.hardened/method/ping
 done
 ```
 
 Then forward the Zipkin port locally:
 
 ```shell
-kubectl port-forward svc/zipkin 9411 -n dapr-monitoring &
+kubectl port-forward svc/zipkin 9411 -n dapr-monitoring
 ```
 
 And navigate to the Zipkin UI to review traces 
