@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tweets-ingress-rules
+  namespace: pipeline
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+    - hosts:
+      - '*.demo.dapr.team'  
+      - demo.dapr.team
+      secretName: tls-secret
+  rules:
+    - host: tweets.demo.dapr.team
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: tweet-viewer
+              servicePort: 80

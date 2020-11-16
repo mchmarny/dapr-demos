@@ -2,9 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tweet-provider
+  namespace: pipeline
   labels:
     app: tweet-provider
-    demo: twitter
+    demo: pipeline
 spec:
   selector:
     matchLabels:
@@ -13,12 +14,12 @@ spec:
     metadata:
       labels:
         app: tweet-provider
-        demo: twitter
+        demo: pipeline
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "tweet-provider"
         dapr.io/app-port: "8080"
-        dapr.io/config: "tracing" 
+        dapr.io/config: "space-config" 
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:

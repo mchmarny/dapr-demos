@@ -2,9 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tweet-viewer
+  namespace: pipeline
   labels:
     app: tweet-viewer
-    demo: tweet-viewer
+    demo: pipeline
 spec:
   selector:
     matchLabels:
@@ -13,13 +14,13 @@ spec:
     metadata:
       labels:
         app: tweet-viewer
-        demo: tweet-viewer
+        demo: pipeline
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "tweet-viewer"
         dapr.io/app-protocol: "http"
         dapr.io/app-port: "8084"
-        dapr.io/config: "tracing"
+        dapr.io/config: "space-config"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
@@ -40,6 +41,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tweet-viewer
+  namespace: pipeline
 spec:
   selector:
     app: tweet-viewer

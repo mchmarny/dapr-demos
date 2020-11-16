@@ -127,32 +127,34 @@ ingress: ## Install and configures Ngnx ingress, configure SSL termination, Dapr
 	# Updating Help repos...
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo update
-	# Configure deafault namespace 
-	sed "s/NSNAME/default/g" config/namespace-template.yml > config/namespace.yml
+	# Configure nginx namespace 
+	sed "s/NSNAME/nginx/g" config/namespace-template.yml > config/namespace.yml
 	kubectl apply -f config/namespace.yml
 	# Gen Dapr API token 
 	$(eval API_TOKEN=$(shell openssl rand -base64 32))
-	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)"
+	kubectl create secret generic dapr-api-token --from-literal=token="$(API_TOKEN)" -n nginx
 	# Apply ingress config 
-	kubectl apply -f config/ingress-config.yaml
+	kubectl apply -f config/ingress-config.yaml -n nginx
 	# Deploy nginx...
 	helm install nginx ingress-nginx/ingress-nginx \
 		--set controller.replicaCount=2 \
 		--set controller.metrics.enabled=true \
-		-f config/ingress-annotations.yaml
-	kubectl rollout status deployment/nginx-ingress-nginx-controller
+		-f config/ingress-annotations.yaml \
+		-n nginx
+	kubectl rollout status deployment/nginx-ingress-nginx-controller -n nginx
 	# Install cert secrets
 	kubectl create secret tls tls-secret \
 		--key certs/$(DOMAIN)/cert-pk.pem \
-		--cert certs/$(DOMAIN)/cert-ca.pem
+		--cert certs/$(DOMAIN)/cert-ca.pem \
+		-n nginx
 	sed "s/DOMAINNAME/${DOMAIN}/g" config/ingress-template.yaml > config/ingress.yaml
 	# Apply configured ingress 
-	kubectl apply -f config/ingress.yaml
+	kubectl apply -f config/ingress.yaml -n nginx
 
 .PHONY: dns
 dns: ## Check DNS resolution for cluster IP
 	dig api.$(DOMAIN)
-	$(eval LB_IP=$(shell kubectl get svc nginx-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'))
+	$(eval LB_IP=$(shell kubectl get svc nginx-ingress-nginx-controller -n nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}'))
 	@echo === DNS CHECK ===
 	@echo 
 	@echo "Ensure the A record for 'api.${DOMAIN}' in the ANSWER SECTION resolves to:"
@@ -168,7 +170,7 @@ dns: ## Check DNS resolution for cluster IP
 
 .PHONY: test
 test: ## Test deployment and execute Dapr API health checks
-	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -n nginx -o jsonpath="{.data.token}" | base64 --decode))
 	curl -v \
 		 -H "Content-type: application/json" \
 		 -H "dapr-api-token: $(API_TOKEN)" \
@@ -188,7 +190,7 @@ test: ## Test deployment and execute Dapr API health checks
 
 .PHONY: token
 token: ## Print Dapr API token 
-	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode))
+	$(eval API_TOKEN=$(shell kubectl get secret dapr-api-token -n nginx -o jsonpath="{.data.token}" | base64 --decode))
 	@echo
 	@echo Dapr API token is: 
 	@echo
@@ -220,8 +222,8 @@ ports: portstop ## Forward observability ports
 
 .PHONY: reload
 reload: ## Reloads API to pickup new components 
-	kubectl rollout restart deployment/nginx-ingress-nginx-controller
-	kubectl rollout status deployment/nginx-ingress-nginx-controller
+	kubectl rollout restart deployment/nginx-ingress-nginx-controller -n nginx
+	kubectl rollout status deployment/nginx-ingress-nginx-controller -n nginx
 
 .PHONY: redis
 redis: ## Install Redis into the cluster
@@ -231,7 +233,7 @@ redis: ## Install Redis into the cluster
 	kubectl create ns redis
 	# redis 
 	helm install redis bitnami/redis -n redis 
-	# Waiting for ingress to be ready...
+	# Waiting for redis to be ready...
 	kubectl rollout status statefulset.apps/redis-master -n redis
 	kubectl rollout status statefulset.apps/redis-slave -n redis
 	
@@ -250,7 +252,7 @@ mongo: ## Install Mongo into the cluster
 		--set replicaCount=3 \
 		bitnami/mongodb \
 		-n mongo
-	# Waiting for ingress to be ready...
+	# Waiting for mongo to be ready...
 	kubectl rollout status statefulset.apps/mongo-mongodb -n mongo
 	kubectl rollout status statefulset.apps/mongo-mongodb-arbiter -n mongo
 	

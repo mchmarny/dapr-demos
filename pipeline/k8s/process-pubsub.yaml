@@ -1,7 +1,8 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: tweeter-pubsub
+  name: processed-tweets-pubsub
+  namespace: pipeline
 spec:
   type: pubsub.redis
   metadata:
@@ -12,7 +13,7 @@ spec:
       name: redis-secret
       key: password
   - name: allowedTopics
-    value: "tweets"
+    value: "processed-tweets"
 scopes:
-- tweet-provider
 - tweet-processor
+- tweet-viewer

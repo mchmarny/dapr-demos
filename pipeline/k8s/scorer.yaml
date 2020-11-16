@@ -2,9 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sentiment-scorer
+  namespace: pipeline
   labels:
     app: sentiment-scorer
-    demo: sentiment
+    demo: pipeline
 spec:
   selector:
     matchLabels:
@@ -13,13 +14,13 @@ spec:
     metadata:
       labels:
         app: sentiment-scorer
-        demo: sentiment
+        demo: pipeline
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "sentiment-scorer"
         dapr.io/app-protocol: "grpc"
         dapr.io/app-port: "60002"
-        dapr.io/config: "tracing"
+        dapr.io/config: "space-config"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
