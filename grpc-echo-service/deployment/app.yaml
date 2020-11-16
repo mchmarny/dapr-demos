@@ -1,33 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc-echo-service
+  name: echo-service
+  namespace: echo
   labels:
-    app: grpc-echo-service
-    demo: echo
+    app: echo-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grpc-echo-service
+      app: echo-service
   template:
     metadata:
       labels:
-        app: grpc-echo-service
-        demo: echo
+        app: echo-service
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "grpc-echo-service"
+        dapr.io/app-id: "echo-service"
         dapr.io/app-protocol: "grpc"
         dapr.io/app-port: "60002"
-        dapr.io/config: "tracing"
+        dapr.io/config: "echo-config"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
       containers:
       - name: service
-        image: mchmarny/grpc-echo-service:v0.11.1
-        imagePullPolicy: Always
+        image: ghcr.io/mchmarny/grpc-echo-service:v0.1.4
         ports:
         - containerPort: 60002
         env:

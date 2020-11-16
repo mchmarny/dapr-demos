@@ -1,6 +1,8 @@
-RELEASE_VERSION  =v0.11.1
-SERVICE_NAME    ?=grpc-echo-service
-DOCKER_USERNAME ?=$(DOCKER_USER)
+RELEASE_VERSION  =v1.0.1
+SERVICE_NAME    ?=echo
+IMAGE_NAME      ?=grpc-echo-service
+IMAGE_TAG       ?=v0.1.4
+IMAGE_OWNER     ?=$(shell git config --get user.username)
 
 .PHONY: all
 all: help
@@ -30,15 +32,9 @@ invoke: ## Invokes service through Dapr API
      "http://localhost:3500/v1.0/invoke/$(SERVICE_NAME)/method/echo"
 
 .PHONY: image
-image: tidy ## Builds and publish docker image 
-	docker build -t "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)" .
-	docker push "$(DOCKER_USERNAME)/$(SERVICE_NAME):$(RELEASE_VERSION)"
-
-.PHONY: deploy
-deploy: ## Deploys prebuild image to k8s using currently selected context 
-	kubectl apply -f deployment.yaml
-	kubectl rollout restart deployment/grpc-echo-service
-	kubectl rollout status deployment/grpc-echo-service
+image: tidy ## Builds and publish image 
+	docker build -t "ghcr.io/$(IMAGE_OWNER)/$(IMAGE_NAME):$(IMAGE_TAG)" .
+	docker push "ghcr.io/$(IMAGE_OWNER)/$(IMAGE_NAME):$(IMAGE_TAG)"
 
 .PHONY: call
 call: ## Invokes service through Dapr API 
