@@ -72,21 +72,20 @@ Forward local ports:
 ```shell
 kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
 kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
-kubectl port-forward svc/zipkin 9411 &
+kubectl port-forward svc/zipkin 9411 -n dapr-monitoring &
 ```
 
 #### Traces
 
 Navigate to Zipkin: http://localhost:9411
 
-### Logs 
+#### Logs 
 
 Navigate to Kibana: http://localhost:5601
 
-### Metrics 
+#### Metrics 
 
 Navigate to Grafana: http://localhost:8888
-
 
 ## Setup  
 
