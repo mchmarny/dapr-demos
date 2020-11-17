@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: order-viewer
+  namespace: order
   labels:
     app: order-viewer
 spec:
@@ -18,7 +19,7 @@ spec:
         dapr.io/app-id: "order-viewer"
         dapr.io/app-protocol: "http"
         dapr.io/app-port: "8080"
-        dapr.io/config: "tracing"
+        dapr.io/config: "order-config"
         dapr.io/log-as-json: "true"
         dapr.io/log-level: "debug"
     spec:
@@ -39,6 +40,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: order-viewer
+  namespace: order
 spec:
   selector:
     app: order-viewer

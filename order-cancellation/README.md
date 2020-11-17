@@ -1,6 +1,6 @@
 # Dapr integrations demo
 
-> WIP: This demo is being currently updated to Dapr v0.11
+> WIP: This demo is being currently updated to Dapr v1.0.0.rc-1
 
 ## Use-case
 
@@ -36,9 +36,9 @@ Dapr integration demo consists of:
 
 ### 1. Dashboard 
 
-> Note, these instructions assume `cloudylabs.dev` domain setup in the [cluster setup](../setup/README.md) step. You will need to substitute this for your own domain. 
+> Note, these instructions assume `demo.dapr.team` domain setup in the [cluster setup](../setup/README.md) step. You will need to substitute this for your own domain. 
 
-Navigate to https://viewer.cloudylabs.dev to start the order processing dashboard. There won't be any data yet, so this is just to open the WebSocket connection. 
+Navigate to https://order.demo.dapr.team to start the order processing dashboard. There won't be any data yet, so this is just to open the WebSocket connection. 
 
 ![Initial UI](img/ui1.png)
 
@@ -52,12 +52,12 @@ curl -i \
      -d @demo/data/cancellation.json \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     "https://api.cloudylabs.dev/v1.0/invoke/workflows/method/order-cancel"
+     "https://api.demo.dapr.team/v1.0/invoke/workflows/method/order-cancel"
 ```
 
 ### 3. Dashboard (updated)
 
-View the dashboard again at https://viewer.cloudylabs.dev to see the orders
+View the dashboard again at https://order.demo.dapr.team to see the orders
 
 ### 4. Email 
 

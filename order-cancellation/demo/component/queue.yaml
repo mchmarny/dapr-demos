@@ -2,6 +2,7 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: order-queue
+  namespace: order
 spec:
   type: pubsub.redis
   metadata:

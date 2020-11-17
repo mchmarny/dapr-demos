@@ -4,12 +4,18 @@
 
 ## Components 
 
-Start by create the SandGrid secret
+Start by create the `order` namespace: 
+
+```shell
+kubectl apply -f ./deployment/space.yaml
+```
+
+SandGrid secret
 
 > the queue and store secrets were already created during the cluster setup
 
 ```shell
-kubectl create secret generic email --from-literal=api-key="${SENDGRID_KEY}"
+kubectl create secret generic email --from-literal=api-key="${SENDGRID_KEY}" -n order
 ```
 
 Now deploy the queue, state and workflow stores, and email components
@@ -26,14 +32,14 @@ Deploy Dapr auditor functions and wait for it to be ready
 
 ```shell
 kubectl apply -f deployment/auditor.yaml
-kubectl rollout status deployment/order-auditor
+kubectl rollout status deployment/order-auditor -n order
 ```
 
 Check logs for errors from both containers
 
 ```shell
-kubectl logs -l app=order-auditor -c daprd --tail 300
-kubectl logs -l app=order-auditor -c auditor
+kubectl logs -l app=order-auditor -c daprd -n order --tail 300
+kubectl logs -l app=order-auditor -c auditor -n order
 ```
 
 ### Workflow 
@@ -41,7 +47,7 @@ kubectl logs -l app=order-auditor -c auditor
 Create the config map to hold the Dapr workflow definition
 
 ```shell
-kubectl create configmap workflows --from-file config/order-cancel.json
+kubectl create cm workflows --from-file config/order-cancel.json -n order
 ```
 
 Create the Azure storage account 
@@ -58,7 +64,8 @@ Create secret to hold the workflow Azure storage account key
 ```shell
 kubectl create secret generic dapr-workflows \
   --from-literal=accountName=daprintdemo \
-  --from-literal=accountKey=$AZSAKEY
+  --from-literal=accountKey=$AZSAKEY \
+  -n order
 ```
 
 Deploy Dapr Workflows host and wait for it to be ready
@@ -71,8 +78,8 @@ kubectl rollout status deployment/workflows-host
 Check logs for errors from both containers
 
 ```shell
-kubectl logs -l app=workflows-host -c daprd --tail 300
-kubectl logs -l app=workflows-host -c host
+kubectl logs -l app=workflows-host -c daprd -n order --tail 300
+kubectl logs -l app=workflows-host -c host -n order
 ```
 
 ### Viewer
@@ -84,15 +91,25 @@ kubectl apply -f deployment/viewer.yaml
 kubectl rollout status deployment/order-viewer
 ```
 
-Patch ingress to add the viewer rule
+Create the TLS certs for this domain 
+
+> `demo.dapr.team` is the domain I'm using for this demo
 
 ```shell
-kubectl get ing/ingress-rules -o json \
-  | jq '.spec.rules += [{"host":"viewer.cloudylabs.dev","http":{"paths":[{"backend": {"serviceName":"order-viewer","servicePort":80},"path":"/"}]}}]' \
-  | kubectl apply -f -
+kubectl create secret tls tls-secret \
+    -n order \
+    --key ../../setup/certs/demo.dapr.team/cert-pk.pem \
+    --cert ../../setup/certs/demo.dapr.team/cert-ca.pem
 ```
 
-Test it: https://viewer.cloudylabs.dev
+Deploy ingress for `order` 
+
+```shell
+kubectl apply -f deployment/ingress.yaml
+```
+
+
+Test it: https://order.demo.dapr.team
 
 ## Cleanup 
 
@@ -101,13 +118,11 @@ Test it: https://viewer.cloudylabs.dev
 kubectl delete -f ./deployment
 kubectl delete -f ./component
 
-kubectl delete secret email
-kubectl delete secret dapr-workflows
-kubectl delete configmap workflows
+kubectl delete secret email -n order
+kubectl delete secret dapr-workflows -n order
+kubectl delete configmap workflows -n order
 
 az storage account delete --name daprintdemo
 ```
-
-> TODO: Remove ingress rule 
 
 

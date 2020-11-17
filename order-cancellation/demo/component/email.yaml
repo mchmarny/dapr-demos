@@ -2,6 +2,7 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: order-email
+  namespace: order
 spec:
   type: bindings.twilio.sendgrid
   metadata:
@@ -12,5 +13,4 @@ spec:
       name: email
       key: api-key
 scopes:
-- nginx-ingress
 - workflows

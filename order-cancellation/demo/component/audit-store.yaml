@@ -2,6 +2,7 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: order-audit-store
+  namespace: order
 spec:
   type: state.mongodb
   metadata:

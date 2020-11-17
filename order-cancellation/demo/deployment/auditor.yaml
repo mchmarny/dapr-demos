@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: order-auditor
+  namespace: order
   labels:
     app: order-auditor
 spec:
@@ -16,9 +17,9 @@ spec:
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "order-auditor"
-        dapr.io/protocol: "http"
+        dapr.io/app-protocol: "http"
         dapr.io/app-port: "3001"
-        dapr.io/config: "tracing"
+        dapr.io/config: "order-config"
         dapr.io/log-as-json: "true"
     spec:
       containers:

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: workflows-host
+  namespace: order
   labels:
     app: workflows-host
 spec:
@@ -17,8 +18,8 @@ spec:
         dapr.io/app-id: "workflows"
         dapr.io/enabled: "true"
         dapr.io/app-port: "50003"
-        dapr.io/protocol: "grpc"
-        dapr.io/config: "tracing"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/config: "order-config"
         dapr.io/log-level: "debug"
         dapr.io/log-as-json: "true"
     spec:
