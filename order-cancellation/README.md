@@ -47,12 +47,12 @@ Navigate to https://order.demo.dapr.team to start the order processing dashboard
 Submit the order [cancellation.json](demo/data/cancellation.json) file using `curl`
 
 ```shell
-API_TOKEN=$(kubectl get secret dapr-api-token -o jsonpath="{.data.token}" | base64 --decode)
+API_TOKEN=$(kubectl get secret dapr-api-token -n nginx -o jsonpath="{.data.token}" | base64 --decode)
 curl -i \
      -d @demo/data/cancellation.json \
      -H "Content-type: application/json" \
      -H "dapr-api-token: ${API_TOKEN}" \
-     "https://api.demo.dapr.team/v1.0/invoke/workflows/method/order-cancel"
+     "https://api.demo.dapr.team/v1.0/invoke/workflows.order/method/order-cancel"
 ```
 
 ### 3. Dashboard (updated)
