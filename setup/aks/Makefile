@@ -29,10 +29,7 @@ cluster: ## Create AKS cluster
 		--name $(CLUSTER_NAME) \
 		--node-count $(NODE_COUNT) \
 		--node-vm-size $(NODE_TYPE) \
-		--enable-addons monitoring \
-		--kubernetes-version $(CLUSTER_VERSION) \
-		--generate-ssh-keys \
-		--enable-managed-identity
+		--kubernetes-version $(CLUSTER_VERSION)
 	az aks get-credentials --name $(CLUSTER_NAME)
 
 .PHONY: cluster-down

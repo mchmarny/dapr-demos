@@ -2,8 +2,6 @@ CLUSTER_NAME     ?=demo
 CLUSTER_ZONE     ?=us-west1-a
 CLUSTER_VERSION  ?=1.17.13-gke.600
 NODE_COUNT       ?=2
-NODE_COUNT_MIN   ?=1
-NODE_COUNT_MAX   ?=5
 NODE_TYPE        ?=n2-standard-4
 
 .PHONY: all
@@ -13,8 +11,6 @@ all:
 	@echo "CLUSTER_ZONE:     ${CLUSTER_ZONE}"
 	@echo "CLUSTER_VERSION:  ${CLUSTER_VERSION}"
 	@echo "NODE_COUNT:       ${NODE_COUNT}"
-	@echo "NODE_COUNT_MIN:   ${NODE_COUNT_MIN}"
-	@echo "NODE_COUNT_MAX:   ${NODE_COUNT_MAX}"
 	@echo "NODE_TYPE:        ${NODE_TYPE}"
 	@echo 
 	@echo "Export these as environment variables to change their values"
@@ -46,11 +42,8 @@ cluster: setup ## Create GKE cluster
 	  --cluster-version $(CLUSTER_VERSION) \
 	  --machine-type $(NODE_TYPE) \
 	  --num-nodes $(NODE_COUNT) \
-	  --min-nodes $(NODE_COUNT_MIN) \
-	  --max-nodes $(NODE_COUNT_MAX) \
 	  --enable-ip-alias \
 	  --enable-stackdriver-kubernetes \
-	  --enable-autoscaling \
 	  --enable-autorepair \
 	  --scopes cloud-platform
 	# Get cluster credentials 
