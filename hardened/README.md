@@ -327,12 +327,10 @@ Resulting in:
 If you update components you may have to restart the deployments.
 
 ```shell
-kubectl rollout restart deployment/app1 -n hardened
-kubectl rollout restart deployment/app2 -n hardened
-kubectl rollout restart deployment/app3 -n hardened
-kubectl rollout status deployment/app1 -n hardened
-kubectl rollout status deployment/app2 -n hardened
-kubectl rollout status deployment/app3 -n hardened
+kubectl rollout restart deployment app1 app2 app3 -n hardened
+kubectl rollout status deployment app1 -n hardened
+kubectl rollout status deployment app2 -n hardened
+kubectl rollout status deployment app3 -n hardened
 ```
 
 ## Cleanup

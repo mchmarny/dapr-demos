@@ -1,0 +1,119 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+declare -r DAPR_RELEASE=${DAPR_RELEASE:-"1.0.0-rc.1"}
+declare -r DAPR_HA=${DAPR_HA:-"false"}
+declare -r DAPR_LOG_AS_JSON=${DAPR_LOG_AS_JSON:-"false"}
+declare -r DAPR_CONFIG=${DAPR_CONFIG:-"https://raw.githubusercontent.com/mchmarny/dapr-demos/master/setup/config"}
+
+echo "Configuration:"
+echo "DAPR_RELEASE=${DAPR_RELEASE}"
+echo "DAPR_HA=${DAPR_HA}"
+echo "DAPR_LOG_AS_JSON=${DAPR_LOG_AS_JSON}"
+echo "DAPR_CONFIG=${DAPR_CONFIG}"
+
+if pgrep kubectl &> /dev/null ; then pkill kubectl -9 ; fi
+
+# Installing Dapr...
+helm repo add dapr https://dapr.github.io/helm-charts/
+helm repo update
+kubectl create ns dapr-system
+helm install dapr dapr/dapr -n dapr-system \
+	--version $DAPR_RELEASE \
+	--set global.logAsJson=$DAPR_LOG_AS_JSON \
+	--set global.ha.enabled=$DAPR_HA
+# Wait for everything to finish installing 
+kubectl rollout status deployment/dapr-operator -n dapr-system
+kubectl rollout status deployment/dapr-dashboard -n dapr-system
+kubectl rollout status deployment/dapr-sentry -n dapr-system
+kubectl rollout status deployment/dapr-sidecar-injector -n dapr-system
+
+# Installing Keda
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
+kubectl create ns keda
+helm install keda kedacore/keda -n keda --set logLevel=debug
+# Wait for everything to finish installing 
+kubectl rollout status deployment/keda-operator -n keda
+kubectl rollout status deployment/keda-operator-metrics-apiserver -n keda
+
+# Installing observabiliity...
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add elastic https://helm.elastic.co
+helm repo add prometheus https://prometheus-community.github.io/helm-charts
+helm repo update
+kubectl create ns dapr-monitoring
+kubectl apply \
+	-f "${DAPR_CONFIG}/fluentd-config.yaml" \
+	-f "${DAPR_CONFIG}/fluentd.yaml"
+kubectl apply -f "${DAPR_CONFIG}/zipkin.yaml" -n dapr-monitoring
+helm install elasticsearch elastic/elasticsearch -n dapr-monitoring
+helm install dapr-prom prometheus/prometheus -n dapr-monitoring
+helm install grafana grafana/grafana -n dapr-monitoring \
+	--set persistence.enabled=true \
+	--set persistence.accessModes={ReadWriteOnce} \
+	--set persistence.size=8Gi
+helm install kibana elastic/kibana -n dapr-monitoring
+
+# Wait for everything to be ready...
+kubectl rollout status deployment/dapr-prom-kube-state-metrics -n dapr-monitoring
+kubectl rollout status deployment/dapr-prom-prometheus-alertmanager -n dapr-monitoring
+kubectl rollout status deployment/dapr-prom-prometheus-pushgateway -n dapr-monitoring
+kubectl rollout status deployment/dapr-prom-prometheus-server -n dapr-monitoring
+kubectl rollout status deployment/grafana -n dapr-monitoring
+kubectl rollout status deployment/kibana-kibana -n dapr-monitoring
+
+# Configure grafana dashbaords 
+declare -r GRAFANA_PASS=$(kubectl get secret \
+							-n dapr-monitoring grafana \
+                            -o jsonpath="{.data.admin-password}" \
+							| base64 --decode)
+
+kubectl port-forward svc/grafana 8888:80 -n dapr-monitoring &
+curl -X POST -s -k -u "admin:${GRAFANA_PASS}" \
+		-H "Content-Type: application/json" \
+		-d '{ "name":"Dapr", "type":"prometheus", "url":"http://dapr-prom-prometheus-server.dapr-monitoring", "access":"proxy", "basicAuth":false }' \
+		http://localhost:8888/api/datasources
+
+declare -r DASH1="system-services-dashboard.json"
+if [ ! -f "$DASH1" ]; then
+    curl -O "${DAPR_CONFIG}/${DASH1}"
+fi
+curl -X POST -s -k -u "admin:${GRAFANA_PASS}" \
+		-H "Content-Type: application/json" \
+		-d @$DASH1 \
+		http://localhost:8888/api/dashboards/db
+
+declare -r DASH2="sidecar-dashboard.json"
+if [ ! -f "$DASH2" ]; then
+    curl -O "${DAPR_CONFIG}/${DASH2}"
+fi
+curl -X POST -s -k -u "admin:${GRAFANA_PASS}" \
+		-H "Content-Type: application/json" \
+		-d @sidecar-dashboard.json \
+		http://localhost:8888/api/dashboards/db
+
+declare -r DASH3="actor-dashboard.json"
+if [ ! -f "$DASH3" ]; then
+    curl -O "${DAPR_CONFIG}/${DASH3}"
+fi
+curl -X POST -s -k -u "admin:${GRAFANA_PASS}" \
+		-H "Content-Type: application/json" \
+		-d @actor-dashboard.json \
+		http://localhost:8888/api/dashboards/db
+
+# Configure kibana
+kubectl port-forward svc/kibana-kibana 5601 -n dapr-monitoring &
+curl -X POST -H "kbn-xsrf: true" \
+		-H "Content-Type: application/json" \
+		-d '{"attributes":{"title":"dapr*","timeFieldName":"@timestamp"}}' \
+		"http://localhost:5601/api/saved_objects/index-pattern/dapr"
+
+curl -X POST -H "kbn-xsrf: true" \
+		-H "Content-Type: application/json" \
+		-d '{"value":"dapr"}' \
+		"http://localhost:5601/api/kibana/settings/defaultIndex"
+
