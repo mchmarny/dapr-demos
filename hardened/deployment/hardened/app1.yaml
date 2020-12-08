@@ -44,6 +44,10 @@ metadata:
 spec:
   tracing:
     samplingRate: "1"
+  secrets:
+    scopes:
+      - storeName: kubernetes
+        defaultAccess: deny
   accessControl:
     defaultAction: deny
     trustDomain: "hardened"
